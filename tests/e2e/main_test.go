@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
-	"github.com/formancehq/terraform-provider/internal/membership"
-	"github.com/formancehq/terraform-provider/internal/providers"
+	"github.com/formancehq/terraform-provider-cloud/internal/server"
+	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
@@ -16,7 +16,7 @@ func TestMain(m *testing.M) {
 	endpoint := os.Getenv("FORMANCE_CLOUD_API_ENDPOINT")
 	clientID := os.Getenv("FORMANCE_CLOUD_CLIENT_ID")
 	clientSecret := os.Getenv("FORMANCE_CLOUD_CLIENT_SECRET")
-	Provider = providers.New(logging.Testing(), "develop", endpoint, clientID, clientSecret, membership.NewSDK)
+	Provider = server.New(logging.Testing(), "develop", endpoint, clientID, clientSecret, pkg.NewSDK)
 	code := m.Run()
 
 	os.Exit(code)

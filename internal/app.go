@@ -3,20 +3,9 @@ package internal
 import "fmt"
 
 const (
-	Repository  = "formancehq/tf-cloud-provider"
-	ServiceName = "terraform-provider-server"
-	Version     = "develop"
-	BuildDate   = "-"
-	Commit      = "-"
+	Repository  = "formancehq/terraform-provider-cloud"
+	ServiceName = "terraform-provider-cloud"
 )
-
-var App = AppInfo{
-	Name:       ServiceName,
-	Repository: Repository,
-	Version:    Version,
-	BuildDate:  BuildDate,
-	Commit:     Commit,
-}
 
 type AppInfo struct {
 	Name       string

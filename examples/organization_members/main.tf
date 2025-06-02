@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     formancecloud = {
-      source = "formancehq/tf-cloud-provider"
+      source = "formancehq/cloud"
     }
   }
 }

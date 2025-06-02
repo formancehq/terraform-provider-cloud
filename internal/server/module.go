@@ -29,7 +29,7 @@ func NewModule(ctx context.Context, flagset *pflag.FlagSet) fx.Option {
 		fx.Supply(FormanceCloudClientSecret(clientSecret)),
 		fx.Supply(FormanceCloudEndpoint(endpoint)),
 		fx.Provide(
-			New,
+			NewAPI,
 		),
 		fx.Invoke(func(lc fx.Lifecycle, server *API, shutdowner fx.Shutdowner) {
 			lc.Append(fx.Hook{

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/formancehq/go-libs/v3/logging"
-	"github.com/formancehq/terraform-provider/internal"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 )

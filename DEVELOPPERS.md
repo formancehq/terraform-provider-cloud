@@ -1,13 +1,17 @@
 # Formance Terraform Provider
 
+## Working locally
+
 Create a `~/.terraformrc` with the following content:
 
-replace {WORKING_DIRECTORY} with your username
+TODO:
+
+- replace {WORKING_DIRECTORY}
 
 ```hcl
 provider_installation {
   dev_overrides {
-    "formancehq/tf-cloud-provider" = "${WORKING_DIRECTORY}/build"
+    "formancehq/cloud" = "${WORKING_DIRECTORY}/build"
   }
 
   # For all other providers, install them directly from their origin provider
@@ -16,3 +20,8 @@ provider_installation {
   direct {}
 }
 ```
+
+
+## Docs
+
+- [Publishig new versions](https://developer.hashicorp.com/terraform/registry/providers/publishing#signing-provider-releases).

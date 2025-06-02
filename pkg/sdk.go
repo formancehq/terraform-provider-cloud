@@ -1,0 +1,87 @@
+package pkg
+
+import (
+	"net/http"
+
+	"github.com/formancehq/go-libs/v3/httpclient"
+	"github.com/formancehq/go-libs/v3/otlp"
+	"github.com/formancehq/terraform-provider-cloud/sdk"
+	gomock "go.uber.org/mock/gomock"
+)
+
+type Creds interface {
+	ClientId() string
+	ClientSecret() string
+	Endpoint() string
+	UserAgent() string
+}
+
+//go:generate rm -rf ./sdk
+//go:generate openapi-generator-cli generate -i ./openapi.yaml -g go -o ./sdk --git-user-id=formancehq --git-repo-id=terraform-provider-cloud -p packageVersion=latest -p isGoSubmodule=true -p packageName=sdk -p disallowAdditionalPropertiesIfNotPresent=false -p generateInterfaces=true -t ../openapi-templates/go
+//go:generate rm -rf ./sdk/test
+//go:generate rm -rf ./sdk/docs
+func NewSDK(creds Creds) (sdk.DefaultAPI, TokenProviderImpl) {
+	client := http.Client{
+		Transport: otlp.NewRoundTripper(httpclient.NewDebugHTTPTransport(http.DefaultTransport), true),
+	}
+
+	tp := NewTokenProvider(&http.Client{
+		Transport: otlp.NewRoundTripper(httpclient.NewDebugHTTPTransport(http.DefaultTransport), true),
+	}, creds)
+	client.Transport = newTransport(client.Transport, tp.cloud)
+	sdk := &SDK{
+		APIClient: sdk.NewAPIClient(&sdk.Configuration{
+			HTTPClient: &client,
+			UserAgent:  creds.UserAgent(),
+			Servers: sdk.ServerConfigurations{
+				{
+					URL:         creds.Endpoint(),
+					Description: "Membership API",
+				},
+			},
+		}),
+	}
+	return sdk.DefaultAPI, &tp
+}
+
+type Mocks struct {
+	Api   *MockDefaultAPI
+	Creds Creds
+
+	TokenProvider *MockTokenProviderImpl
+}
+
+func NewMockSDK(ctrl *gomock.Controller) (SDKFactory, *Mocks) {
+	mockSDK := NewMockDefaultAPI(ctrl)
+	mockTokenProvider := NewMockTokenProviderImpl(ctrl)
+	mocks := &Mocks{
+		Api:           mockSDK,
+		TokenProvider: mockTokenProvider,
+	}
+	return func(creds Creds) (sdk.DefaultAPI, TokenProviderImpl) {
+		mocks.Creds = creds
+		return mockSDK, mockTokenProvider
+	}, mocks
+}
+
+type SDKFactory func(creds Creds) (sdk.DefaultAPI, TokenProviderImpl)
+
+//go:generate mockgen -source=./sdk/api_default.go -destination=sdk_generated.go -package=pkg . DefaultAPI
+type SDK struct {
+	*sdk.APIClient
+}
+
+type RoundTripperFn func(r *http.Request) (*http.Response, error)
+
+func (fn RoundTripperFn) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
+}
+func newTransport(rt http.RoundTripper, m *TokenInfo) RoundTripperFn {
+	return func(r *http.Request) (*http.Response, error) {
+		m.Lock()
+		defer m.Unlock()
+
+		r.Header.Set("Authorization", "Bearer "+m.AccessToken)
+		return rt.RoundTrip(r)
+	}
+}

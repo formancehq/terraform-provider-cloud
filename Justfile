@@ -47,17 +47,17 @@ tests-integration tags="dev":
 
 [group('terraform')]
 plan examples="install-verif":
-  @go build -o ./build/terraform-provider-tf-cloud-provider ./main.go
+  @go build -o ./build/terraform-provider-cloud ./main.go
   @cd examples/{{examples}} && terraform plan -generate-config-out=generated.tf
 
 [group('terraform')]
 apply examples="install-verif":
-  @go build -o ./build/terraform-provider-tf-cloud-provider ./main.go
+  @go build -o ./build/terraform-provider-cloud ./main.go
   @cd examples/{{examples}} && terraform apply -auto-approve
 
 [group('terraform')]
 destroy examples="install-verif":
-  @go build -o ./build/terraform-provider-tf-cloud-provider ./main.go
+  @go build -o ./build/terraform-provider-tf-cloud ./main.go
   @cd examples/{{examples}} && terraform destroy -auto-approve 
 
 [group('releases')]
@@ -70,6 +70,8 @@ release-ci: pc
 
 [group('releases')]
 release: pc
+  @echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+  @echo "$GPG_FULL_FP:6:" | gpg --import-ownertrust -
   @goreleaser release --clean
 
 [group('deployment')]
