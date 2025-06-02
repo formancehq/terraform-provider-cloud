@@ -108,7 +108,11 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 		data.Endpoint = types.StringValue(p.Endpoint)
 	}
 
-	cli, _ := p.SDKFactory(NewProviderModelAdapter(&data))
+	cli, tp := p.SDKFactory(NewProviderModelAdapter(&data))
+	if _, err := tp.RefreshToken(ctx); err != nil {
+		resp.Diagnostics.AddError("Unable to refresh token", err.Error())
+		return
+	}
 
 	resp.ResourceData = cli
 	resp.DataSourceData = cli

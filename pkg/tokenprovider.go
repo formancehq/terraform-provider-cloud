@@ -22,6 +22,7 @@ import (
 
 //go:generate mockgen -destination=tokenprovider_generated.go -package=pkg . TokenProviderImpl
 type TokenProviderImpl interface {
+	RunE(ctx context.Context) error
 	AccessToken(ctx context.Context) (*TokenInfo, error)
 	RefreshToken(ctx context.Context) (*TokenInfo, error)
 }
@@ -54,6 +55,22 @@ func NewTokenProvider(client *http.Client, creds Creds) TokenProvider {
 	}
 }
 
+func (p TokenProvider) RunE(ctx context.Context) error {
+	logging.FromContext(ctx).Debugf("Running token provider for %s", p.creds.Endpoint())
+	for {
+		select {
+		case <-ctx.Done():
+			logging.FromContext(ctx).Debugf("Stopping token provider for %s", p.creds.Endpoint())
+			return ctx.Err()
+		case <-time.After(time.Until(p.cloud.Expiry)):
+			if _, err := p.RefreshToken(ctx); err != nil {
+				logging.FromContext(ctx).Errorf("Unable to refresh token: %s", err.Error())
+				return err
+			}
+		}
+	}
+}
+
 func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	p.cloud.Lock()
 	defer p.cloud.Unlock()
@@ -72,6 +89,7 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	if err != nil {
 		logger.Errorf("Unable to create OIDC client: %s", err.Error())
 		return nil, err
+		return nil, err
 	}
 
 	t, err := (&clientcredentials.Config{
@@ -84,15 +102,17 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	if err != nil {
 		logger.Errorf("Unable to get token: %s", err.Error())
 		return nil, err
+		return nil, err
 	}
 
 	p.cloud.AccessToken = t.AccessToken
 	p.cloud.Expiry = t.Expiry
 	p.cloud.RefreshToken = t.RefreshToken
 
-	return p.cloud, nil
+	return nil, nil
 }
 
+func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	logging.FromContext(ctx).Debugf("Getting refresh token for %s", p.creds.Endpoint())
 	if p.cloud.AccessToken == "" {
@@ -116,11 +136,13 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
 	if err != nil {
 		return nil, err
+		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, discoveryConfiguration.TokenEndpoint,
 		bytes.NewBufferString(form.Encode()))
 	if err != nil {
+		return nil, err
 		return nil, err
 	}
 	req.SetBasicAuth(p.creds.ClientId(), p.creds.ClientSecret())
@@ -129,18 +151,22 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	ret, err := p.client.Do(req)
 	if err != nil {
 		return nil, err
+		return nil, err
 	}
 
 	if ret.StatusCode != http.StatusOK {
 		data, err := io.ReadAll(ret.Body)
 		if err != nil {
 			return nil, err
+			return nil, err
 		}
+		return nil, errors.New(string(data))
 		return nil, errors.New(string(data))
 	}
 
 	token := oauth2.Token{}
 	if err := json.NewDecoder(ret.Body).Decode(&token); err != nil {
+		return nil, err
 		return nil, err
 	}
 
@@ -150,6 +176,7 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	p.cloud.Expiry = token.Expiry
 	p.cloud.RefreshToken = token.RefreshToken
 
+	return p.cloud, nil
 	return p.cloud, nil
 
 }
