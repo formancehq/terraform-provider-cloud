@@ -14,12 +14,12 @@ resource "formancecloud_organization" "default" {
 
 # TF_VAR_region_datasource_name
 variable "region_datasource_name" {
-  type    = string
+  type = string
 }
 
 
 data "formancecloud_regions" "dev" {
-  name = var.region_datasource_name
+  name            = var.region_datasource_name
   organization_id = formancecloud_organization.default.id
 }
 
