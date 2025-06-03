@@ -22,7 +22,6 @@ import (
 
 //go:generate mockgen -destination=tokenprovider_generated.go -package=pkg . TokenProviderImpl
 type TokenProviderImpl interface {
-	RunE(ctx context.Context) error
 	AccessToken(ctx context.Context) (*TokenInfo, error)
 	RefreshToken(ctx context.Context) (*TokenInfo, error)
 }
@@ -52,22 +51,6 @@ func NewTokenProvider(client *http.Client, creds Creds) TokenProvider {
 		client: client,
 		cloud:  &TokenInfo{},
 		creds:  creds,
-	}
-}
-
-func (p TokenProvider) RunE(ctx context.Context) error {
-	logging.FromContext(ctx).Debugf("Running token provider for %s", p.creds.Endpoint())
-	for {
-		select {
-		case <-ctx.Done():
-			logging.FromContext(ctx).Debugf("Stopping token provider for %s", p.creds.Endpoint())
-			return ctx.Err()
-		case <-time.After(time.Until(p.cloud.Expiry)):
-			if _, err := p.RefreshToken(ctx); err != nil {
-				logging.FromContext(ctx).Errorf("Unable to refresh token: %s", err.Error())
-				return err
-			}
-		}
 	}
 }
 
