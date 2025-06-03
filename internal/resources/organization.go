@@ -25,23 +25,29 @@ var (
 )
 
 var SchemaOrganization = schema.Schema{
+	Description: "Manages a Formance Cloud organization. An organization is the top-level entity that contains stacks and members.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Computed: true,
+			Description: "The unique identifier of the organization.",
+			Computed:    true,
 		},
 		"name": schema.StringAttribute{
-			Required: true,
+			Description: "The name of the organization.",
+			Required:    true,
 		},
 		"domain": schema.StringAttribute{
-			Optional: true,
+			Description: "The domain associated with the organization. Used for SSO and custom URLs.",
+			Optional:    true,
 		},
 		"default_organization_access": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
+			Description: "The default access level for new organization members. Valid values are: NONE, READ, WRITE.",
+			Optional:    true,
+			Computed:    true,
 		},
 		"default_stack_access": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
+			Description: "The default access level for organization members on new stacks. Valid values are: NONE, READ, WRITE.",
+			Optional:    true,
+			Computed:    true,
 		},
 	},
 }

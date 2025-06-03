@@ -21,9 +21,11 @@ var (
 )
 
 var SchemaOrganization = schema.Schema{
+	Description: "Retrieves information about a specific Formance Cloud organization by ID.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Required: true,
+			Description: "The unique identifier of the organization to retrieve.",
+			Required:    true,
 		},
 	},
 }

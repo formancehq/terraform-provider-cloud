@@ -51,22 +51,28 @@ func NewOrganizationMember(logger logging.Logger) func() resource.Resource {
 }
 
 var SchemaOrganizationMember = schema.Schema{
+	Description: "Manages organization members and invitations in Formance Cloud. This resource can be used to invite users to an organization and manage their access levels.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Computed: true,
+			Description: "The unique identifier of the invitation or membership.",
+			Computed:    true,
 		},
 		"organization_id": schema.StringAttribute{
-			Required: true,
+			Description: "The organization ID where the member will be added.",
+			Required:    true,
 		},
 		"email": schema.StringAttribute{
-			Required: true,
+			Description: "The email address of the user to invite or add to the organization.",
+			Required:    true,
 		},
 		"user_id": schema.StringAttribute{
-			Computed: true,
+			Description: "The user ID once the invitation has been accepted.",
+			Computed:    true,
 		},
 		"role": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
+			Description: "The role to assign to the user in the organization. Valid values are: NONE, READ, WRITE.",
+			Optional:    true,
+			Computed:    true,
 		},
 	},
 }

@@ -51,19 +51,24 @@ func (r *RegionVersions) ValidateConfig(ctx context.Context, req datasource.Vali
 }
 
 var SchemaRegionVersions = schema.Schema{
+	Description: "Retrieves the list of available Formance versions for a specific region.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Required: true,
+			Description: "The unique identifier of the region.",
+			Required:    true,
 		},
 		"organization_id": schema.StringAttribute{
-			Required: true,
+			Description: "The organization ID that owns the region.",
+			Required:    true,
 		},
 		"versions": schema.ListNestedAttribute{
-			Computed: true,
+			Description: "The list of available Formance versions in the region.",
+			Computed:    true,
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
-						Computed: true,
+						Description: "The version name (e.g., v1.0.0, v2.0.0).",
+						Computed:    true,
 					},
 				},
 			},
