@@ -13,7 +13,7 @@ resource "formancecloud_organization" "default" {
 }
 
 resource "formancecloud_region" "dev" {
-  depends_on = [formancecloud_organization.default]
-  name = "dev"
+  depends_on      = [formancecloud_organization.default]
+  name            = "dev"
   organization_id = formancecloud_organization.default.id
 }

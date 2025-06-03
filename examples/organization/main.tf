@@ -9,5 +9,5 @@ terraform {
 provider "formancecloud" {}
 
 resource "formancecloud_organization" "default" {
-    name = "formancehq"
+  name = "formancehq"
 }

@@ -29,23 +29,29 @@ type Region struct {
 }
 
 var SchemaRegion = schema.Schema{
+	Description: "Manages a private region in Formance Cloud. A private region provides dedicated infrastructure for your Formance stacks.",
 	Attributes: map[string]schema.Attribute{
 		"name": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
+			Description: "The name of the region. Must be unique within the organization.",
+			Optional:    true,
+			Computed:    true,
 		},
 		"id": schema.StringAttribute{
-			Computed: true,
+			Description: "The unique identifier of the region.",
+			Computed:    true,
 		},
 		"organization_id": schema.StringAttribute{
-			Required: true,
+			Description: "The organization ID where the region will be created.",
+			Required:    true,
 		},
 		"base_url": schema.StringAttribute{
-			Computed: true,
+			Description: "The base URL of the region API endpoint.",
+			Computed:    true,
 		},
 		"secret": schema.StringAttribute{
-			Computed:  true,
-			Sensitive: true,
+			Description: "The secret key for authenticating with the region. This value is only available during creation.",
+			Computed:    true,
+			Sensitive:   true,
 		},
 	},
 }

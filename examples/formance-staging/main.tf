@@ -7,7 +7,7 @@ terraform {
 }
 
 provider "formancecloud" {
-  endpoint     = "https://app.staging.formance.cloud/api"
+  endpoint = "https://app.staging.formance.cloud/api"
 }
 
 resource "formancecloud_organization" "default" {

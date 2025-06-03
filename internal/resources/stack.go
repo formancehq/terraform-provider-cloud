@@ -24,29 +24,37 @@ var (
 )
 
 var SchemaStack = schema.Schema{
+	Description: "Manages a Formance Cloud stack. A stack is an isolated environment where you can deploy and run Formance services.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Computed: true,
+			Description: "The unique identifier of the stack.",
+			Computed:    true,
 		},
 		"name": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
+			Description: "The name of the stack. Must be unique within the organization.",
+			Optional:    true,
+			Computed:    true,
 		},
 		"organization_id": schema.StringAttribute{
-			Required: true,
+			Description: "The organization ID where the stack will be created.",
+			Required:    true,
 		},
 		"region_id": schema.StringAttribute{
-			Required: true,
+			Description: "The region ID where the stack will be deployed.",
+			Required:    true,
 		},
 		"version": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
+			Description: "The version of Formance to deploy. If not specified, the latest version will be used.",
+			Optional:    true,
+			Computed:    true,
 		},
 		"force_destroy": schema.BoolAttribute{
-			Optional: true,
+			Description: "When set to true, the stack will be forcefully deleted even if it contains data. Use with caution.",
+			Optional:    true,
 		},
 		"uri": schema.StringAttribute{
-			Computed: true,
+			Description: "The URI of the deployed stack.",
+			Computed:    true,
 		},
 	},
 }

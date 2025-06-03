@@ -52,15 +52,19 @@ func (r *Region) ValidateConfig(ctx context.Context, req datasource.ValidateConf
 }
 
 var SchemaRegion = schema.Schema{
+	Description: "Retrieves information about a specific region by name within an organization.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Computed: true,
+			Description: "The unique identifier of the region.",
+			Computed:    true,
 		},
 		"name": schema.StringAttribute{
-			Required: true,
+			Description: "The name of the region to retrieve.",
+			Required:    true,
 		},
 		"organization_id": schema.StringAttribute{
-			Required: true,
+			Description: "The organization ID where the region is located.",
+			Required:    true,
 		},
 	},
 }

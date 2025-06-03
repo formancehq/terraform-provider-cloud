@@ -21,19 +21,24 @@ var (
 )
 
 var SchemaStackMember = schema.Schema{
+	Description: "Manages stack members and their access levels in Formance Cloud. This resource allows you to grant users access to specific stacks within an organization.",
 	Attributes: map[string]schema.Attribute{
 		"user_id": schema.StringAttribute{
-			Required: true,
+			Required:    true,
+			Description: "The ID of the user to grant access to the stack. The user must already be a member of the organization.",
 		},
 		"stack_id": schema.StringAttribute{
-			Required: true,
+			Required:    true,
+			Description: "The ID of the stack where the user will be granted access.",
 		},
 		"organization_id": schema.StringAttribute{
-			Required: true,
+			Required:    true,
+			Description: "The organization ID that owns the stack.",
 		},
 		"role": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
+			Optional:    true,
+			Computed:    true,
+			Description: "The role to assign to the user for this stack. Valid values are: NONE, READ, WRITE.",
 		},
 	},
 }

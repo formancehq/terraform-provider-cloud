@@ -51,12 +51,15 @@ func (s *Stack) ValidateConfig(ctx context.Context, req datasource.ValidateConfi
 }
 
 var SchemaStack = schema.Schema{
+	Description: "Retrieves information about a specific Formance Cloud stack by ID.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Required: true,
+			Description: "The unique identifier of the stack to retrieve.",
+			Required:    true,
 		},
 		"organization_id": schema.StringAttribute{
-			Required: true,
+			Description: "The organization ID that owns the stack.",
+			Required:    true,
 		},
 	},
 }

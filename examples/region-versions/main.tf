@@ -13,7 +13,7 @@ resource "formancecloud_organization" "default" {
 }
 
 variable "region_datasource_name" {
-  type    = string
+  type = string
 }
 
 output "region_datasource_name" {
@@ -21,11 +21,11 @@ output "region_datasource_name" {
 }
 
 data "formancecloud_regions" "dev" {
-  name = var.region_datasource_name
+  name            = var.region_datasource_name
   organization_id = formancecloud_organization.default.id
 }
 
 data "formancecloud_region_versions" "dev" {
-  id = data.formancecloud_regions.dev.id
+  id              = data.formancecloud_regions.dev.id
   organization_id = formancecloud_organization.default.id
 }
