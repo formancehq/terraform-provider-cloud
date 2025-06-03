@@ -72,7 +72,6 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	if err != nil {
 		logger.Errorf("Unable to create OIDC client: %s", err.Error())
 		return nil, err
-		return nil, err
 	}
 
 	t, err := (&clientcredentials.Config{
@@ -85,17 +84,15 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	if err != nil {
 		logger.Errorf("Unable to get token: %s", err.Error())
 		return nil, err
-		return nil, err
 	}
 
 	p.cloud.AccessToken = t.AccessToken
 	p.cloud.Expiry = t.Expiry
 	p.cloud.RefreshToken = t.RefreshToken
 
-	return nil, nil
+	return p.cloud, nil
 }
 
-func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	logging.FromContext(ctx).Debugf("Getting refresh token for %s", p.creds.Endpoint())
 	if p.cloud.AccessToken == "" {
@@ -119,13 +116,11 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
 	if err != nil {
 		return nil, err
-		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, discoveryConfiguration.TokenEndpoint,
 		bytes.NewBufferString(form.Encode()))
 	if err != nil {
-		return nil, err
 		return nil, err
 	}
 	req.SetBasicAuth(p.creds.ClientId(), p.creds.ClientSecret())
@@ -134,22 +129,18 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	ret, err := p.client.Do(req)
 	if err != nil {
 		return nil, err
-		return nil, err
 	}
 
 	if ret.StatusCode != http.StatusOK {
 		data, err := io.ReadAll(ret.Body)
 		if err != nil {
 			return nil, err
-			return nil, err
 		}
-		return nil, errors.New(string(data))
 		return nil, errors.New(string(data))
 	}
 
 	token := oauth2.Token{}
 	if err := json.NewDecoder(ret.Body).Decode(&token); err != nil {
-		return nil, err
 		return nil, err
 	}
 
@@ -159,7 +150,6 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	p.cloud.Expiry = token.Expiry
 	p.cloud.RefreshToken = token.RefreshToken
 
-	return p.cloud, nil
 	return p.cloud, nil
 
 }
