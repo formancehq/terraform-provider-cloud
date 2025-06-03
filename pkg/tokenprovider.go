@@ -90,16 +90,24 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	p.cloud.Expiry = t.Expiry
 	p.cloud.RefreshToken = t.RefreshToken
 
-	return p.cloud, nil
+	return &TokenInfo{
+		AccessToken:  t.AccessToken,
+		RefreshToken: t.RefreshToken,
+		Expiry:       t.Expiry,
+	}, nil
 }
 
 func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	logging.FromContext(ctx).Debugf("Getting refresh token for %s", p.creds.Endpoint())
+
+	p.cloud.Lock()
 	if p.cloud.AccessToken == "" {
+		p.cloud.Unlock()
 		return p.AccessToken(ctx)
 	}
 
 	if time.Now().Before(p.cloud.Expiry) {
+		defer p.cloud.Unlock()
 		return p.cloud, nil
 	}
 
@@ -144,12 +152,14 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 		return nil, err
 	}
 
-	p.cloud.Lock()
-	defer p.cloud.Unlock()
 	p.cloud.AccessToken = token.AccessToken
 	p.cloud.Expiry = token.Expiry
 	p.cloud.RefreshToken = token.RefreshToken
 
-	return p.cloud, nil
+	return &TokenInfo{
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		Expiry:       token.Expiry,
+	}, nil
 
 }
