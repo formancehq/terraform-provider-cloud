@@ -3,12 +3,12 @@
 page_title: "formancecloud_stack Resource - formancecloud"
 subcategory: ""
 description: |-
-  
+  Manages a Formance Cloud stack. A stack is an isolated environment where you can deploy and run Formance services.
 ---
 
 # formancecloud_stack (Resource)
 
-
+Manages a Formance Cloud stack. A stack is an isolated environment where you can deploy and run Formance services.
 
 
 
@@ -17,16 +17,16 @@ description: |-
 
 ### Required
 
-- `organization_id` (String)
-- `region_id` (String)
+- `organization_id` (String) The organization ID where the stack will be created.
+- `region_id` (String) The region ID where the stack will be deployed.
 
 ### Optional
 
-- `force_destroy` (Boolean)
-- `name` (String)
-- `version` (String)
+- `force_destroy` (Boolean) When set to true, the stack will be forcefully deleted even if it contains data. Use with caution.
+- `name` (String) The name of the stack. Must be unique within the organization.
+- `version` (String) The version of Formance to deploy. If not specified, the latest version will be used.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `uri` (String)
+- `id` (String) The unique identifier of the stack.
+- `uri` (String) The URI of the deployed stack.

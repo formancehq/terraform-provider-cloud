@@ -3,12 +3,12 @@
 page_title: "formancecloud Provider"
 subcategory: ""
 description: |-
-  
+  The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing organizations, stacks, regions, and stack modules.
 ---
 
 # formancecloud Provider
 
-
+The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing organizations, stacks, regions, and stack modules.
 
 
 
@@ -17,6 +17,6 @@ description: |-
 
 ### Optional
 
-- `client_id` (String)
-- `client_secret` (String, Sensitive)
-- `endpoint` (String)
+- `client_id` (String) The client ID for authenticating with the Formance Cloud API. Can also be set via the FORMANCE_CLOUD_CLIENT_ID environment variable.
+- `client_secret` (String, Sensitive) The client secret for authenticating with the Formance Cloud API. Can also be set via the FORMANCE_CLOUD_CLIENT_SECRET environment variable.
+- `endpoint` (String) The endpoint URL for the Formance Cloud API. Defaults to the production endpoint. Can also be set via the FORMANCE_CLOUD_API_ENDPOINT environment variable.

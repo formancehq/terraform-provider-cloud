@@ -3,12 +3,12 @@
 page_title: "formancecloud_region Resource - formancecloud"
 subcategory: ""
 description: |-
-  
+  Manages a private region in Formance Cloud. A private region provides dedicated infrastructure for your Formance stacks.
 ---
 
 # formancecloud_region (Resource)
 
-
+Manages a private region in Formance Cloud. A private region provides dedicated infrastructure for your Formance stacks.
 
 
 
@@ -17,14 +17,14 @@ description: |-
 
 ### Required
 
-- `organization_id` (String)
+- `organization_id` (String) The organization ID where the region will be created.
 
 ### Optional
 
-- `name` (String)
+- `name` (String) The name of the region. Must be unique within the organization.
 
 ### Read-Only
 
-- `base_url` (String)
-- `id` (String) The ID of this resource.
-- `secret` (String, Sensitive)
+- `base_url` (String) The base URL of the region API endpoint.
+- `id` (String) The unique identifier of the region.
+- `secret` (String, Sensitive) The secret key for authenticating with the region. This value is only available during creation.

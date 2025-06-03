@@ -3,12 +3,12 @@
 page_title: "formancecloud_stack_module Resource - formancecloud"
 subcategory: ""
 description: |-
-  
+  Manages modules within a Formance Cloud stack. Modules are individual services that can be enabled or disabled on a stack.
 ---
 
 # formancecloud_stack_module (Resource)
 
-
+Manages modules within a Formance Cloud stack. Modules are individual services that can be enabled or disabled on a stack.
 
 
 
@@ -17,6 +17,6 @@ description: |-
 
 ### Required
 
-- `name` (String)
-- `organization_id` (String)
-- `stack_id` (String)
+- `name` (String) The name of the module to enable. Valid module names include: ledger, payments, webhooks, wallets, search, reconciliation, orchestration, auth, stargate.
+- `organization_id` (String) The organization ID that owns the stack.
+- `stack_id` (String) The ID of the stack where the module will be enabled.

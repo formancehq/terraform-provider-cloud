@@ -3,12 +3,12 @@
 page_title: "formancecloud_organization Resource - formancecloud"
 subcategory: ""
 description: |-
-  
+  Manages a Formance Cloud organization. An organization is the top-level entity that contains stacks and members.
 ---
 
 # formancecloud_organization (Resource)
 
-
+Manages a Formance Cloud organization. An organization is the top-level entity that contains stacks and members.
 
 
 
@@ -17,14 +17,14 @@ description: |-
 
 ### Required
 
-- `name` (String)
+- `name` (String) The name of the organization.
 
 ### Optional
 
-- `default_organization_access` (String)
-- `default_stack_access` (String)
-- `domain` (String)
+- `default_organization_access` (String) The default access level for new organization members. Valid values are: NONE, READ, WRITE.
+- `default_stack_access` (String) The default access level for organization members on new stacks. Valid values are: NONE, READ, WRITE.
+- `domain` (String) The domain associated with the organization. Used for SSO and custom URLs.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The unique identifier of the organization.
