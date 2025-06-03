@@ -6,8 +6,8 @@ import (
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/logging"
-	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
+	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -114,7 +114,7 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 
 	objs, res, err := r.sdk.ListRegions(ctx, data.OrganizationID.ValueString()).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
 		return
 	}
 

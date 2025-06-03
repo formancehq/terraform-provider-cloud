@@ -41,11 +41,12 @@ func (m *MockTokenProviderImpl) EXPECT() *MockTokenProviderImplMockRecorder {
 }
 
 // AccessToken mocks base method.
-func (m *MockTokenProviderImpl) AccessToken(ctx context.Context) error {
+func (m *MockTokenProviderImpl) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AccessToken", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*TokenInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AccessToken indicates an expected call of AccessToken.
@@ -55,29 +56,16 @@ func (mr *MockTokenProviderImplMockRecorder) AccessToken(ctx any) *gomock.Call {
 }
 
 // RefreshToken mocks base method.
-func (m *MockTokenProviderImpl) RefreshToken(ctx context.Context) error {
+func (m *MockTokenProviderImpl) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RefreshToken", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*TokenInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // RefreshToken indicates an expected call of RefreshToken.
 func (mr *MockTokenProviderImplMockRecorder) RefreshToken(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshToken", reflect.TypeOf((*MockTokenProviderImpl)(nil).RefreshToken), ctx)
-}
-
-// RunE mocks base method.
-func (m *MockTokenProviderImpl) RunE(ctx context.Context) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunE", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RunE indicates an expected call of RunE.
-func (mr *MockTokenProviderImplMockRecorder) RunE(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunE", reflect.TypeOf((*MockTokenProviderImpl)(nil).RunE), ctx)
 }

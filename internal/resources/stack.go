@@ -6,8 +6,8 @@ import (
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
-	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -45,6 +45,9 @@ var SchemaStack = schema.Schema{
 		"force_destroy": schema.BoolAttribute{
 			Optional: true,
 		},
+		"uri": schema.StringAttribute{
+			Computed: true,
+		},
 	},
 }
 
@@ -55,6 +58,7 @@ type StackModel struct {
 	OrganizationID types.String `tfsdk:"organization_id"`
 	RegionID       types.String `tfsdk:"region_id"`
 	Version        types.String `tfsdk:"version"`
+	URI            types.String `tfsdk:"uri"`
 
 	ForceDestroy types.Bool `tfsdk:"force_destroy"`
 }
@@ -151,7 +155,7 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 
 	createStackRequest := sdk.CreateStackRequest{
 		Metadata: pointer.For(map[string]string{
-			"github.com/formancehq/terraform-provider/protected": "true",
+			"github.com/formancehq/terraform-provider-cloud/protected": "true",
 		}),
 		RegionID: plan.GetRegionID(),
 		Name:     plan.GetName(),
@@ -160,7 +164,7 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 
 	obj, res, err := s.sdk.CreateStack(ctx, plan.GetOrganizationID()).CreateStackRequest(createStackRequest).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
 		return
 	}
 
@@ -168,6 +172,7 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 	plan.Name = types.StringValue(obj.Data.Name)
 	plan.OrganizationID = types.StringValue(obj.Data.OrganizationId)
 	plan.RegionID = types.StringValue(obj.Data.RegionID)
+	plan.URI = types.StringValue(obj.Data.Uri)
 	plan.Version = types.StringNull()
 	if obj.Data.Version != nil {
 		plan.Version = types.StringValue(*obj.Data.Version)
@@ -189,7 +194,7 @@ func (s *Stack) Delete(ctx context.Context, req resource.DeleteRequest, resp *re
 
 	res, err := s.sdk.DeleteStack(ctx, plan.GetOrganizationID(), plan.GetID()).Force(plan.ForceDestroy.ValueBool()).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
 		return
 	}
 }
@@ -213,7 +218,7 @@ func (s *Stack) Read(ctx context.Context, req resource.ReadRequest, resp *resour
 
 	obj, res, err := s.sdk.GetStack(ctx, plan.GetOrganizationID(), plan.GetID()).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
 		return
 	}
 
@@ -225,6 +230,7 @@ func (s *Stack) Read(ctx context.Context, req resource.ReadRequest, resp *resour
 		plan.Version = types.StringValue(*obj.Data.Version)
 	}
 	plan.RegionID = types.StringValue(obj.Data.RegionID)
+	plan.URI = types.StringValue(obj.Data.Uri)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -254,15 +260,16 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 		updateRequest := sdk.UpdateStackRequest{
 			Name: plan.Name.ValueString(),
 			Metadata: pointer.For(map[string]string{
-				"github.com/formancehq/terraform-provider/protected": "true",
+				"github.com/formancehq/terraform-provider-cloud/protected": "true",
 			}),
 		}
 		obj, resp, err := s.sdk.UpdateStack(ctx, plan.GetOrganizationID(), plan.GetID()).UpdateStackRequest(updateRequest).Execute()
 		if err != nil {
-			internal.HandleSDKError(ctx, resp, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
 			return
 		}
 		plan.Name = types.StringValue(obj.Data.Name)
+		plan.URI = types.StringValue(obj.Data.Uri)
 	}
 
 	if state.Version.ValueString() != plan.Version.ValueString() {
@@ -272,7 +279,7 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 				Version: pointer.For(plan.Version.ValueString()),
 			}).Execute()
 			if err != nil {
-				internal.HandleSDKError(ctx, resp, &res.Diagnostics)
+				pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
 				return
 			}
 

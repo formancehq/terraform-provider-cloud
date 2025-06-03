@@ -6,7 +6,8 @@ import (
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
-	"github.com/formancehq/terraform-provider-cloud/internal"
+
+	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -112,7 +113,7 @@ func (o *Organization) Create(ctx context.Context, req resource.CreateRequest, r
 
 	obj, res, err := o.sdk.CreateOrganization(ctx).Body(body).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
 		return
 	}
 
@@ -147,7 +148,7 @@ func (o *Organization) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	obj, res, err := o.sdk.ReadOrganization(ctx, state.ID.ValueString()).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
 		return
 	}
 
@@ -193,7 +194,7 @@ func (o *Organization) Update(ctx context.Context, req resource.UpdateRequest, r
 	logging.FromContext(ctx).Debugf("Updating organization with data: %v", data)
 	obj, res, err := o.sdk.UpdateOrganization(ctx, state.ID.ValueString()).OrganizationData(data).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
 		return
 	}
 
@@ -228,7 +229,7 @@ func (o *Organization) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	res, err := o.sdk.DeleteOrganization(ctx, state.ID.ValueString()).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
 		return
 	}
 

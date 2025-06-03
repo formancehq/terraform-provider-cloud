@@ -48,8 +48,6 @@ func TestProviderConfigure(t *testing.T) {
 			sdkFactory, mocks := pkg.NewMockSDK(ctrl)
 			p := server.New(logging.Testing(), "develop", "https://app.formance.cloud/api", "client_id", "client_secret", sdkFactory)()
 
-			mocks.TokenProvider.EXPECT().RefreshToken(gomock.Any()).Return(nil)
-
 			res := provider.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},
 			}

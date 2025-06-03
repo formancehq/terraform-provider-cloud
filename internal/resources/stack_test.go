@@ -109,7 +109,7 @@ func TestStackCreate(t *testing.T) {
 				})
 
 				md := map[string]string{
-					"github.com/formancehq/terraform-provider/protected": "true",
+					"github.com/formancehq/terraform-provider-cloud/protected": "true",
 				}
 				expectedBody := sdk.CreateStackRequest{
 					Name:     tc.name,
@@ -130,6 +130,7 @@ func TestStackCreate(t *testing.T) {
 						OrganizationId: tc.organizationID,
 						RegionID:       tc.regionID,
 						Version:        pointer.For(tc.version),
+						Uri:            "https://example.com",
 					},
 				}, nil, nil)
 
@@ -143,6 +144,7 @@ func TestStackCreate(t *testing.T) {
 								"region_id":       tftypes.String,
 								"version":         tftypes.String,
 								"force_destroy":   tftypes.Bool,
+								"uri":             tftypes.String,
 							},
 						}, map[string]tftypes.Value{
 							"id":              tftypes.NewValue(tftypes.String, nil),
@@ -151,6 +153,7 @@ func TestStackCreate(t *testing.T) {
 							"region_id":       tftypes.NewValue(tftypes.String, tc.regionID),
 							"version":         tftypes.NewValue(tftypes.String, tc.version),
 							"force_destroy":   tftypes.NewValue(tftypes.Bool, nil),
+							"uri":             tftypes.NewValue(tftypes.String, "https://example.com"),
 						}),
 						Schema: resources.SchemaStack,
 					},
@@ -204,6 +207,7 @@ func TestStackValidateConfig(t *testing.T) {
 								"version":         tftypes.String,
 								"id":              tftypes.String,
 								"force_destroy":   tftypes.Bool,
+								"uri":             tftypes.String,
 							},
 						}, map[string]tftypes.Value{
 							"name":            tftypes.NewValue(tftypes.String, nil),
@@ -212,6 +216,7 @@ func TestStackValidateConfig(t *testing.T) {
 							"version":         tftypes.NewValue(tftypes.String, nil),
 							"id":              tftypes.NewValue(tftypes.String, nil),
 							"force_destroy":   tftypes.NewValue(tftypes.Bool, nil),
+							"uri":             tftypes.NewValue(tftypes.String, nil),
 						}),
 						Schema: resources.SchemaStack,
 					},

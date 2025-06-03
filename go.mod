@@ -2,7 +2,7 @@ module github.com/formancehq/terraform-provider-cloud
 
 go 1.24.2
 
-replace github.com/formancehq/terraform-provider-cloud/sdk => ./pkg/sdk
+replace github.com/formancehq/terraform-provider-cloud/sdk => ./sdk
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.4.4 // indirect
@@ -71,6 +71,7 @@ require (
 )
 
 require (
+	github.com/formancehq/terraform-provider-cloud/sdk v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.10.0
 	github.com/zitadel/oidc/v3 v3.38.1
 	go.uber.org/mock v0.5.2
@@ -89,7 +90,6 @@ require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/cloudflare/circl v1.6.0 // indirect
-	github.com/formancehq/terraform-provider-cloud/sdk v0.0.0-00010101000000-000000000000
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
 	github.com/google/go-cmp v0.7.0
 	github.com/gorilla/securecookie v1.1.2 // indirect

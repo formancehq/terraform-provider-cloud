@@ -6,7 +6,7 @@ import (
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/logging"
-	"github.com/formancehq/terraform-provider-cloud/internal"
+	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
@@ -126,7 +126,7 @@ func (r *Region) Create(ctx context.Context, req resource.CreateRequest, res *re
 	}
 	obj, resp, err := r.sdk.CreatePrivateRegion(ctx, organizationId).CreatePrivateRegionRequest(body).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
 		return
 	}
 
@@ -149,7 +149,7 @@ func (r *Region) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 
 	objs, res, err := r.sdk.ListRegions(ctx, data.OrganizationID.ValueString()).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (r *Region) Delete(ctx context.Context, req resource.DeleteRequest, res *re
 	regionId := plan.ID.ValueString()
 	resp, err := r.sdk.DeleteRegion(ctx, orgId, regionId).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
 		return
 	}
 }

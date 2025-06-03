@@ -16,10 +16,10 @@ type Creds interface {
 	UserAgent() string
 }
 
-//go:generate rm -rf ./sdk
-//go:generate openapi-generator-cli generate -i ./openapi.yaml -g go -o ./sdk --git-user-id=formancehq --git-repo-id=terraform-provider-cloud -p packageVersion=latest -p isGoSubmodule=true -p packageName=sdk -p disallowAdditionalPropertiesIfNotPresent=false -p generateInterfaces=true -t ../openapi-templates/go
-//go:generate rm -rf ./sdk/test
-//go:generate rm -rf ./sdk/docs
+//go:generate rm -rf ../sdk
+//go:generate openapi-generator-cli generate -i ./openapi.yaml -g go -o ../sdk --git-user-id=formancehq --git-repo-id=terraform-provider-cloud -p packageVersion=latest -p isGoSubmodule=true -p packageName=sdk -p disallowAdditionalPropertiesIfNotPresent=false -p generateInterfaces=true -t ../openapi-templates/go
+//go:generate rm -rf ../sdk/test
+//go:generate rm -rf ../sdk/docs
 func NewSDK(creds Creds) (sdk.DefaultAPI, TokenProviderImpl) {
 	client := http.Client{
 		Transport: otlp.NewRoundTripper(httpclient.NewDebugHTTPTransport(http.DefaultTransport), true),
@@ -28,7 +28,7 @@ func NewSDK(creds Creds) (sdk.DefaultAPI, TokenProviderImpl) {
 	tp := NewTokenProvider(&http.Client{
 		Transport: otlp.NewRoundTripper(httpclient.NewDebugHTTPTransport(http.DefaultTransport), true),
 	}, creds)
-	client.Transport = newTransport(client.Transport, tp.cloud)
+	client.Transport = newTransport(client.Transport, tp)
 	sdk := &SDK{
 		APIClient: sdk.NewAPIClient(&sdk.Configuration{
 			HTTPClient: &client,
@@ -66,7 +66,7 @@ func NewMockSDK(ctrl *gomock.Controller) (SDKFactory, *Mocks) {
 
 type SDKFactory func(creds Creds) (sdk.DefaultAPI, TokenProviderImpl)
 
-//go:generate mockgen -source=./sdk/api_default.go -destination=sdk_generated.go -package=pkg . DefaultAPI
+//go:generate mockgen -source=../sdk/api_default.go -destination=sdk_generated.go -package=pkg . DefaultAPI
 type SDK struct {
 	*sdk.APIClient
 }
@@ -76,12 +76,13 @@ type RoundTripperFn func(r *http.Request) (*http.Response, error)
 func (fn RoundTripperFn) RoundTrip(req *http.Request) (*http.Response, error) {
 	return fn(req)
 }
-func newTransport(rt http.RoundTripper, m *TokenInfo) RoundTripperFn {
+func newTransport(rt http.RoundTripper, tp TokenProviderImpl) RoundTripperFn {
 	return func(r *http.Request) (*http.Response, error) {
-		m.Lock()
-		defer m.Unlock()
-
-		r.Header.Set("Authorization", "Bearer "+m.AccessToken)
+		token, err := tp.RefreshToken(r.Context())
+		if err != nil {
+			return nil, err
+		}
+		r.Header.Set("Authorization", "Bearer "+token.AccessToken)
 		return rt.RoundTrip(r)
 	}
 }

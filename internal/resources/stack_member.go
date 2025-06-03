@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
-	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -127,7 +127,7 @@ func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 	resp, err := s.sdk.UpsertStackUserAccess(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
 		return
 	}
 
@@ -144,7 +144,7 @@ func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	resp, err := s.sdk.DeleteStackUserAccess(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
 		return
 	}
 }
@@ -163,7 +163,7 @@ func (s *StackMember) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 	resp, err := s.sdk.UpsertStackUserAccess(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
 		return
 	}
 
@@ -185,7 +185,7 @@ func (s *StackMember) Read(ctx context.Context, req resource.ReadRequest, res *r
 
 	userAccess, resp, err := s.sdk.ReadStackUserAccess(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
 	if err != nil {
-		internal.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
 		return
 	}
 

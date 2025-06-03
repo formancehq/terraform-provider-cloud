@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/datasources"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
-	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -87,7 +87,7 @@ func (p *FormanceCloudProvider) Schema(ctx context.Context, req provider.SchemaR
 
 // Configure satisfies the provider.Provider interface for FormanceCloudProvider.
 func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	p.logger.Debugf("Configuring provider version %s", p.Version)
+	p.logger.Debugf("Configuring cloud provider version %s", p.Version)
 	var data FormanceCloudProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -108,11 +108,7 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 		data.Endpoint = types.StringValue(p.Endpoint)
 	}
 
-	cli, tp := p.SDKFactory(NewProviderModelAdapter(&data))
-	if err := tp.RefreshToken(ctx); err != nil {
-		resp.Diagnostics.AddError("Unable to refresh token", err.Error())
-		return
-	}
+	cli, _ := p.SDKFactory(NewProviderModelAdapter(&data))
 
 	resp.ResourceData = cli
 	resp.DataSourceData = cli

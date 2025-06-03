@@ -22,9 +22,8 @@ import (
 
 //go:generate mockgen -destination=tokenprovider_generated.go -package=pkg . TokenProviderImpl
 type TokenProviderImpl interface {
-	RunE(ctx context.Context) error
-	AccessToken(ctx context.Context) error
-	RefreshToken(ctx context.Context) error
+	AccessToken(ctx context.Context) (*TokenInfo, error)
+	RefreshToken(ctx context.Context) (*TokenInfo, error)
 }
 
 type TokenInfo struct {
@@ -55,23 +54,7 @@ func NewTokenProvider(client *http.Client, creds Creds) TokenProvider {
 	}
 }
 
-func (p TokenProvider) RunE(ctx context.Context) error {
-	logging.FromContext(ctx).Debugf("Running token provider for %s", p.creds.Endpoint())
-	for {
-		select {
-		case <-ctx.Done():
-			logging.FromContext(ctx).Debugf("Stopping token provider for %s", p.creds.Endpoint())
-			return ctx.Err()
-		case <-time.After(time.Until(p.cloud.Expiry)):
-			if err := p.RefreshToken(ctx); err != nil {
-				logging.FromContext(ctx).Errorf("Unable to refresh token: %s", err.Error())
-				return err
-			}
-		}
-	}
-}
-
-func (p TokenProvider) AccessToken(ctx context.Context) error {
+func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	p.cloud.Lock()
 	defer p.cloud.Unlock()
 
@@ -84,15 +67,15 @@ func (p TokenProvider) AccessToken(ctx context.Context) error {
 	}
 
 	rp, err := rp.NewRelyingPartyOIDC(ctx, p.creds.Endpoint(), p.creds.ClientId(), p.creds.ClientSecret(), "", []string{
-		"openid", "email", "offline_access",
+		"openid", "email", "offline_access", "supertoken",
 	}, rp.WithHTTPClient(client))
 	if err != nil {
 		logger.Errorf("Unable to create OIDC client: %s", err.Error())
-		return err
+		return nil, err
 	}
 
 	t, err := (&clientcredentials.Config{
-		Scopes:       []string{"openid", "email", "offline_access"},
+		Scopes:       rp.OAuthConfig().Scopes,
 		ClientID:     rp.OAuthConfig().ClientID,
 		ClientSecret: rp.OAuthConfig().ClientSecret,
 		TokenURL:     rp.OAuthConfig().Endpoint.TokenURL,
@@ -100,20 +83,24 @@ func (p TokenProvider) AccessToken(ctx context.Context) error {
 
 	if err != nil {
 		logger.Errorf("Unable to get token: %s", err.Error())
-		return err
+		return nil, err
 	}
 
 	p.cloud.AccessToken = t.AccessToken
 	p.cloud.Expiry = t.Expiry
 	p.cloud.RefreshToken = t.RefreshToken
 
-	return nil
+	return p.cloud, nil
 }
 
-func (p TokenProvider) RefreshToken(ctx context.Context) error {
+func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	logging.FromContext(ctx).Debugf("Getting refresh token for %s", p.creds.Endpoint())
 	if p.cloud.AccessToken == "" {
 		return p.AccessToken(ctx)
+	}
+
+	if time.Now().Before(p.cloud.Expiry) {
+		return p.cloud, nil
 	}
 
 	p.cloud.Lock()
@@ -128,33 +115,33 @@ func (p TokenProvider) RefreshToken(ctx context.Context) error {
 
 	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, discoveryConfiguration.TokenEndpoint,
 		bytes.NewBufferString(form.Encode()))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.SetBasicAuth(p.creds.ClientId(), p.creds.ClientSecret())
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	ret, err := p.client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if ret.StatusCode != http.StatusOK {
 		data, err := io.ReadAll(ret.Body)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return errors.New(string(data))
+		return nil, errors.New(string(data))
 	}
 
 	token := oauth2.Token{}
 	if err := json.NewDecoder(ret.Body).Decode(&token); err != nil {
-		return err
+		return nil, err
 	}
 
 	p.cloud.Lock()
@@ -163,6 +150,6 @@ func (p TokenProvider) RefreshToken(ctx context.Context) error {
 	p.cloud.Expiry = token.Expiry
 	p.cloud.RefreshToken = token.RefreshToken
 
-	return nil
+	return p.cloud, nil
 
 }
