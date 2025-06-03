@@ -106,13 +106,14 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 		return p.AccessToken(ctx)
 	}
 
-	if time.Now().Before(p.cloud.Expiry) {
-		defer p.cloud.Unlock()
-		return p.cloud, nil
-	}
-
-	p.cloud.Lock()
 	defer p.cloud.Unlock()
+	if time.Now().Before(p.cloud.Expiry) {
+		return &TokenInfo{
+			AccessToken:  p.cloud.AccessToken,
+			RefreshToken: p.cloud.RefreshToken,
+			Expiry:       p.cloud.Expiry,
+		}, nil
+	}
 
 	form := url.Values{
 		"grant_type":    []string{string(oidc.GrantTypeRefreshToken)},
