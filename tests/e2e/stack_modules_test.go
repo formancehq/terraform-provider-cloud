@@ -27,8 +27,14 @@ func TestStackModule(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 					provider "formancecloud" {}
+					
+					import {
+						id = "`+OrganizationId+`"
+						to = formancecloud_organization.default
+					}
+
 					resource "formancecloud_organization" "default" {
-						name = "formancehq"
+						name = "default"
 					}
 
 					data "formancecloud_regions" "dev" {

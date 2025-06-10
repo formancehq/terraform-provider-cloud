@@ -118,7 +118,7 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 
 	objs, res, err := r.sdk.ListRegions(ctx, data.OrganizationID.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 

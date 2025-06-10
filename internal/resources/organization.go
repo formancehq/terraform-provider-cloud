@@ -10,6 +10,7 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -93,52 +94,8 @@ func (o *Organization) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 // Create implements resource.Resource.
 func (o *Organization) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	ctx = logging.ContextWithLogger(ctx, o.logger.WithField("func", "organization_create"))
-	logging.FromContext(ctx).Debugf("Creating organization")
-
-	var plan OrganizationModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	body := sdk.OrganizationData{}
-	if v := plan.Name.ValueString(); v != "" {
-		body.Name = v
-	}
-	if v := plan.Domain.ValueString(); v != "" {
-		body.Domain = pointer.For(v)
-	}
-	if v := plan.DefaultOrganizationAccess.ValueString(); v != "" {
-		body.DefaultOrganizationAccess = pointer.For(sdk.Role(v))
-	}
-	if v := plan.DefaultStackAccess.ValueString(); v != "" {
-		body.DefaultStackAccess = pointer.For(sdk.Role(v))
-	}
-
-	obj, res, err := o.sdk.CreateOrganization(ctx).Body(body).Execute()
-	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
-		return
-	}
-
-	plan.ID = types.StringValue(obj.Data.Id)
-	plan.Domain = types.StringNull()
-	if obj.Data.Domain != nil {
-		plan.Domain = types.StringValue(*obj.Data.Domain)
-	}
-	plan.Name = types.StringValue(obj.Data.Name)
-	plan.DefaultOrganizationAccess = types.StringNull()
-	if obj.Data.DefaultOrganizationAccess != nil {
-		plan.DefaultOrganizationAccess = types.StringValue(string(*obj.Data.DefaultOrganizationAccess))
-	}
-	plan.DefaultStackAccess = types.StringNull()
-	if obj.Data.DefaultStackAccess != nil {
-		plan.DefaultStackAccess = types.StringValue(string(*obj.Data.DefaultStackAccess))
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(diag.NewErrorDiagnostic("Cannot create organization",
+		"Creating an organization is not supported. Use Import + Update to manage existing organizations. Data source to query existing organizations."))
 }
 
 // Read implements resource.Resource.
@@ -154,7 +111,7 @@ func (o *Organization) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	obj, res, err := o.sdk.ReadOrganization(ctx, state.ID.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 
@@ -200,7 +157,7 @@ func (o *Organization) Update(ctx context.Context, req resource.UpdateRequest, r
 	logging.FromContext(ctx).Debugf("Updating organization with data: %v", data)
 	obj, res, err := o.sdk.UpdateOrganization(ctx, state.ID.ValueString()).OrganizationData(data).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 
@@ -224,21 +181,8 @@ func (o *Organization) Update(ctx context.Context, req resource.UpdateRequest, r
 
 // Delete implements resource.Resource.
 func (o *Organization) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	ctx = logging.ContextWithLogger(ctx, o.logger.WithField("func", "organization_delete"))
-	logging.FromContext(ctx).Debugf("Deleting organization")
-	var state OrganizationModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	res, err := o.sdk.DeleteOrganization(ctx, state.ID.ValueString()).Execute()
-	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
-		return
-	}
-
+	resp.Diagnostics.Append(diag.NewWarningDiagnostic("Cannot delete organization",
+		"Deleting an organization is not supported. Please contact support if you need to delete an organization."))
 }
 
 // Configure implements resource.ResourceWithConfigure.

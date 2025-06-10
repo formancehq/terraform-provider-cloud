@@ -1,10 +1,8 @@
 package e2e_test
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
@@ -15,9 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
+var OrganizationId = ""
+
 func TestOrganization(t *testing.T) {
 	t.Parallel()
-	domain := uuid.NewString()
+
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"formancecloud": providerserver.NewProtocol6WithError(Provider()),
@@ -29,43 +29,44 @@ func TestOrganization(t *testing.T) {
 			{
 				Config: `
 					provider "formancecloud" {}
-					resource "formancecloud_organization" "test" {
-						name = "formancehq"
+
+					import {
+						id = "` + OrganizationId + `"
+						to = formancecloud_organization.default
 					}
+
+					resource "formancecloud_organization" "default" {
+						name = "default"
+					}
+
 				`,
-				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("name"), knownvalue.StringExact("formancehq")),
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("domain"), knownvalue.Null()),
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("id"), knownvalue.NotNull()),
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("default_organization_access"), knownvalue.StringExact("GUEST")),
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("default_stack_access"), knownvalue.StringExact("GUEST")),
-				},
 			},
 			{
-				Config: fmt.Sprintf(`
+				Config: `
 					provider "formancecloud" {}
-					resource "formancecloud_organization" "test" {
+
+					import {
+						id = "` + OrganizationId + `"
+						to = formancecloud_organization.default
+					}
+
+					resource "formancecloud_organization" "default" {
 						name = "newName"
-						domain = "%s"
+						domain = "newDomain"
 						default_organization_access = "ADMIN"
 						default_stack_access = "ADMIN"
 					}
-				`, domain),
+				`,
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("name"), knownvalue.StringExact("newName")),
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("domain"), knownvalue.StringExact(domain)),
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("id"), knownvalue.NotNull()),
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("default_organization_access"), knownvalue.StringExact("ADMIN")),
-					statecheck.ExpectKnownValue("formancecloud_organization.test", tfjsonpath.New("default_stack_access"), knownvalue.StringExact("ADMIN")),
+					statecheck.ExpectKnownValue("formancecloud_organization.default", tfjsonpath.New("name"), knownvalue.StringExact("newName")),
+					statecheck.ExpectKnownValue("formancecloud_organization.default", tfjsonpath.New("domain"), knownvalue.StringExact("newDomain")),
+					statecheck.ExpectKnownValue("formancecloud_organization.default", tfjsonpath.New("id"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue("formancecloud_organization.default", tfjsonpath.New("default_organization_access"), knownvalue.StringExact("ADMIN")),
+					statecheck.ExpectKnownValue("formancecloud_organization.default", tfjsonpath.New("default_stack_access"), knownvalue.StringExact("ADMIN")),
 				},
 			},
 			{
 				RefreshState: true,
-			},
-			{
-				ImportState:     true,
-				ImportStateKind: resource.ImportBlockWithID,
-				ResourceName:    "formancecloud_organization.test",
 			},
 		},
 	})

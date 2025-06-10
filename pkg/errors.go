@@ -11,7 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-func HandleSDKError(ctx context.Context, res *http.Response, diag *diag.Diagnostics) {
+func HandleSDKError(ctx context.Context, err error, res *http.Response, diag *diag.Diagnostics) {
+	if res == nil {
+		diag.AddError("Unexpected error", fmt.Sprintf("An unexpected error occurred: %s", err.Error()))
+		return
+	}
+
 	var details []string
 	traceId := res.Header.Get("X-Trace-Id")
 	if traceId != "" {

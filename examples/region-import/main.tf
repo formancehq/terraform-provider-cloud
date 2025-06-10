@@ -8,10 +8,18 @@ terraform {
 
 provider "formancecloud" {}
 
-resource "formancecloud_organization" "default" {
-  name = "formancehq"
+# TF_VAR_import_organization_id
+variable "import_organization_id" {
+  type = string
 }
 
+import {
+  to = formancecloud_organization.default
+  id = var.import_organization_id
+}
+resource "formancecloud_organization" "default" {
+  name = "default"
+}
 # TF_VAR_region_datasource_id
 variable "region_datasource_id" {
   type = string

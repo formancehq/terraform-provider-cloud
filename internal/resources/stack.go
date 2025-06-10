@@ -172,7 +172,7 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 
 	obj, res, err := s.sdk.CreateStack(ctx, plan.GetOrganizationID()).CreateStackRequest(createStackRequest).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (s *Stack) Delete(ctx context.Context, req resource.DeleteRequest, resp *re
 
 	res, err := s.sdk.DeleteStack(ctx, plan.GetOrganizationID(), plan.GetID()).Force(plan.ForceDestroy.ValueBool()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 }
@@ -226,7 +226,7 @@ func (s *Stack) Read(ctx context.Context, req resource.ReadRequest, resp *resour
 
 	obj, res, err := s.sdk.GetStack(ctx, plan.GetOrganizationID(), plan.GetID()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 
@@ -273,7 +273,7 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 		}
 		obj, resp, err := s.sdk.UpdateStack(ctx, plan.GetOrganizationID(), plan.GetID()).UpdateStackRequest(updateRequest).Execute()
 		if err != nil {
-			pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 		plan.Name = types.StringValue(obj.Data.Name)
@@ -287,7 +287,7 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 				Version: pointer.For(plan.Version.ValueString()),
 			}).Execute()
 			if err != nil {
-				pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+				pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 				return
 			}
 

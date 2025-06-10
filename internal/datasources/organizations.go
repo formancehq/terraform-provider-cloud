@@ -103,7 +103,7 @@ func (o *Organization) Read(ctx context.Context, req datasource.ReadRequest, res
 
 	obj, res, err := o.sdk.ReadOrganization(ctx, data.ID.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 

@@ -124,7 +124,7 @@ func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, re
 
 	resp, err := s.sdk.EnableModule(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString()).Name(plan.Name.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
 	}
 
@@ -141,7 +141,7 @@ func (s *StackModule) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	resp, err := s.sdk.DisableModule(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString()).Name(state.Name.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
 	}
 }
@@ -162,7 +162,7 @@ func (s *StackModule) Read(ctx context.Context, req resource.ReadRequest, res *r
 
 	modules, resp, err := s.sdk.ListModules(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
 	}
 
