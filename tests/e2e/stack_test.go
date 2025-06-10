@@ -27,18 +27,13 @@ func TestStack(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 					provider "formancecloud" {}
-					import {
+					data "formancecloud_organizations" "default" {
 						id = "`+OrganizationId+`"
-						to = formancecloud_organization.default
-					}
-
-					resource "formancecloud_organization" "default" {
-						name = "default"
 					}
 
 					data "formancecloud_regions" "dev" {
 						name = "%s"
-						organization_id = formancecloud_organization.default.id
+						organization_id = data.formancecloud_organizations.default.id
 					}
 
 					output "region_id" {
@@ -47,7 +42,7 @@ func TestStack(t *testing.T) {
 
 					resource "formancecloud_stack" "test" {
 						name = "test"
-						organization_id = formancecloud_organization.default.id
+						organization_id = data.formancecloud_organizations.default.id
 						region_id = data.formancecloud_regions.dev.id
 
 						force_destroy = true
