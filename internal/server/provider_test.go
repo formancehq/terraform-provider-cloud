@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
@@ -18,7 +19,7 @@ import (
 )
 
 func TestProviderMetadata(t *testing.T) {
-	p := server.New(logging.Testing(), "develop", "https://app.formance.cloud/api", "client_id", "client_secret", pkg.NewSDK)()
+	p := server.New(logging.Testing(), "develop", "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewSDK)()
 
 	res := provider.MetadataResponse{}
 	p.Metadata(logging.TestingContext(), provider.MetadataRequest{}, &res)
@@ -46,7 +47,7 @@ func TestProviderConfigure(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			sdkFactory, mocks := pkg.NewMockSDK(ctrl)
-			p := server.New(logging.Testing(), "develop", "https://app.formance.cloud/api", "client_id", "client_secret", sdkFactory)()
+			p := server.New(logging.Testing(), "develop", "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, sdkFactory)()
 
 			res := provider.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},

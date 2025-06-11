@@ -1,12 +1,15 @@
 package e2e_test
 
 import (
+	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/go-libs/v3/otlp"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -18,7 +21,9 @@ func TestMain(m *testing.M) {
 	endpoint := os.Getenv("FORMANCE_CLOUD_API_ENDPOINT")
 	clientID := os.Getenv("FORMANCE_CLOUD_CLIENT_ID")
 	clientSecret := os.Getenv("FORMANCE_CLOUD_CLIENT_SECRET")
-	Provider = server.New(logging.Testing(), "develop", endpoint, clientID, clientSecret, pkg.NewSDK)
+
+	flag.Parse()
+	Provider = server.New(logging.Testing(), "develop", endpoint, clientID, clientSecret, otlp.NewRoundTripper(http.DefaultTransport, testing.Verbose()), pkg.NewSDK)
 
 	// Setup non destroyable resources
 	RegionName = os.Getenv("FORMANCE_CLOUD_REGION_NAME")
