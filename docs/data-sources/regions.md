@@ -3,12 +3,12 @@
 page_title: "formancecloud_regions Data Source - formancecloud"
 subcategory: ""
 description: |-
-  Retrieves information about a specific region by name within an organization.
+  Retrieves information about regions within an organization. If name is specified, returns a specific region by name.
 ---
 
 # formancecloud_regions (Data Source)
 
-Retrieves information about a specific region by name within an organization.
+Retrieves information about regions within an organization. If name is specified, returns a specific region by name.
 
 
 
@@ -17,8 +17,11 @@ Retrieves information about a specific region by name within an organization.
 
 ### Required
 
-- `name` (String) The name of the region to retrieve.
 - `organization_id` (String) The organization ID where the region is located.
+
+### Optional
+
+- `name` (String) The name of the region to retrieve. If not specified, returns the first available region.
 
 ### Read-Only
 

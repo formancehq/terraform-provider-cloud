@@ -33,14 +33,6 @@ func (s *Stack) ValidateConfig(ctx context.Context, req datasource.ValidateConfi
 		return
 	}
 
-	if config.ID.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("id"),
-			"ID must be set.",
-			"ID cannot be empty.",
-		)
-	}
-
 	if config.OrganizationID.IsNull() {
 		res.Diagnostics.AddAttributeError(
 			path.Root("organization_id"),
@@ -51,15 +43,32 @@ func (s *Stack) ValidateConfig(ctx context.Context, req datasource.ValidateConfi
 }
 
 var SchemaStack = schema.Schema{
-	Description: "Retrieves information about a specific Formance Cloud stack by ID.",
+	Description: "Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Description: "The unique identifier of the stack to retrieve.",
-			Required:    true,
+			Description: "The unique identifier of the stack. If not specified, returns the first available stack.",
+			Optional:    true,
+			Computed:    true,
 		},
 		"organization_id": schema.StringAttribute{
 			Description: "The organization ID that owns the stack.",
 			Required:    true,
+		},
+		"name": schema.StringAttribute{
+			Description: "The name of the stack.",
+			Computed:    true,
+		},
+		"region_id": schema.StringAttribute{
+			Description: "The region ID where the stack is installed.",
+			Computed:    true,
+		},
+		"status": schema.StringAttribute{
+			Description: "The current status of the stack.",
+			Computed:    true,
+		},
+		"state": schema.StringAttribute{
+			Description: "The current state of the stack.",
+			Computed:    true,
 		},
 	},
 }
@@ -85,6 +94,10 @@ func (s *Stack) Configure(ctx context.Context, req datasource.ConfigureRequest, 
 type StackModel struct {
 	ID             types.String `tfsdk:"id"`
 	OrganizationID types.String `tfsdk:"organization_id"`
+	Name           types.String `tfsdk:"name"`
+	RegionID       types.String `tfsdk:"region_id"`
+	Status         types.String `tfsdk:"status"`
+	State          types.String `tfsdk:"state"`
 }
 
 func NewStacks(logger logging.Logger) func() datasource.DataSource {
@@ -106,19 +119,52 @@ func (s *Stack) Schema(ctx context.Context, req datasource.SchemaRequest, resp *
 func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data StackModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
-	obj, res, err := s.sdk.GetStack(ctx, data.OrganizationID.ValueString(), data.ID.ValueString()).Execute()
-	if err != nil {
-		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if obj == nil {
-		resp.Diagnostics.AddError("Unable to read stack", "Stack not found")
-		return
+	var stack sdk.Stack
+
+	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+		// If ID is specified, get the specific stack
+		obj, res, err := s.sdk.GetStack(ctx, data.OrganizationID.ValueString(), data.ID.ValueString()).Execute()
+		if err != nil {
+			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			return
+		}
+
+		if obj == nil || obj.Data == nil {
+			resp.Diagnostics.AddError("Unable to read stack", "Stack not found")
+			return
+		}
+		stack = *obj.Data
+	} else {
+		// If ID is not specified, list all stacks and return the first one
+		listResp, res, err := s.sdk.ListStacks(ctx, data.OrganizationID.ValueString()).Execute()
+		if err != nil {
+			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			return
+		}
+
+		if len(listResp.Data) == 0 {
+			resp.Diagnostics.AddError(
+				"No stacks found",
+				fmt.Sprintf("No stacks found in organization '%s'", data.OrganizationID.ValueString()),
+			)
+			return
+		}
+
+		// Return the first available stack
+		stack = listResp.Data[0]
 	}
-	data.ID = types.StringValue(obj.Data.Id)
-	data.OrganizationID = types.StringValue(obj.Data.OrganizationId)
+
+	// Populate all fields
+	data.ID = types.StringValue(stack.Id)
+	data.OrganizationID = types.StringValue(stack.OrganizationId)
+	data.Name = types.StringValue(stack.Name)
+	data.RegionID = types.StringValue(stack.RegionID)
+	data.Status = types.StringValue(stack.Status)
+	data.State = types.StringValue(stack.State)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

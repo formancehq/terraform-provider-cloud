@@ -33,13 +33,6 @@ func (r *RegionVersions) ValidateConfig(ctx context.Context, req datasource.Vali
 	if res.Diagnostics.HasError() {
 		return
 	}
-	if config.ID.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("id"),
-			"ID must be set.",
-			"RegionVersions ID cannot be empty.",
-		)
-	}
 
 	if config.OrganizationID.IsNull() {
 		res.Diagnostics.AddAttributeError(
@@ -51,11 +44,12 @@ func (r *RegionVersions) ValidateConfig(ctx context.Context, req datasource.Vali
 }
 
 var SchemaRegionVersions = schema.Schema{
-	Description: "Retrieves the list of available Formance versions for a specific region.",
+	Description: "Retrieves the list of available Formance versions for a region. If id is specified, uses that region. Otherwise uses the first available region.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Description: "The unique identifier of the region.",
-			Required:    true,
+			Description: "The unique identifier of the region. If not specified, uses the first available region.",
+			Optional:    true,
+			Computed:    true,
 		},
 		"organization_id": schema.StringAttribute{
 			Description: "The organization ID that owns the region.",
@@ -127,7 +121,33 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	obj, res, err := r.sdk.GetRegionVersions(ctx, data.OrganizationID.ValueString(), data.ID.ValueString()).Execute()
+	var regionID string
+
+	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+		// If ID is specified, use it
+		regionID = data.ID.ValueString()
+	} else {
+		// If ID is not specified, list regions and use the first one
+		regions, res, err := r.sdk.ListRegions(ctx, data.OrganizationID.ValueString()).Execute()
+		if err != nil {
+			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			return
+		}
+
+		if len(regions.Data) == 0 {
+			resp.Diagnostics.AddError(
+				"No regions found",
+				fmt.Sprintf("No regions found in organization '%s'", data.OrganizationID.ValueString()),
+			)
+			return
+		}
+
+		// Use the first region
+		regionID = regions.Data[0].Id
+		data.ID = types.StringValue(regionID)
+	}
+
+	obj, res, err := r.sdk.GetRegionVersions(ctx, data.OrganizationID.ValueString(), regionID).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return

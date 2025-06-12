@@ -129,6 +129,7 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 func (p *FormanceCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		datasources.NewOrganizations(p.logger.WithField("datasource", "organizations")),
+		datasources.NewCurrentOrganization(p.logger.WithField("datasource", "current_organization")),
 		datasources.NewRegions(p.logger.WithField("datasource", "regions")),
 		datasources.NewStacks(p.logger.WithField("datasource", "stacks")),
 		datasources.NewRegionVersions(p.logger.WithField("datasource", "region_versions")),
