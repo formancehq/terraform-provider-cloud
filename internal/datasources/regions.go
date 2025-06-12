@@ -34,14 +34,6 @@ func (r *Region) ValidateConfig(ctx context.Context, req datasource.ValidateConf
 		return
 	}
 
-	if config.Name.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("name"),
-			"Name must be set.",
-			"Region name cannot be empty.",
-		)
-	}
-
 	if config.OrganizationID.IsNull() {
 		res.Diagnostics.AddAttributeError(
 			path.Root("organization_id"),
@@ -52,15 +44,16 @@ func (r *Region) ValidateConfig(ctx context.Context, req datasource.ValidateConf
 }
 
 var SchemaRegion = schema.Schema{
-	Description: "Retrieves information about a specific region by name within an organization.",
+	Description: "Retrieves information about regions within an organization. If name is specified, returns a specific region by name.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The unique identifier of the region.",
 			Computed:    true,
 		},
 		"name": schema.StringAttribute{
-			Description: "The name of the region to retrieve.",
-			Required:    true,
+			Description: "The name of the region to retrieve. If not specified, returns the first available region.",
+			Optional:    true,
+			Computed:    true,
 		},
 		"organization_id": schema.StringAttribute{
 			Description: "The organization ID where the region is located.",
@@ -122,15 +115,30 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		return
 	}
 
-	obj := collectionutils.First(objs.Data, func(o sdk.AnyRegion) bool {
-		return o.Name == data.Name.ValueString()
-	})
-	if obj.Id == "" {
-		resp.Diagnostics.AddError(
-			"Region not found",
-			fmt.Sprintf("No region found with name '%s' in organization '%s'", data.Name.ValueString(), data.OrganizationID.ValueString()),
-		)
-		return
+	var obj sdk.AnyRegion
+	
+	if !data.Name.IsNull() && data.Name.ValueString() != "" {
+		// If name is specified, find the specific region
+		obj = collectionutils.First(objs.Data, func(o sdk.AnyRegion) bool {
+			return o.Name == data.Name.ValueString()
+		})
+		if obj.Id == "" {
+			resp.Diagnostics.AddError(
+				"Region not found",
+				fmt.Sprintf("No region found with name '%s' in organization '%s'", data.Name.ValueString(), data.OrganizationID.ValueString()),
+			)
+			return
+		}
+	} else {
+		// If name is not specified, return the first available region
+		if len(objs.Data) == 0 {
+			resp.Diagnostics.AddError(
+				"No regions found",
+				fmt.Sprintf("No regions found in organization '%s'", data.OrganizationID.ValueString()),
+			)
+			return
+		}
+		obj = objs.Data[0]
 	}
 
 	data.ID = types.StringValue(obj.Id)

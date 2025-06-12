@@ -3,12 +3,12 @@
 page_title: "formancecloud_stacks Data Source - formancecloud"
 subcategory: ""
 description: |-
-  Retrieves information about a specific Formance Cloud stack by ID.
+  Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack.
 ---
 
 # formancecloud_stacks (Data Source)
 
-Retrieves information about a specific Formance Cloud stack by ID.
+Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack.
 
 
 
@@ -17,5 +17,15 @@ Retrieves information about a specific Formance Cloud stack by ID.
 
 ### Required
 
-- `id` (String) The unique identifier of the stack to retrieve.
 - `organization_id` (String) The organization ID that owns the stack.
+
+### Optional
+
+- `id` (String) The unique identifier of the stack. If not specified, returns the first available stack.
+
+### Read-Only
+
+- `name` (String) The name of the stack.
+- `region_id` (String) The region ID where the stack is installed.
+- `state` (String) The current state of the stack.
+- `status` (String) The current status of the stack.
