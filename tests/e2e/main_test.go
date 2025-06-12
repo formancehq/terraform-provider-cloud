@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/httpclient"
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/otlp"
@@ -44,14 +43,23 @@ func TestMain(m *testing.M) {
 	RegionName = os.Getenv("FORMANCE_CLOUD_REGION_NAME")
 	OrganizationId = os.Getenv("FORMANCE_CLOUD_ORGANIZATION_ID")
 
-	s := []string{RegionName, OrganizationId, endpoint, clientID, clientSecret}
-	s = collectionutils.Filter(s, func(s string) bool {
-		return s == ""
-	})
+	// Check only required variables
+	requiredVars := map[string]string{
+		"FORMANCE_CLOUD_API_ENDPOINT": endpoint,
+		"FORMANCE_CLOUD_CLIENT_ID": clientID,
+		"FORMANCE_CLOUD_CLIENT_SECRET": clientSecret,
+	}
 
-	if len(s) > 0 {
-		fmt.Printf("Missing environment variables: %+v\n", s)
-		panic("You must set the following environment variables")
+	var missingVars []string
+	for name, value := range requiredVars {
+		if value == "" {
+			missingVars = append(missingVars, name)
+		}
+	}
+
+	if len(missingVars) > 0 {
+		fmt.Printf("Missing required environment variables: %+v\n", missingVars)
+		panic("You must set the required environment variables")
 	}
 
 	code := m.Run()
