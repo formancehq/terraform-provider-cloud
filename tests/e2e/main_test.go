@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
+	"github.com/formancehq/go-libs/v3/httpclient"
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/otlp"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
@@ -23,7 +24,17 @@ func TestMain(m *testing.M) {
 	clientSecret := os.Getenv("FORMANCE_CLOUD_CLIENT_SECRET")
 
 	flag.Parse()
-	Provider = server.New(logging.Testing(), endpoint, clientID, clientSecret, otlp.NewRoundTripper(http.DefaultTransport, testing.Verbose()), pkg.NewSDK, pkg.NewTokenProvider)
+
+	var transport http.RoundTripper
+	if testing.Verbose() {
+		transport = httpclient.NewDebugHTTPTransport(
+			otlp.NewRoundTripper(http.DefaultTransport, true),
+		)
+	} else {
+		transport = otlp.NewRoundTripper(http.DefaultTransport, false)
+	}
+
+	Provider = server.New(logging.Testing(), endpoint, clientID, clientSecret, transport, pkg.NewSDK, pkg.NewTokenProvider)
 
 	// Setup non destroyable resources
 	RegionName = os.Getenv("FORMANCE_CLOUD_REGION_NAME")
