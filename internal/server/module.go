@@ -58,12 +58,8 @@ func NewModule(ctx context.Context, flagset *pflag.FlagSet) fx.Option {
 		fx.Supply(FormanceCloudClientSecret(clientSecret)),
 		fx.Supply(FormanceCloudEndpoint(endpoint)),
 		fx.Supply(fx.Annotate(transport, fx.As(new(http.RoundTripper)))),
-		fx.Provide(func() pkg.SDKFactory {
-			return pkg.NewSDK
-		}),
-		fx.Provide(func() pkg.TokenProviderFactory {
-			return pkg.NewTokenProvider
-		}),
+		fx.Provide(pkg.NewSdkFactory),
+		fx.Provide(pkg.NewTokenProviderFactory),
 		fx.Provide(NewProvider),
 		fx.Provide(NewAPI),
 		fx.Invoke(func(lc fx.Lifecycle, server *API, shutdowner fx.Shutdowner) {

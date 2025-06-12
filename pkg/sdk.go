@@ -36,6 +36,12 @@ func NewSDK(creds Creds, transport http.RoundTripper) sdk.DefaultAPI {
 	return sdk.DefaultAPI
 }
 
+func NewSdkFactory() SDKFactory {
+	return func(creds Creds, transport http.RoundTripper) sdk.DefaultAPI {
+		return NewSDK(creds, transport)
+	}
+}
+
 func NewMockSDK(ctrl *gomock.Controller) (SDKFactory, *MockDefaultAPI) {
 	mock := NewMockDefaultAPI(ctrl)
 	return func(creds Creds, transport http.RoundTripper) sdk.DefaultAPI {
