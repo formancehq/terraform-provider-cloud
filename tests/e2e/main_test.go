@@ -16,7 +16,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
-var Provider func() provider.Provider
+var (
+	Provider func() provider.Provider
+	RegionName string
+	OrganizationId string
+)
 
 func TestMain(m *testing.M) {
 	endpoint := os.Getenv("FORMANCE_CLOUD_API_ENDPOINT")

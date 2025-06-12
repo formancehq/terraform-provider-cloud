@@ -134,9 +134,7 @@ func (p *FormanceCloudProvider) DataSources(ctx context.Context) []func() dataso
 // Resources satisfies the provider.Provider interface for FormanceCloudProvider.
 func (p *FormanceCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		resources.NewOrganization(p.logger.WithField("resource", "organization")),
-		resources.NewRegion(p.logger.WithField("resource", "region")),
-		resources.NewStack(p.logger.WithField("resource", "stack")),
+			resources.NewStack(p.logger.WithField("resource", "stack")),
 		resources.NewStackModule(p.logger.WithField("resource", "stack_module")),
 	}
 }
