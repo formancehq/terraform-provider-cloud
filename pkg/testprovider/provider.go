@@ -9,14 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
-func NewCloudProvider(logger logging.Logger, version string, endpoint string, clientId string, clientSecret string, transport http.RoundTripper, sdkFactory pkg.SDKFactory) func() provider.Provider {
+func NewCloudProvider(logger logging.Logger, endpoint string, clientId string, clientSecret string, transport http.RoundTripper, sdkFactory pkg.SDKFactory, tokenFactory pkg.TokenProviderFactory) func() provider.Provider {
 	return server.New(
 		logger,
-		version,
 		endpoint,
 		clientId,
 		clientSecret,
 		transport,
 		sdkFactory,
+		tokenFactory,
 	)
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
+	gomock "go.uber.org/mock/gomock"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -45,7 +46,9 @@ type TokenProvider struct {
 	cloud *TokenInfo
 }
 
-func NewTokenProvider(transport http.RoundTripper, creds Creds) TokenProvider {
+type TokenProviderFactory func(transport http.RoundTripper, creds Creds) TokenProviderImpl
+
+func NewTokenProvider(transport http.RoundTripper, creds Creds) TokenProviderImpl {
 	return TokenProvider{
 		client: &http.Client{
 			Transport: transport,
@@ -160,4 +163,19 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 		Expiry:       token.Expiry,
 	}, nil
 
+}
+
+type Mock struct {
+	Creds
+	*MockTokenProviderImpl
+}
+
+func NewMockTokenProvider(ctrl *gomock.Controller) (TokenProviderFactory, *Mock) {
+	mock := &Mock{
+		MockTokenProviderImpl: NewMockTokenProviderImpl(ctrl),
+	}
+	return func(transport http.RoundTripper, creds Creds) TokenProviderImpl {
+		mock.Creds = creds
+		return mock
+	}, mock
 }

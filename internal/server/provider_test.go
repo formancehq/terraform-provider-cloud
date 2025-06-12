@@ -19,7 +19,10 @@ import (
 )
 
 func TestProviderMetadata(t *testing.T) {
-	p := server.New(logging.Testing(), "develop", "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewSDK)()
+	ctrl := gomock.NewController(t)
+	sdkFactory, _ := pkg.NewMockSDK(ctrl)
+	tokenFactory, _ := pkg.NewMockTokenProvider(ctrl)
+	p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, sdkFactory, tokenFactory)()
 
 	res := provider.MetadataResponse{}
 	p.Metadata(logging.TestingContext(), provider.MetadataRequest{}, &res)
@@ -46,8 +49,9 @@ func TestProviderConfigure(t *testing.T) {
 		t.Run(fmt.Sprintf("%s clientId %t clientSecret %t endpoint %t", t.Name(), tc.ClientId != "", tc.ClientSecret != "", tc.Endpoint != ""), func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			sdkFactory, mocks := pkg.NewMockSDK(ctrl)
-			p := server.New(logging.Testing(), "develop", "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, sdkFactory)()
+			sdkFactory, _ := pkg.NewMockSDK(ctrl)
+			tokenFactory, mockTp := pkg.NewMockTokenProvider(ctrl)
+			p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, sdkFactory, tokenFactory)()
 
 			res := provider.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},
@@ -71,15 +75,15 @@ func TestProviderConfigure(t *testing.T) {
 			}, &res)
 
 			if tc.ClientId == "" {
-				require.Equal(t, mocks.Creds.ClientId(), "client_id")
+				require.Equal(t, mockTp.Creds.ClientId(), "client_id")
 			}
 
 			if tc.ClientSecret == "" {
-				require.Equal(t, mocks.Creds.ClientSecret(), "client_secret")
+				require.Equal(t, mockTp.Creds.ClientSecret(), "client_secret")
 			}
 
 			if tc.Endpoint == "" {
-				require.Equal(t, mocks.Creds.Endpoint(), "https://app.formance.cloud/api")
+				require.Equal(t, mockTp.Creds.Endpoint(), "https://app.formance.cloud/api")
 			}
 
 			require.Len(t, res.Diagnostics, 0)

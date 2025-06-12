@@ -49,11 +49,11 @@ func (f *ProviderModelAdapter) UserAgent() string {
 }
 
 type FormanceCloudProvider struct {
-	logger     logging.Logger
-	transport  http.RoundTripper
-	SDKFactory pkg.SDKFactory
+	logger               logging.Logger
+	transport            http.RoundTripper
+	sdkFactory           pkg.SDKFactory
+	tokenProviderFactory pkg.TokenProviderFactory
 
-	Version  string
 	Endpoint string
 
 	ClientId     string
@@ -82,7 +82,7 @@ var Schema = schema.Schema{
 // Metadata satisfies the provider.Provider interface for FormanceCloudProvider
 func (p *FormanceCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "formancecloud"
-	resp.Version = p.Version
+	resp.Version = internal.Version
 }
 
 // Schema satisfies the provider.Provider interface for FormanceCloudProvider.
@@ -92,7 +92,7 @@ func (p *FormanceCloudProvider) Schema(ctx context.Context, req provider.SchemaR
 
 // Configure satisfies the provider.Provider interface for FormanceCloudProvider.
 func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	p.logger.Debugf("Configuring cloud provider version %s", p.Version)
+	p.logger.Debugf("Configuring cloud provider version %s", internal.Version)
 	var data FormanceCloudProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -113,7 +113,9 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 		data.Endpoint = types.StringValue(p.Endpoint)
 	}
 
-	cli, _ := p.SDKFactory(NewProviderModelAdapter(&data), p.transport)
+	creds := NewProviderModelAdapter(&data)
+	tp := p.tokenProviderFactory(p.transport, creds)
+	cli := p.sdkFactory(creds, pkg.NewTransport(p.transport, tp))
 
 	resp.ResourceData = cli
 	resp.DataSourceData = cli
@@ -196,16 +198,24 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 	}
 }
 
-func New(logger logging.Logger, version, endpoint, clientId, clientSecret string, transport http.RoundTripper, sdkFactory pkg.SDKFactory) func() provider.Provider {
+func New(
+	logger logging.Logger,
+	endpoint,
+	clientId,
+	clientSecret string,
+	transport http.RoundTripper,
+	sdkFactory pkg.SDKFactory,
+	tokenFactory pkg.TokenProviderFactory,
+) func() provider.Provider {
 	return func() provider.Provider {
 		return &FormanceCloudProvider{
-			logger:       logger,
-			Version:      version,
-			ClientId:     clientId,
-			ClientSecret: clientSecret,
-			transport:    transport,
-			Endpoint:     endpoint,
-			SDKFactory:   sdkFactory,
+			logger:               logger,
+			ClientId:             clientId,
+			ClientSecret:         clientSecret,
+			transport:            transport,
+			Endpoint:             endpoint,
+			sdkFactory:           sdkFactory,
+			tokenProviderFactory: tokenFactory,
 		}
 	}
 }

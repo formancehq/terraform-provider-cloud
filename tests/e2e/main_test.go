@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 	clientSecret := os.Getenv("FORMANCE_CLOUD_CLIENT_SECRET")
 
 	flag.Parse()
-	Provider = server.New(logging.Testing(), "develop", endpoint, clientID, clientSecret, otlp.NewRoundTripper(http.DefaultTransport, testing.Verbose()), pkg.NewSDK)
+	Provider = server.New(logging.Testing(), endpoint, clientID, clientSecret, otlp.NewRoundTripper(http.DefaultTransport, testing.Verbose()), pkg.NewSDK, pkg.NewTokenProvider)
 
 	// Setup non destroyable resources
 	RegionName = os.Getenv("FORMANCE_CLOUD_REGION_NAME")
