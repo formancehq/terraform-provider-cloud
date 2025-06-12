@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/formancehq/go-libs/v3/logging"
-	"github.com/formancehq/go-libs/v3/otlp"
 	"github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
@@ -46,11 +45,13 @@ type TokenProvider struct {
 	cloud *TokenInfo
 }
 
-func NewTokenProvider(client *http.Client, creds Creds) TokenProvider {
+func NewTokenProvider(transport http.RoundTripper, creds Creds) TokenProvider {
 	return TokenProvider{
-		client: client,
-		cloud:  &TokenInfo{},
-		creds:  creds,
+		client: &http.Client{
+			Transport: transport,
+		},
+		cloud: &TokenInfo{},
+		creds: creds,
 	}
 }
 
@@ -62,13 +63,9 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	logger.Debugf("Getting access token for %s", p.creds.Endpoint())
 	defer logger.Debugf("Getting access token done")
 
-	client := &http.Client{
-		Transport: otlp.NewRoundTripper(http.DefaultTransport, true),
-	}
-
 	rp, err := rp.NewRelyingPartyOIDC(ctx, p.creds.Endpoint(), p.creds.ClientId(), p.creds.ClientSecret(), "", []string{
 		"openid", "email", "offline_access", "supertoken",
-	}, rp.WithHTTPClient(client))
+	}, rp.WithHTTPClient(p.client))
 	if err != nil {
 		logger.Errorf("Unable to create OIDC client: %s", err.Error())
 		return nil, err

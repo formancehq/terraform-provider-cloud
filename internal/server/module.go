@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"net/http"
 
+	"github.com/formancehq/go-libs/v3/otlp"
 	"github.com/formancehq/go-libs/v3/service"
 	"github.com/spf13/pflag"
 	"go.uber.org/fx"
@@ -24,17 +26,23 @@ func NewModule(ctx context.Context, flagset *pflag.FlagSet) fx.Option {
 	clientId, _ := flagset.GetString(FormanceCloudClientIdKey)
 	clientSecret, _ := flagset.GetString(FormanceCloudClientSecretKey)
 	endpoint, _ := flagset.GetString(FormanceCloudEndpointKey)
+	debug, _ := flagset.GetBool(service.DebugFlag)
+	transport := otlp.NewRoundTripper(http.DefaultTransport, debug)
 	opts := fx.Options(
 		fx.Supply(FormanceCloudClientId(clientId)),
 		fx.Supply(FormanceCloudClientSecret(clientSecret)),
 		fx.Supply(FormanceCloudEndpoint(endpoint)),
+		fx.Supply(
+			fx.Annotate(transport,
+				fx.As(new(http.RoundTripper)),
+			),
+		),
 		fx.Provide(
 			NewAPI,
 		),
 		fx.Invoke(func(lc fx.Lifecycle, server *API, shutdowner fx.Shutdowner) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
-					debug, _ := flagset.GetBool(service.DebugFlag)
 					go func() {
 						if err := server.Run(ctx, debug); err != nil {
 							if err := shutdowner.Shutdown(); err != nil {
