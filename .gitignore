@@ -3,3 +3,4 @@ build
 *tfstate*
 .terraform*
 coverage
+.env

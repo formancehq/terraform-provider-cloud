@@ -3,25 +3,17 @@ package server
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
-	"github.com/formancehq/terraform-provider-cloud/pkg"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
-type FormanceCloudEndpoint string
-type FormanceCloudClientSecret string
-type FormanceCloudClientId string
+type ProviderFactory func() provider.Provider
 
 type API struct {
-	logger    logging.Logger
-	transport http.RoundTripper
-
-	ClientId     FormanceCloudClientId
-	ClientSecret FormanceCloudClientSecret
-	Endpoint     FormanceCloudEndpoint
+	provider ProviderFactory
 }
 
 func (a *API) Run(ctx context.Context, debug bool) error {
@@ -30,7 +22,7 @@ func (a *API) Run(ctx context.Context, debug bool) error {
 		Debug:   debug,
 	}
 
-	err := providerserver.Serve(ctx, New(a.logger, internal.Version, string(a.Endpoint), string(a.ClientId), string(a.ClientSecret), a.transport, pkg.NewSDK), opts)
+	err := providerserver.Serve(ctx, a.provider, opts)
 	if err != nil {
 		logging.FromContext(ctx).Errorf("failed to start server: %v", err)
 		return err
@@ -38,12 +30,8 @@ func (a *API) Run(ctx context.Context, debug bool) error {
 
 	return nil
 }
-func NewAPI(endpoint FormanceCloudEndpoint, clientSecret FormanceCloudClientSecret, clientId FormanceCloudClientId, logger logging.Logger, transport http.RoundTripper) *API {
+func NewAPI(p ProviderFactory) *API {
 	return &API{
-		logger:       logger,
-		ClientId:     clientId,
-		transport:    transport,
-		ClientSecret: clientSecret,
-		Endpoint:     endpoint,
+		provider: p,
 	}
 }

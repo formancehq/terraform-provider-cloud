@@ -6,7 +6,7 @@ default:
 pc: pre-commit
 
 [group('qa')]
-pre-commit: generate tidy lint
+pre-commit: tidy lint lint-integration generate
 
 [group('qa')]
 lint:
@@ -14,7 +14,7 @@ lint:
 
 [group('qa')]
 lint-integration:
-  cd ./tests/integration && golangci-lint run --fix --build-tags it --timeout 5m
+  cd ./tests/e2e && golangci-lint run --fix --build-tags it --timeout 5m
 
 [group('qa')]
 tidy:
