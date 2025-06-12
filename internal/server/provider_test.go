@@ -75,15 +75,15 @@ func TestProviderConfigure(t *testing.T) {
 			}, &res)
 
 			if tc.ClientId == "" {
-				require.Equal(t, mockTp.Creds.ClientId(), "client_id")
+				require.Equal(t, mockTp.ClientId(), "client_id")
 			}
 
 			if tc.ClientSecret == "" {
-				require.Equal(t, mockTp.Creds.ClientSecret(), "client_secret")
+				require.Equal(t, mockTp.ClientSecret(), "client_secret")
 			}
 
 			if tc.Endpoint == "" {
-				require.Equal(t, mockTp.Creds.Endpoint(), "https://app.formance.cloud/api")
+				require.Equal(t, mockTp.Endpoint(), "https://app.formance.cloud/api")
 			}
 
 			require.Len(t, res.Diagnostics, 0)
