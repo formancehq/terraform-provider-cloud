@@ -110,10 +110,9 @@ func TestRegionsValidateConfig(t *testing.T) {
 					Schema: datasources.SchemaRegion,
 				},
 			}, &res)
-			if tc.name == nil && tc.organizationID == nil {
-				require.Len(t, res.Diagnostics, 2, "Expected diagnostics")
-				require.Equal(t, res.Diagnostics[0].Summary(), "Name must be set.")
-				require.Equal(t, res.Diagnostics[1].Summary(), "Organization ID must be set.")
+			if tc.organizationID == nil {
+				require.Len(t, res.Diagnostics, 1, "Expected one diagnostic")
+				require.Equal(t, res.Diagnostics[0].Summary(), "Organization ID must be set.")
 			} else {
 				require.Empty(t, res.Diagnostics, "Expected no diagnostics")
 			}
