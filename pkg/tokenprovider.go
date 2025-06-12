@@ -48,6 +48,12 @@ type TokenProvider struct {
 
 type TokenProviderFactory func(transport http.RoundTripper, creds Creds) TokenProviderImpl
 
+func NewTokenProviderFactory() TokenProviderFactory {
+	return func(transport http.RoundTripper, creds Creds) TokenProviderImpl {
+		return NewTokenProvider(transport, creds)
+	}
+}
+
 func NewTokenProvider(transport http.RoundTripper, creds Creds) TokenProviderImpl {
 	return TokenProvider{
 		client: &http.Client{
