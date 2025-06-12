@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
@@ -48,15 +49,15 @@ func (f *ProviderModelAdapter) UserAgent() string {
 }
 
 type FormanceCloudProvider struct {
-	logger logging.Logger
+	logger     logging.Logger
+	transport  http.RoundTripper
+	SDKFactory pkg.SDKFactory
 
 	Version  string
 	Endpoint string
 
 	ClientId     string
 	ClientSecret string
-
-	SDKFactory pkg.SDKFactory
 }
 
 var Schema = schema.Schema{
@@ -112,7 +113,7 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 		data.Endpoint = types.StringValue(p.Endpoint)
 	}
 
-	cli, _ := p.SDKFactory(NewProviderModelAdapter(&data))
+	cli, _ := p.SDKFactory(NewProviderModelAdapter(&data), p.transport)
 
 	resp.ResourceData = cli
 	resp.DataSourceData = cli
@@ -195,13 +196,14 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 	}
 }
 
-func New(logger logging.Logger, version, endpoint, clientId, clientSecret string, sdkFactory pkg.SDKFactory) func() provider.Provider {
+func New(logger logging.Logger, version, endpoint, clientId, clientSecret string, transport http.RoundTripper, sdkFactory pkg.SDKFactory) func() provider.Provider {
 	return func() provider.Provider {
 		return &FormanceCloudProvider{
 			logger:       logger,
 			Version:      version,
 			ClientId:     clientId,
 			ClientSecret: clientSecret,
+			transport:    transport,
 			Endpoint:     endpoint,
 			SDKFactory:   sdkFactory,
 		}

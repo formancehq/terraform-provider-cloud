@@ -3,8 +3,6 @@ package pkg
 import (
 	"net/http"
 
-	"github.com/formancehq/go-libs/v3/httpclient"
-	"github.com/formancehq/go-libs/v3/otlp"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -20,15 +18,13 @@ type Creds interface {
 //go:generate openapi-generator-cli generate -i ./openapi.yaml -g go -o ../sdk --git-user-id=formancehq --git-repo-id=terraform-provider-cloud -p packageVersion=latest -p isGoSubmodule=true -p packageName=sdk -p disallowAdditionalPropertiesIfNotPresent=false -p generateInterfaces=true -t ../openapi-templates/go
 //go:generate rm -rf ../sdk/test
 //go:generate rm -rf ../sdk/docs
-func NewSDK(creds Creds) (sdk.DefaultAPI, TokenProviderImpl) {
+func NewSDK(creds Creds, transport http.RoundTripper) (sdk.DefaultAPI, TokenProviderImpl) {
+	tp := NewTokenProvider(transport, creds)
+
 	client := http.Client{
-		Transport: otlp.NewRoundTripper(httpclient.NewDebugHTTPTransport(http.DefaultTransport), true),
+		Transport: newTransport(transport, tp),
 	}
 
-	tp := NewTokenProvider(&http.Client{
-		Transport: otlp.NewRoundTripper(httpclient.NewDebugHTTPTransport(http.DefaultTransport), true),
-	}, creds)
-	client.Transport = newTransport(client.Transport, tp)
 	sdk := &SDK{
 		APIClient: sdk.NewAPIClient(&sdk.Configuration{
 			HTTPClient: &client,
@@ -58,13 +54,13 @@ func NewMockSDK(ctrl *gomock.Controller) (SDKFactory, *Mocks) {
 		Api:           mockSDK,
 		TokenProvider: mockTokenProvider,
 	}
-	return func(creds Creds) (sdk.DefaultAPI, TokenProviderImpl) {
+	return func(creds Creds, transport http.RoundTripper) (sdk.DefaultAPI, TokenProviderImpl) {
 		mocks.Creds = creds
 		return mockSDK, mockTokenProvider
 	}, mocks
 }
 
-type SDKFactory func(creds Creds) (sdk.DefaultAPI, TokenProviderImpl)
+type SDKFactory func(creds Creds, transport http.RoundTripper) (sdk.DefaultAPI, TokenProviderImpl)
 
 //go:generate mockgen -source=../sdk/api_default.go -destination=sdk_generated.go -package=pkg . DefaultAPI
 type SDK struct {
