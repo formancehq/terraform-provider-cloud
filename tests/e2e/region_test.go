@@ -32,13 +32,14 @@ func TestRegionDatasources(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 					provider "formancecloud" {}
-					resource "formancecloud_organization" "default" {
-						name = "formancehq"
+
+					data "formancecloud_organizations" "default" {
+						id = "`+OrganizationId+`"
 					}
 
 					data "formancecloud_regions" "dev" {
 						name = "%s"
-						organization_id = formancecloud_organization.default.id
+						organization_id = data.formancecloud_organizations.default.id
 					}
 
 					output "region_name" {

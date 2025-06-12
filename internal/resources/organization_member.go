@@ -150,7 +150,7 @@ func (s *OrganizationMember) Create(ctx context.Context, req resource.CreateRequ
 
 	obj, resp, err := sdkReq.Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
 	}
 
@@ -176,7 +176,7 @@ func (s *OrganizationMember) Delete(ctx context.Context, req resource.DeleteRequ
 
 	objs, resp, err := s.sdk.ListOrganizationInvitations(ctx, state.OrganizationId.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
 	}
 
@@ -188,13 +188,13 @@ func (s *OrganizationMember) Delete(ctx context.Context, req resource.DeleteRequ
 	case "PENDING":
 		resp, err := s.sdk.DeleteInvitation(ctx, state.OrganizationId.ValueString(), state.ID.ValueString()).Execute()
 		if err != nil {
-			pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 	case "ACCEPTED":
 		resp, err := s.sdk.DeleteUserFromOrganization(ctx, state.OrganizationId.ValueString(), state.UserId.ValueString()).Execute()
 		if err != nil {
-			pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 	}
@@ -216,7 +216,7 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 
 	objs, resp, err := s.sdk.ListOrganizationInvitations(ctx, state.OrganizationId.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
 	}
 
@@ -236,7 +236,7 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 	case "ACCEPTED":
 		user, resp, err := s.sdk.ReadUserOfOrganization(ctx, state.OrganizationId.ValueString(), state.UserId.ValueString()).Execute()
 		if err != nil {
-			pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 		state.Role = types.StringValue(string(user.Data.Role))
@@ -257,7 +257,7 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 
 	objs, resp, err := s.sdk.ListOrganizationInvitations(ctx, state.OrganizationId.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
 	}
 
@@ -269,7 +269,7 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 	case "PENDING":
 		resp, err := s.sdk.DeleteInvitation(ctx, state.OrganizationId.ValueString(), state.ID.ValueString()).Execute()
 		if err != nil {
-			pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 
@@ -282,7 +282,7 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 		}
 		obj, respCreate, err := sdkReq.Execute()
 		if err != nil {
-			pkg.HandleSDKError(ctx, respCreate, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, err, respCreate, &res.Diagnostics)
 			return
 		}
 		state.ID = types.StringValue(obj.Data.Id)
@@ -302,7 +302,7 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 		}
 		resp, err := s.sdk.UpsertOrganizationUser(ctx, state.OrganizationId.ValueString(), state.UserId.ValueString()).UpdateOrganizationUserRequest(body).Execute()
 		if err != nil {
-			pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 		state.Role = types.StringValue(state.Role.ValueString())

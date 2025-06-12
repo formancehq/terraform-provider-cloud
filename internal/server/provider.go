@@ -147,7 +147,7 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	if data.ClientId.String() == "" {
+	if !data.ClientId.IsUnknown() {
 		if p.ClientId != "" {
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("client_id"),
@@ -166,7 +166,7 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 		}
 	}
 
-	if data.ClientSecret.String() == "" {
+	if !data.ClientSecret.IsUnknown() {
 		if p.ClientSecret != "" {
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("client_secret"),
@@ -185,7 +185,7 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 		}
 	}
 
-	if data.Endpoint.ValueString() == "" {
+	if !data.Endpoint.IsUnknown() {
 		resp.Diagnostics.AddAttributeWarning(
 			path.Root("endpoint"),
 			fmt.Sprintf("Missing Endpoint Configuration use %s", p.Endpoint),

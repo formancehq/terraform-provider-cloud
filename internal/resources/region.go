@@ -132,7 +132,7 @@ func (r *Region) Create(ctx context.Context, req resource.CreateRequest, res *re
 	}
 	obj, resp, err := r.sdk.CreatePrivateRegion(ctx, organizationId).CreatePrivateRegionRequest(body).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
 	}
 
@@ -155,7 +155,7 @@ func (r *Region) Read(ctx context.Context, req resource.ReadRequest, resp *resou
 
 	objs, res, err := r.sdk.ListRegions(ctx, data.OrganizationID.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 
@@ -208,7 +208,7 @@ func (r *Region) Delete(ctx context.Context, req resource.DeleteRequest, res *re
 	regionId := plan.ID.ValueString()
 	resp, err := r.sdk.DeleteRegion(ctx, orgId, regionId).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
 	}
 }

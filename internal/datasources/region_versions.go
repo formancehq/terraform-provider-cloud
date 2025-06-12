@@ -129,7 +129,7 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	obj, res, err := r.sdk.GetRegionVersions(ctx, data.OrganizationID.ValueString(), data.ID.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 

@@ -109,7 +109,7 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 
 	obj, res, err := s.sdk.GetStack(ctx, data.OrganizationID.ValueString(), data.ID.ValueString()).Execute()
 	if err != nil {
-		pkg.HandleSDKError(ctx, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
 

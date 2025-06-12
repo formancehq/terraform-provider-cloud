@@ -41,9 +41,9 @@ tests-unit:
   @go test -v -tags it ./internal/... -covermode=atomic -coverprofile=coverage/coverage_unit.txt -race -coverpkg=./internal/...
 
 [group('test')]
-tests-integration tags="dev":
+tests-integration tags="":
   @mkdir -p ./coverage
-  @TF_ACC=1 go test -v -tags {{tags}} ./tests/e2e/... -covermode=atomic -coverprofile=coverage/coverage_integration.txt -race -coverpkg=./internal/...,./cmd/...
+  @TF_ACC=1 go test -v ./tests/e2e/... -covermode=atomic -coverprofile=coverage/coverage_integration.txt -race -coverpkg=./internal/...,./cmd/...
 
 [group('terraform')]
 plan examples="install-verif":
