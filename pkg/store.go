@@ -36,6 +36,10 @@ func (s *Store) GetSDK() sdk.DefaultAPI {
 
 // SetOrganizationID sets the current organization ID
 func (s *Store) SetOrganizationID(orgID string) {
+	// Avoid caching empty organization IDs
+	if orgID == "" {
+		return
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.organizationID = orgID

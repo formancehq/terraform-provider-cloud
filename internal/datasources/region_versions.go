@@ -44,10 +44,10 @@ func (r *RegionVersions) ValidateConfig(ctx context.Context, req datasource.Vali
 }
 
 var SchemaRegionVersions = schema.Schema{
-	Description: "Retrieves the list of available Formance versions for a region. If id is specified, uses that region. Otherwise uses the first available region.",
+	Description: "Retrieves the list of available Formance versions for a region. If id is specified, uses that region. Otherwise, uses the first available region sorted deterministically by ID.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Description: "The unique identifier of the region. If not specified, uses the first available region.",
+			Description: "The unique identifier of the region. If not specified, uses the first available region sorted deterministically by ID.",
 			Optional:    true,
 			Computed:    true,
 		},

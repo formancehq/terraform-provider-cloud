@@ -39,14 +39,14 @@ func (r *Region) ValidateConfig(ctx context.Context, req datasource.ValidateConf
 }
 
 var SchemaRegion = schema.Schema{
-	Description: "Retrieves information about regions within an organization. If name is specified, returns a specific region by name.",
+	Description: "Retrieves information about regions within an organization. If name is specified, returns a specific region by name. Otherwise, returns the first available region sorted deterministically by ID.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The unique identifier of the region.",
 			Computed:    true,
 		},
 		"name": schema.StringAttribute{
-			Description: "The name of the region to retrieve. If not specified, returns the first available region.",
+			Description: "The name of the region to retrieve. If not specified, returns the first available region sorted deterministically by ID.",
 			Optional:    true,
 			Computed:    true,
 		},
@@ -171,8 +171,10 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 
 	data.ID = types.StringValue(obj.Id)
 	data.Name = types.StringValue(obj.Name)
-	// Set the organization ID that was actually used
-	data.OrganizationID = types.StringValue(orgID)
+	// Only set organization_id if it wasn't provided by the user
+	if data.OrganizationID.IsNull() || data.OrganizationID.IsUnknown() {
+		data.OrganizationID = types.StringValue(orgID)
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
