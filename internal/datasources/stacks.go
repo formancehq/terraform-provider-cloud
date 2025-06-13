@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
@@ -155,9 +156,9 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 			return
 		}
 
-		// Sort stacks deterministically by name to ensure consistent selection
+		// Sort stacks deterministically by name (case-insensitive) to ensure consistent selection
 		sort.Slice(listResp.Data, func(i, j int) bool {
-			return listResp.Data[i].Name < listResp.Data[j].Name
+			return strings.ToLower(listResp.Data[i].Name) < strings.ToLower(listResp.Data[j].Name)
 		})
 
 		// Return the first stack after sorting

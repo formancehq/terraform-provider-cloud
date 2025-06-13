@@ -2,6 +2,7 @@ package datasources_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
@@ -78,14 +79,15 @@ func TestStacksValidateConfig(t *testing.T) {
 		organizationID *string
 	}
 
-	for _, tc := range []testCase{
+	for i, tc := range []testCase{
 		{},
 		{
 			id:             pointer.For(uuid.NewString()),
 			organizationID: pointer.For(uuid.NewString()),
 		},
 	} {
-		t.Run(t.Name(), func(t *testing.T) {
+		tc := tc // capture range variable
+		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
 			t.Parallel()
 			ctx := logging.TestingContext()
 
