@@ -44,7 +44,7 @@ func (s *Stack) ValidateConfig(ctx context.Context, req datasource.ValidateConfi
 }
 
 var SchemaStack = schema.Schema{
-	Description: "Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack sorted alphabetically by name for predictable behavior.",
+	Description: "Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise, returns the first available stack sorted alphabetically by name for predictable behavior.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The unique identifier of the stack. If not specified, returns the first available stack sorted alphabetically by name.",

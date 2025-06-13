@@ -157,7 +157,7 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	if !data.ClientId.IsUnknown() {
+	if data.ClientId.IsNull() || data.ClientId.ValueString() == "" {
 		if p.ClientId != "" {
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("client_id"),
@@ -176,7 +176,7 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 		}
 	}
 
-	if !data.ClientSecret.IsUnknown() {
+	if data.ClientSecret.IsNull() || data.ClientSecret.ValueString() == "" {
 		if p.ClientSecret != "" {
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("client_secret"),
@@ -195,13 +195,15 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 		}
 	}
 
-	if !data.Endpoint.IsUnknown() {
-		resp.Diagnostics.AddAttributeWarning(
-			path.Root("endpoint"),
-			fmt.Sprintf("Missing Endpoint Configuration use %s", p.Endpoint),
-			"While configuring the provider, the endpoint was not found "+
-				"However the FORMANCE_CLOUD_API_ENDPOINT environment variable was set",
-		)
+	if data.Endpoint.IsNull() || data.Endpoint.ValueString() == "" {
+		if p.Endpoint != "" {
+			resp.Diagnostics.AddAttributeWarning(
+				path.Root("endpoint"),
+				fmt.Sprintf("Missing Endpoint Configuration use %s", p.Endpoint),
+				"While configuring the provider, the endpoint was not found "+
+					"However the FORMANCE_CLOUD_API_ENDPOINT environment variable was set",
+			)
+		}
 	}
 }
 
