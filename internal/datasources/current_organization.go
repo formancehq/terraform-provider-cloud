@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/formancehq/go-libs/v3/logging"
@@ -99,6 +100,15 @@ func (c *CurrentOrganization) Schema(ctx context.Context, req datasource.SchemaR
 func (c *CurrentOrganization) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data CurrentOrganizationModel
 
+	// Check if store is properly configured
+	if c.store == nil {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider has not been configured before use, please ensure the provider configuration is set.",
+		)
+		return
+	}
+
 	ctx = logging.ContextWithLogger(ctx, c.logger.WithField("func", "current_organization_read"))
 	logging.FromContext(ctx).Debugf("Reading current organization")
 
@@ -110,15 +120,14 @@ func (c *CurrentOrganization) Read(ctx context.Context, req datasource.ReadReque
 		var err error
 		orgID, err = c.store.FetchAndSetCurrentOrganization(ctx)
 		if err != nil {
+			if errors.Is(err, pkg.ErrNoOrganization) {
+				resp.Diagnostics.AddError(
+					"No organizations found",
+					"The authenticated user does not have access to any organizations.",
+				)
+				return
+			}
 			pkg.HandleSDKError(ctx, err, nil, &resp.Diagnostics)
-			return
-		}
-		
-		if orgID == "" {
-			resp.Diagnostics.AddError(
-				"No organizations found",
-				"The authenticated user does not have access to any organizations.",
-			)
 			return
 		}
 	}
