@@ -120,9 +120,15 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 	creds := NewProviderModelAdapter(&data)
 	tp := p.tokenProviderFactory(p.transport, creds)
 	cli := p.sdkFactory(creds, pkg.NewTransport(p.transport, tp))
+	
+	// Create a Store to share data between resources and datasources
+	store := pkg.NewStore(cli)
+	
+	// Don't fetch organization here - let datasources/resources do it when needed
+	// This avoids issues with mocking in tests and allows lazy loading
 
-	resp.ResourceData = cli
-	resp.DataSourceData = cli
+	resp.ResourceData = store
+	resp.DataSourceData = store
 }
 
 // DataSources satisfies the provider.Provider interface for FormanceCloudProvider.

@@ -3,6 +3,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
@@ -22,7 +23,7 @@ var (
 
 type Stack struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *pkg.Store
 }
 
 // ValidateConfig implements datasource.DataSourceWithValidateConfig.
@@ -43,10 +44,10 @@ func (s *Stack) ValidateConfig(ctx context.Context, req datasource.ValidateConfi
 }
 
 var SchemaStack = schema.Schema{
-	Description: "Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack.",
+	Description: "Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack sorted alphabetically by name for predictable behavior.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Description: "The unique identifier of the stack. If not specified, returns the first available stack.",
+			Description: "The unique identifier of the stack. If not specified, returns the first available stack sorted alphabetically by name.",
 			Optional:    true,
 			Computed:    true,
 		},
@@ -79,16 +80,16 @@ func (s *Stack) Configure(ctx context.Context, req datasource.ConfigureRequest, 
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*pkg.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			resources.ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *pkg.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	s.sdk = sdk
+	s.store = store
 }
 
 type StackModel struct {
@@ -125,9 +126,9 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 
 	var stack sdk.Stack
 
-	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+	if !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "" {
 		// If ID is specified, get the specific stack
-		obj, res, err := s.sdk.GetStack(ctx, data.OrganizationID.ValueString(), data.ID.ValueString()).Execute()
+		obj, res, err := s.store.GetSDK().GetStack(ctx, data.OrganizationID.ValueString(), data.ID.ValueString()).Execute()
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
@@ -139,8 +140,8 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 		}
 		stack = *obj.Data
 	} else {
-		// If ID is not specified, list all stacks and return the first one
-		listResp, res, err := s.sdk.ListStacks(ctx, data.OrganizationID.ValueString()).Execute()
+		// If ID is not specified, list all stacks and return the first one (sorted deterministically)
+		listResp, res, err := s.store.GetSDK().ListStacks(ctx, data.OrganizationID.ValueString()).Execute()
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
@@ -154,7 +155,12 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 			return
 		}
 
-		// Return the first available stack
+		// Sort stacks deterministically by name to ensure consistent selection
+		sort.Slice(listResp.Data, func(i, j int) bool {
+			return listResp.Data[i].Name < listResp.Data[j].Name
+		})
+
+		// Return the first stack after sorting
 		stack = listResp.Data[0]
 	}
 

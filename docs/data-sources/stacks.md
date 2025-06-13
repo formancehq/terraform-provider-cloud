@@ -3,12 +3,12 @@
 page_title: "formancecloud_stacks Data Source - formancecloud"
 subcategory: ""
 description: |-
-  Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack.
+  Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack sorted alphabetically by name for predictable behavior.
 ---
 
 # formancecloud_stacks (Data Source)
 
-Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack.
+Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise returns the first available stack sorted alphabetically by name for predictable behavior.
 
 
 
@@ -21,7 +21,7 @@ Retrieves information about a Formance Cloud stack. If id is specified, returns 
 
 ### Optional
 
-- `id` (String) The unique identifier of the stack. If not specified, returns the first available stack.
+- `id` (String) The unique identifier of the stack. If not specified, returns the first available stack sorted alphabetically by name.
 
 ### Read-Only
 

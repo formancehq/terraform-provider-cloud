@@ -3,6 +3,7 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/logging"
@@ -11,7 +12,6 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -23,7 +23,7 @@ var (
 
 type Region struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *pkg.Store
 }
 
 // ValidateConfig implements datasource.DataSourceWithValidateConfig.
@@ -34,13 +34,7 @@ func (r *Region) ValidateConfig(ctx context.Context, req datasource.ValidateConf
 		return
 	}
 
-	if config.OrganizationID.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("organization_id"),
-			"Organization ID must be set.",
-			"Region organization ID cannot be null.",
-		)
-	}
+	// Organization ID is now optional - will use Store if not provided
 }
 
 var SchemaRegion = schema.Schema{
@@ -56,8 +50,9 @@ var SchemaRegion = schema.Schema{
 			Computed:    true,
 		},
 		"organization_id": schema.StringAttribute{
-			Description: "The organization ID where the region is located.",
-			Required:    true,
+			Description: "The organization ID where the region is located. If not specified, uses the current organization.",
+			Optional:    true,
+			Computed:    true,
 		},
 	},
 }
@@ -68,16 +63,16 @@ func (r *Region) Configure(ctx context.Context, req datasource.ConfigureRequest,
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*pkg.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			resources.ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *pkg.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	r.sdk = sdk
+	r.store = store
 }
 
 type RegionModel struct {
@@ -109,7 +104,29 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		return
 	}
 
-	objs, res, err := r.sdk.ListRegions(ctx, data.OrganizationID.ValueString()).Execute()
+	// Use organization ID from config or fall back to the store
+	orgID := data.OrganizationID.ValueString()
+	if orgID == "" {
+		orgID = r.store.GetOrganizationID()
+		if orgID == "" {
+			// Try to fetch and set the current organization
+			var err error
+			orgID, err = r.store.FetchAndSetCurrentOrganization(ctx)
+			if err != nil {
+				pkg.HandleSDKError(ctx, err, nil, &resp.Diagnostics)
+				return
+			}
+			if orgID == "" {
+				resp.Diagnostics.AddError(
+					"No organization found",
+					"Unable to determine organization ID. Please specify organization_id or ensure the user has access to at least one organization.",
+				)
+				return
+			}
+		}
+	}
+
+	objs, res, err := r.store.GetSDK().ListRegions(ctx, orgID).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
@@ -117,7 +134,7 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 
 	var obj sdk.AnyRegion
 	
-	if !data.Name.IsNull() && data.Name.ValueString() != "" {
+	if !data.Name.IsNull() && !data.Name.IsUnknown() && data.Name.ValueString() != "" {
 		// If name is specified, find the specific region
 		obj = collectionutils.First(objs.Data, func(o sdk.AnyRegion) bool {
 			return o.Name == data.Name.ValueString()
@@ -125,28 +142,32 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		if obj.Id == "" {
 			resp.Diagnostics.AddError(
 				"Region not found",
-				fmt.Sprintf("No region found with name '%s' in organization '%s'", data.Name.ValueString(), data.OrganizationID.ValueString()),
+				fmt.Sprintf("No region found with name '%s' in organization '%s'", data.Name.ValueString(), orgID),
 			)
 			return
 		}
 	} else {
-		// If name is not specified, return the first available region
+		// If name is not specified, sort and return the first available region
 		if len(objs.Data) == 0 {
 			resp.Diagnostics.AddError(
 				"No regions found",
-				fmt.Sprintf("No regions found in organization '%s'", data.OrganizationID.ValueString()),
+				fmt.Sprintf("No regions found in organization '%s'", orgID),
 			)
 			return
 		}
+		
+		// Sort regions deterministically by ID to ensure consistent selection
+		sort.Slice(objs.Data, func(i, j int) bool {
+			return objs.Data[i].Id < objs.Data[j].Id
+		})
+		
 		obj = objs.Data[0]
 	}
 
 	data.ID = types.StringValue(obj.Id)
 	data.Name = types.StringValue(obj.Name)
-	data.OrganizationID = types.StringNull()
-	if obj.OrganizationID != nil {
-		data.OrganizationID = types.StringValue(*obj.OrganizationID)
-	}
+	// Set the organization ID that was actually used
+	data.OrganizationID = types.StringValue(orgID)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
