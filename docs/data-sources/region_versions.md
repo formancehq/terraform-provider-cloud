@@ -3,12 +3,12 @@
 page_title: "formancecloud_region_versions Data Source - formancecloud"
 subcategory: ""
 description: |-
-  Retrieves the list of available Formance versions for a specific region.
+  Retrieves the list of available Formance versions for a region. If id is specified, uses that region. Otherwise, uses the first available region sorted deterministically by ID.
 ---
 
 # formancecloud_region_versions (Data Source)
 
-Retrieves the list of available Formance versions for a specific region.
+Retrieves the list of available Formance versions for a region. If id is specified, uses that region. Otherwise, uses the first available region sorted deterministically by ID.
 
 
 
@@ -17,8 +17,11 @@ Retrieves the list of available Formance versions for a specific region.
 
 ### Required
 
-- `id` (String) The unique identifier of the region.
 - `organization_id` (String) The organization ID that owns the region.
+
+### Optional
+
+- `id` (String) The unique identifier of the region. If not specified, uses the first available region sorted deterministically by ID.
 
 ### Read-Only
 

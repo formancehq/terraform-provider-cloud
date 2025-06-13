@@ -45,7 +45,7 @@ var SchemaStackMember = schema.Schema{
 
 type StackMember struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *pkg.Store
 }
 
 type StackMemberModel struct {
@@ -106,16 +106,16 @@ func (s *StackMember) Configure(ctx context.Context, req resource.ConfigureReque
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*pkg.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *pkg.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	s.sdk = sdk
+	s.store = store
 }
 
 // Create implements resource.Resource.
@@ -130,7 +130,7 @@ func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, re
 	if r := plan.Role.ValueString(); r != "" {
 		body.Role = sdk.Role(r)
 	}
-	resp, err := s.sdk.UpsertStackUserAccess(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
+	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -147,7 +147,7 @@ func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	resp, err := s.sdk.DeleteStackUserAccess(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
+	resp, err := s.store.GetSDK().DeleteStackUserAccess(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -166,7 +166,7 @@ func (s *StackMember) Update(ctx context.Context, req resource.UpdateRequest, re
 	if r := plan.Role.ValueString(); r != "" {
 		body.Role = sdk.Role(r)
 	}
-	resp, err := s.sdk.UpsertStackUserAccess(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
+	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -188,7 +188,7 @@ func (s *StackMember) Read(ctx context.Context, req resource.ReadRequest, res *r
 		return
 	}
 
-	userAccess, resp, err := s.sdk.ReadStackUserAccess(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
+	userAccess, resp, err := s.store.GetSDK().ReadStackUserAccess(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return

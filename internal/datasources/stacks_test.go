@@ -2,6 +2,7 @@ package datasources_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
@@ -33,7 +34,7 @@ func TestStacksConfigure(t *testing.T) {
 				expectedErr:  resources.ErrProviderDataNotSet,
 			},
 			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
+				providerData: pkg.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t))),
 			},
 		} {
 
@@ -78,14 +79,15 @@ func TestStacksValidateConfig(t *testing.T) {
 		organizationID *string
 	}
 
-	for _, tc := range []testCase{
+	for i, tc := range []testCase{
 		{},
 		{
 			id:             pointer.For(uuid.NewString()),
 			organizationID: pointer.For(uuid.NewString()),
 		},
 	} {
-		t.Run(t.Name(), func(t *testing.T) {
+		tc := tc // capture range variable
+		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
 			t.Parallel()
 			ctx := logging.TestingContext()
 
@@ -100,19 +102,26 @@ func TestStacksValidateConfig(t *testing.T) {
 						AttributeTypes: map[string]tftypes.Type{
 							"id":              tftypes.String,
 							"organization_id": tftypes.String,
+							"name":            tftypes.String,
+							"region_id":       tftypes.String,
+							"status":          tftypes.String,
+							"state":           tftypes.String,
 						},
 					}, map[string]tftypes.Value{
 						"id":              tftypes.NewValue(tftypes.String, tc.id),
 						"organization_id": tftypes.NewValue(tftypes.String, tc.organizationID),
+						"name":            tftypes.NewValue(tftypes.String, nil),
+						"region_id":       tftypes.NewValue(tftypes.String, nil),
+						"status":          tftypes.NewValue(tftypes.String, nil),
+						"state":           tftypes.NewValue(tftypes.String, nil),
 					}),
 					Schema: datasources.SchemaStack,
 				},
 			}, &res)
 
-			if tc.id == nil || tc.organizationID == nil {
-				require.Len(t, res.Diagnostics, 2, "Expected 2 diagnostic")
-				require.Equal(t, res.Diagnostics[0].Summary(), "ID must be set.")
-				require.Equal(t, res.Diagnostics[1].Summary(), "Organization ID must be set.")
+			if tc.organizationID == nil {
+				require.Len(t, res.Diagnostics, 1, "Expected 1 diagnostic")
+				require.Equal(t, res.Diagnostics[0].Summary(), "Organization ID must be set.")
 			} else {
 				require.Empty(t, res.Diagnostics, "Expected no diagnostics")
 			}
