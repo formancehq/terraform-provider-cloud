@@ -61,7 +61,7 @@ type FormanceCloudProvider struct {
 }
 
 var Schema = schema.Schema{
-	Description: "The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing organizations, stacks, regions, and stack modules.",
+	Description: "The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing stacks and stack modules.",
 	Attributes: map[string]schema.Attribute{
 		"client_secret": schema.StringAttribute{
 			Description: "The client secret for authenticating with the Formance Cloud API. Can also be set via the FORMANCE_CLOUD_CLIENT_SECRET environment variable.",
