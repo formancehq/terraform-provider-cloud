@@ -23,7 +23,7 @@ var (
 
 type StackModule struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *pkg.Store
 }
 
 var SchemaStackModule = schema.Schema{
@@ -102,16 +102,16 @@ func (s *StackModule) Configure(ctx context.Context, req resource.ConfigureReque
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*pkg.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *pkg.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	s.sdk = sdk
+	s.store = store
 }
 
 // Create implements resource.Resource.
@@ -122,7 +122,7 @@ func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	resp, err := s.sdk.EnableModule(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString()).Name(plan.Name.ValueString()).Execute()
+	resp, err := s.store.GetSDK().EnableModule(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString()).Name(plan.Name.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -139,7 +139,7 @@ func (s *StackModule) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	resp, err := s.sdk.DisableModule(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString()).Name(state.Name.ValueString()).Execute()
+	resp, err := s.store.GetSDK().DisableModule(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString()).Name(state.Name.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -160,7 +160,7 @@ func (s *StackModule) Read(ctx context.Context, req resource.ReadRequest, res *r
 		return
 	}
 
-	modules, resp, err := s.sdk.ListModules(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString()).Execute()
+	modules, resp, err := s.store.GetSDK().ListModules(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
