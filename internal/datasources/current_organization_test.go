@@ -31,7 +31,7 @@ func TestCurrentOrganizationConfigure(t *testing.T) {
 				expectedErrTitle: resources.ErrProviderDataNotSet.Error(),
 			},
 			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
+				providerData: pkg.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t))),
 			},
 		} {
 

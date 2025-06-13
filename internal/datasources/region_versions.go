@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"sort"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -23,7 +23,7 @@ var (
 
 type RegionVersions struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *pkg.Store
 }
 
 // ValidateConfig implements datasource.DataSourceWithValidateConfig.
@@ -76,16 +76,16 @@ func (r *RegionVersions) Configure(ctx context.Context, req datasource.Configure
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*pkg.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			resources.ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *pkg.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	r.sdk = sdk
+	r.store = store
 }
 
 type RegionVersionsModel struct {
@@ -123,12 +123,12 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	var regionID string
 
-	if !data.ID.IsNull() && data.ID.ValueString() != "" {
+	if !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != "" {
 		// If ID is specified, use it
 		regionID = data.ID.ValueString()
 	} else {
 		// If ID is not specified, list regions and use the first one
-		regions, res, err := r.sdk.ListRegions(ctx, data.OrganizationID.ValueString()).Execute()
+		regions, res, err := r.store.GetSDK().ListRegions(ctx, data.OrganizationID.ValueString()).Execute()
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
@@ -142,12 +142,17 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 			return
 		}
 
-		// Use the first region
+		// Sort regions deterministically by ID to ensure consistent selection
+		sort.Slice(regions.Data, func(i, j int) bool {
+			return regions.Data[i].Id < regions.Data[j].Id
+		})
+
+		// Use the first region after sorting
 		regionID = regions.Data[0].Id
 		data.ID = types.StringValue(regionID)
 	}
 
-	obj, res, err := r.sdk.GetRegionVersions(ctx, data.OrganizationID.ValueString(), regionID).Execute()
+	obj, res, err := r.store.GetSDK().GetRegionVersions(ctx, data.OrganizationID.ValueString(), regionID).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return

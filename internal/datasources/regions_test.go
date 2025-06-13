@@ -34,7 +34,7 @@ func TestRegionsConfigure(t *testing.T) {
 				expectedErr:  resources.ErrProviderDataNotSet,
 			},
 			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
+				providerData: pkg.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t))),
 			},
 		} {
 
@@ -110,12 +110,8 @@ func TestRegionsValidateConfig(t *testing.T) {
 					Schema: datasources.SchemaRegion,
 				},
 			}, &res)
-			if tc.organizationID == nil {
-				require.Len(t, res.Diagnostics, 1, "Expected one diagnostic")
-				require.Equal(t, res.Diagnostics[0].Summary(), "Organization ID must be set.")
-			} else {
-				require.Empty(t, res.Diagnostics, "Expected no diagnostics")
-			}
+			// Organization ID is now optional, so no error expected
+			require.Empty(t, res.Diagnostics, "Expected no diagnostics")
 		})
 	}
 }

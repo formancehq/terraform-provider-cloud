@@ -43,7 +43,7 @@ var SchemaCurrentOrganization = schema.Schema{
 
 type CurrentOrganization struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *pkg.Store
 }
 
 // ValidateConfig implements datasource.DataSourceWithValidateConfig.
@@ -61,16 +61,16 @@ func (c *CurrentOrganization) Configure(ctx context.Context, req datasource.Conf
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*pkg.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			resources.ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *pkg.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	c.sdk = sdk
+	c.store = store
 }
 
 type CurrentOrganizationModel struct {
@@ -102,23 +102,50 @@ func (c *CurrentOrganization) Read(ctx context.Context, req datasource.ReadReque
 	ctx = logging.ContextWithLogger(ctx, c.logger.WithField("func", "current_organization_read"))
 	logging.FromContext(ctx).Debugf("Reading current organization")
 
-	// List all organizations for the authenticated user
-	orgsResp, res, err := c.sdk.ListOrganizationsExpanded(ctx).Execute()
+	// Try to get cached organization ID first
+	orgID := c.store.GetOrganizationID()
+	
+	// If no cached ID, fetch from API
+	if orgID == "" {
+		var err error
+		orgID, err = c.store.FetchAndSetCurrentOrganization(ctx)
+		if err != nil {
+			pkg.HandleSDKError(ctx, err, nil, &resp.Diagnostics)
+			return
+		}
+		
+		if orgID == "" {
+			resp.Diagnostics.AddError(
+				"No organizations found",
+				"The authenticated user does not have access to any organizations.",
+			)
+			return
+		}
+	}
+	
+	// Fetch all organizations and find the one with matching ID
+	orgsResp, res, err := c.store.GetSDK().ListOrganizationsExpanded(ctx).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
-
-	if len(orgsResp.Data) == 0 {
+	
+	// Find the organization with the cached ID
+	var org *sdk.OrganizationExpanded
+	for _, o := range orgsResp.Data {
+		if o.Id == orgID {
+			org = &o
+			break
+		}
+	}
+	
+	if org == nil {
 		resp.Diagnostics.AddError(
-			"No organizations found",
-			"The authenticated user does not have access to any organizations.",
+			"Organization not found",
+			fmt.Sprintf("Organization with ID '%s' not found", orgID),
 		)
 		return
 	}
-
-	// Use the first organization as the "current" organization
-	org := orgsResp.Data[0]
 
 	data.ID = types.StringValue(org.Id)
 	data.Name = types.StringValue(org.Name)
