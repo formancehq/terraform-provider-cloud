@@ -18,15 +18,17 @@ func TestCurrentOrganizationConfigure(t *testing.T) {
 	test(t, func(ctx context.Context) {
 
 		type testCase struct {
-			providerData any
-			expectedErr  error
+			providerData     any
+			expectedErrTitle string
 		}
 
 		for _, tc := range []testCase{
-			{},
 			{
-				providerData: "something",
-				expectedErr:  resources.ErrProviderDataNotSet,
+				expectedErrTitle: "Provider Not Configured",
+			},
+			{
+				providerData:     "something",
+				expectedErrTitle: resources.ErrProviderDataNotSet.Error(),
 			},
 			{
 				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
@@ -43,9 +45,9 @@ func TestCurrentOrganizationConfigure(t *testing.T) {
 				ProviderData: tc.providerData,
 			}, &res)
 
-			if tc.expectedErr != nil {
+			if tc.expectedErrTitle != "" {
 				require.Len(t, res.Diagnostics, 1, "Expected one diagnostic")
-				require.Equal(t, res.Diagnostics[0].Summary(), tc.expectedErr.Error())
+				require.Equal(t, res.Diagnostics[0].Summary(), tc.expectedErrTitle)
 			} else {
 				require.Empty(t, res.Diagnostics, "Expected no diagnostics")
 			}
