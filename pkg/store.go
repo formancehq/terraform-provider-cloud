@@ -2,9 +2,15 @@ package pkg
 
 import (
 	"context"
+	"errors"
 	"sync"
 	
 	"github.com/formancehq/terraform-provider-cloud/sdk"
+)
+
+var (
+	// ErrNoOrganization is returned when no organization is found for the authenticated user
+	ErrNoOrganization = errors.New("no organization found")
 )
 
 // Store provides a shared storage for provider-wide data
@@ -51,7 +57,7 @@ func (s *Store) FetchAndSetCurrentOrganization(ctx context.Context) (string, err
 	}
 	
 	if len(orgsResp.Data) == 0 {
-		return "", nil
+		return "", ErrNoOrganization
 	}
 	
 	// Use the first organization as the "current" organization

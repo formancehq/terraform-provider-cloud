@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -105,7 +106,11 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 	}
 
 	// Use organization ID from config or fall back to the store
-	orgID := data.OrganizationID.ValueString()
+	var orgID string
+	if !data.OrganizationID.IsNull() && !data.OrganizationID.IsUnknown() {
+		orgID = data.OrganizationID.ValueString()
+	}
+	
 	if orgID == "" {
 		orgID = r.store.GetOrganizationID()
 		if orgID == "" {
@@ -113,14 +118,14 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 			var err error
 			orgID, err = r.store.FetchAndSetCurrentOrganization(ctx)
 			if err != nil {
+				if errors.Is(err, pkg.ErrNoOrganization) {
+					resp.Diagnostics.AddError(
+						"No organization found",
+						"Unable to determine organization ID. Please specify organization_id or ensure the user has access to at least one organization.",
+					)
+					return
+				}
 				pkg.HandleSDKError(ctx, err, nil, &resp.Diagnostics)
-				return
-			}
-			if orgID == "" {
-				resp.Diagnostics.AddError(
-					"No organization found",
-					"Unable to determine organization ID. Please specify organization_id or ensure the user has access to at least one organization.",
-				)
 				return
 			}
 		}
