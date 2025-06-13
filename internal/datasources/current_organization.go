@@ -54,6 +54,10 @@ func (c *CurrentOrganization) ValidateConfig(ctx context.Context, req datasource
 // Configure implements datasource.DataSourceWithConfigure.
 func (c *CurrentOrganization) Configure(ctx context.Context, req datasource.ConfigureRequest, res *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
+		res.Diagnostics.AddError(
+			"Provider Not Configured",
+			"The provider has not been configured before use, please ensure the provider configuration is set.",
+		)
 		return
 	}
 
