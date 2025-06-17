@@ -35,7 +35,7 @@ func TestStackConfigure(t *testing.T) {
 				expectedErr:  resources.ErrProviderDataNotSet,
 			},
 			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
+				providerData: pkg.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t))),
 			},
 		} {
 
@@ -98,8 +98,9 @@ func TestStackCreate(t *testing.T) {
 				}
 				ctrl := gomock.NewController(t)
 				apiMock := pkg.NewMockDefaultAPI(ctrl)
+				store := pkg.NewStore(apiMock)
 				r.Configure(ctx, resource.ConfigureRequest{
-					ProviderData: apiMock,
+					ProviderData: store,
 				}, &configureRes)
 
 				require.Empty(t, configureRes.Diagnostics, "Expected no diagnostics on configure")

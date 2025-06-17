@@ -3,12 +3,12 @@
 page_title: "formancecloud Provider"
 subcategory: ""
 description: |-
-  The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing organizations, stacks, regions, and stack modules.
+  The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing stacks and stack modules.
 ---
 
 # formancecloud Provider
 
-The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing organizations, stacks, regions, and stack modules.
+The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing stacks and stack modules.
 
 
 

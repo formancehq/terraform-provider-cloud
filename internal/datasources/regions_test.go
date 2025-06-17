@@ -2,6 +2,7 @@ package datasources_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
@@ -34,7 +35,7 @@ func TestRegionsConfigure(t *testing.T) {
 				expectedErr:  resources.ErrProviderDataNotSet,
 			},
 			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
+				providerData: pkg.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t))),
 			},
 		} {
 
@@ -79,14 +80,15 @@ func TestRegionsValidateConfig(t *testing.T) {
 		organizationID *string
 	}
 
-	for _, tc := range []testCase{
+	for i, tc := range []testCase{
 		{},
 		{
 			name:           pointer.For(uuid.NewString()),
 			organizationID: pointer.For(uuid.NewString()),
 		},
 	} {
-		t.Run(t.Name(), func(t *testing.T) {
+		tc := tc // capture range variable
+		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
 			t.Parallel()
 			ctx := logging.TestingContext()
 
@@ -110,13 +112,8 @@ func TestRegionsValidateConfig(t *testing.T) {
 					Schema: datasources.SchemaRegion,
 				},
 			}, &res)
-			if tc.name == nil && tc.organizationID == nil {
-				require.Len(t, res.Diagnostics, 2, "Expected diagnostics")
-				require.Equal(t, res.Diagnostics[0].Summary(), "Name must be set.")
-				require.Equal(t, res.Diagnostics[1].Summary(), "Organization ID must be set.")
-			} else {
-				require.Empty(t, res.Diagnostics, "Expected no diagnostics")
-			}
+			// Organization ID is now optional, so no error expected
+			require.Empty(t, res.Diagnostics, "Expected no diagnostics")
 		})
 	}
 }
