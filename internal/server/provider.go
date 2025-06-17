@@ -18,6 +18,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+var (
+	providerType = "formancecloud"
+)
+
 type FormanceCloudProviderModel struct {
 	ClientId     types.String `tfsdk:"client_id"`
 	ClientSecret types.String `tfsdk:"client_secret"`
@@ -81,7 +85,7 @@ var Schema = schema.Schema{
 
 // Metadata satisfies the provider.Provider interface for FormanceCloudProvider
 func (p *FormanceCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "formancecloud"
+	resp.TypeName = providerType
 	resp.Version = internal.Version
 }
 
@@ -209,7 +213,7 @@ func New(
 ) func() provider.Provider {
 	return func() provider.Provider {
 		return &FormanceCloudProvider{
-			logger:               logger,
+			logger:               logger.WithField("provider", providerType),
 			ClientId:             clientId,
 			ClientSecret:         clientSecret,
 			transport:            transport,
