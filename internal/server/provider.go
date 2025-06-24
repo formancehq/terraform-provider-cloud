@@ -65,7 +65,7 @@ type FormanceCloudProvider struct {
 }
 
 var Schema = schema.Schema{
-	Description: "The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing organizations, stacks, regions, and stack modules.",
+	Description: "The Formance Cloud provider allows you to manage your Formance Cloud resources using Terraform. It provides resources for managing stacks and stack modules.",
 	Attributes: map[string]schema.Attribute{
 		"client_secret": schema.StringAttribute{
 			Description: "The client secret for authenticating with the Formance Cloud API. Can also be set via the FORMANCE_CLOUD_CLIENT_SECRET environment variable.",
@@ -121,14 +121,15 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 	tp := p.tokenProviderFactory(p.transport, creds)
 	cli := p.sdkFactory(creds, pkg.NewTransport(p.transport, tp))
 
-	resp.ResourceData = cli
-	resp.DataSourceData = cli
+	store := internal.NewStore(cli, data.ClientId.ValueString())
+	resp.ResourceData = store
+	resp.DataSourceData = store
 }
 
 // DataSources satisfies the provider.Provider interface for FormanceCloudProvider.
 func (p *FormanceCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		datasources.NewOrganizations(p.logger.WithField("datasource", "organizations")),
+		datasources.NewCurrentOrganization(p.logger.WithField("datasource", "current_organization")),
 		datasources.NewRegions(p.logger.WithField("datasource", "regions")),
 		datasources.NewStacks(p.logger.WithField("datasource", "stacks")),
 		datasources.NewRegionVersions(p.logger.WithField("datasource", "region_versions")),
@@ -154,7 +155,7 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	if !data.ClientId.IsUnknown() {
+	if data.ClientId.IsNull() {
 		if p.ClientId != "" {
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("client_id"),
@@ -173,7 +174,7 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 		}
 	}
 
-	if !data.ClientSecret.IsUnknown() {
+	if data.ClientSecret.IsNull() {
 		if p.ClientSecret != "" {
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("client_secret"),
@@ -192,13 +193,23 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 		}
 	}
 
-	if !data.Endpoint.IsUnknown() {
-		resp.Diagnostics.AddAttributeWarning(
-			path.Root("endpoint"),
-			fmt.Sprintf("Missing Endpoint Configuration use %s", p.Endpoint),
-			"While configuring the provider, the endpoint was not found "+
-				"However the FORMANCE_CLOUD_API_ENDPOINT environment variable was set",
-		)
+	if data.Endpoint.IsNull() {
+		if p.Endpoint != "" {
+			resp.Diagnostics.AddAttributeWarning(
+				path.Root("endpoint"),
+				fmt.Sprintf("Missing Endpoint Configuration use %s", p.Endpoint),
+				"While configuring the provider, the endpoint was not found "+
+					"However the FORMANCE_CLOUD_API_ENDPOINT environment variable was set",
+			)
+		} else {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("endpoint"),
+				"Missing Endpoint Configuration",
+				"While configuring the provider, the endpoint was not found. "+
+					"the FORMANCE_CLOUD_API_ENDPOINT environment variable or provider "+
+					"configuration block endpoint attribute.",
+			)
+		}
 	}
 }
 

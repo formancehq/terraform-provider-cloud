@@ -17,7 +17,6 @@ Manages a Formance Cloud stack. A stack is an isolated environment where you can
 
 ### Required
 
-- `organization_id` (String) The organization ID where the stack will be created.
 - `region_id` (String) The region ID where the stack will be deployed.
 
 ### Optional

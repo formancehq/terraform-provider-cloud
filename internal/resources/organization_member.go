@@ -7,6 +7,7 @@ import (
 	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -16,15 +17,14 @@ import (
 )
 
 var (
-	_ resource.Resource                     = &OrganizationMember{}
-	_ resource.ResourceWithConfigure        = &OrganizationMember{}
-	_ resource.ResourceWithConfigValidators = &OrganizationMember{}
-	_ resource.ResourceWithValidateConfig   = &OrganizationMember{}
+	_ resource.Resource                   = &OrganizationMember{}
+	_ resource.ResourceWithConfigure      = &OrganizationMember{}
+	_ resource.ResourceWithValidateConfig = &OrganizationMember{}
 )
 
 type OrganizationMember struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *internal.Store
 }
 
 type OrganizationMemberModel struct {
@@ -32,9 +32,8 @@ type OrganizationMemberModel struct {
 
 	Role types.String `tfsdk:"role"`
 
-	Email          types.String `tfsdk:"email"`
-	OrganizationId types.String `tfsdk:"organization_id"`
-	UserId         types.String `tfsdk:"user_id"`
+	Email  types.String `tfsdk:"email"`
+	UserId types.String `tfsdk:"user_id"`
 }
 
 type Roles struct {
@@ -56,10 +55,6 @@ var SchemaOrganizationMember = schema.Schema{
 		"id": schema.StringAttribute{
 			Description: "The unique identifier of the invitation or membership.",
 			Computed:    true,
-		},
-		"organization_id": schema.StringAttribute{
-			Description: "The organization ID where the member will be added.",
-			Required:    true,
 		},
 		"email": schema.StringAttribute{
 			Description: "The email address of the user to invite or add to the organization.",
@@ -90,14 +85,6 @@ func (s *OrganizationMember) ValidateConfig(ctx context.Context, req resource.Va
 		return
 	}
 
-	if config.OrganizationId.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("organization_id"),
-			"Invalid Organization ID",
-			"The organization_id attribute must not be null.",
-		)
-	}
-
 	if config.Email.IsNull() {
 		res.Diagnostics.AddAttributeError(
 			path.Root("email"),
@@ -107,27 +94,22 @@ func (s *OrganizationMember) ValidateConfig(ctx context.Context, req resource.Va
 	}
 }
 
-// ConfigValidators implements resource.ResourceWithConfigValidators.
-func (s *OrganizationMember) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
-	return nil
-}
-
 // Configure implements resource.ResourceWithConfigure.
 func (s *OrganizationMember) Configure(ctx context.Context, req resource.ConfigureRequest, res *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*internal.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *internal.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	s.sdk = sdk
+	s.store = store
 }
 
 // Create implements resource.Resource.
@@ -139,7 +121,7 @@ func (s *OrganizationMember) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Call the SDK method to create the resource here
-	sdkReq := s.sdk.CreateInvitation(ctx, plan.OrganizationId.ValueString()).
+	sdkReq := s.store.GetSDK().CreateInvitation(ctx, s.store.GetOrganizationID()).
 		Email(plan.Email.ValueString())
 
 	if plan.Role.ValueString() != "" {
@@ -155,7 +137,6 @@ func (s *OrganizationMember) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	plan.ID = types.StringValue(obj.Data.Id)
-	plan.OrganizationId = types.StringValue(obj.Data.OrganizationId)
 	plan.Role = types.StringValue(string(obj.Data.Role))
 	plan.Email = types.StringValue(obj.Data.UserEmail)
 	plan.UserId = types.StringNull()
@@ -174,7 +155,7 @@ func (s *OrganizationMember) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	objs, resp, err := s.sdk.ListOrganizationInvitations(ctx, state.OrganizationId.ValueString()).Execute()
+	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, s.store.GetOrganizationID()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -186,13 +167,13 @@ func (s *OrganizationMember) Delete(ctx context.Context, req resource.DeleteRequ
 
 	switch obj.Status {
 	case "PENDING":
-		resp, err := s.sdk.DeleteInvitation(ctx, state.OrganizationId.ValueString(), state.ID.ValueString()).Execute()
+		resp, err := s.store.GetSDK().DeleteInvitation(ctx, s.store.GetOrganizationID(), state.ID.ValueString()).Execute()
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 	case "ACCEPTED":
-		resp, err := s.sdk.DeleteUserFromOrganization(ctx, state.OrganizationId.ValueString(), state.UserId.ValueString()).Execute()
+		resp, err := s.store.GetSDK().DeleteUserFromOrganization(ctx, s.store.GetOrganizationID(), state.UserId.ValueString()).Execute()
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
@@ -214,7 +195,7 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	objs, resp, err := s.sdk.ListOrganizationInvitations(ctx, state.OrganizationId.ValueString()).Execute()
+	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, s.store.GetOrganizationID()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -234,7 +215,7 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 		}
 		state.ID = types.StringValue(obj.Id)
 	case "ACCEPTED":
-		user, resp, err := s.sdk.ReadUserOfOrganization(ctx, state.OrganizationId.ValueString(), state.UserId.ValueString()).Execute()
+		user, resp, err := s.store.GetSDK().ReadUserOfOrganization(ctx, s.store.GetOrganizationID(), state.UserId.ValueString()).Execute()
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
@@ -255,7 +236,7 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	objs, resp, err := s.sdk.ListOrganizationInvitations(ctx, state.OrganizationId.ValueString()).Execute()
+	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, s.store.GetOrganizationID()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -267,13 +248,13 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 
 	switch obj.Status {
 	case "PENDING":
-		resp, err := s.sdk.DeleteInvitation(ctx, state.OrganizationId.ValueString(), state.ID.ValueString()).Execute()
+		resp, err := s.store.GetSDK().DeleteInvitation(ctx, s.store.GetOrganizationID(), state.ID.ValueString()).Execute()
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 
-		sdkReq := s.sdk.CreateInvitation(ctx, state.OrganizationId.ValueString()).
+		sdkReq := s.store.GetSDK().CreateInvitation(ctx, s.store.GetOrganizationID()).
 			Email(state.Email.ValueString())
 		if state.Role.ValueString() != "" {
 			sdkReq = sdkReq.InvitationClaim(sdk.InvitationClaim{
@@ -300,7 +281,7 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 		body := sdk.UpdateOrganizationUserRequest{
 			Role: sdk.Role(state.Role.ValueString()),
 		}
-		resp, err := s.sdk.UpsertOrganizationUser(ctx, state.OrganizationId.ValueString(), state.UserId.ValueString()).UpdateOrganizationUserRequest(body).Execute()
+		resp, err := s.store.GetSDK().UpsertOrganizationUser(ctx, s.store.GetOrganizationID(), state.UserId.ValueString()).UpdateOrganizationUserRequest(body).Execute()
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return

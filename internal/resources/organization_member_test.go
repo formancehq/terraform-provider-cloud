@@ -2,10 +2,13 @@ package resources_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
+	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 
@@ -33,7 +36,7 @@ func TestOrganizationMemberConfigure(t *testing.T) {
 				expectedErr:  resources.ErrProviderDataNotSet,
 			},
 			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
+				providerData: internal.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
 			},
 		} {
 
@@ -74,15 +77,13 @@ func TestOrganizationMemberMetadata(t *testing.T) {
 
 func TestOrganizationMemberValidateConfig(t *testing.T) {
 	type testCase struct {
-		organizationID *string
-		email          *string
+		email *string
 	}
 
 	for _, tc := range []testCase{
 		{},
 		{
-			organizationID: pointer.For(uuid.NewString()),
-			email:          pointer.For(uuid.NewString()),
+			email: pointer.For(uuid.NewString()),
 		},
 	} {
 		t.Run(t.Name(), func(t *testing.T) {
@@ -96,28 +97,22 @@ func TestOrganizationMemberValidateConfig(t *testing.T) {
 				og.ValidateConfig(ctx, resource.ValidateConfigRequest{
 					Config: tfsdk.Config{
 						Raw: tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"organization_id": tftypes.String,
-								"email":           tftypes.String,
-								"role":            tftypes.String,
-								"user_id":         tftypes.String,
-								"id":              tftypes.String,
-							},
+							AttributeTypes: getSchemaTypes(resources.SchemaOrganizationMember),
 						}, map[string]tftypes.Value{
-							"organization_id": tftypes.NewValue(tftypes.String, tc.organizationID),
-							"email":           tftypes.NewValue(tftypes.String, tc.email),
-							"role":            tftypes.NewValue(tftypes.String, nil),
-							"user_id":         tftypes.NewValue(tftypes.String, nil),
-							"id":              tftypes.NewValue(tftypes.String, nil),
+							"email":   tftypes.NewValue(tftypes.String, tc.email),
+							"role":    tftypes.NewValue(tftypes.String, nil),
+							"user_id": tftypes.NewValue(tftypes.String, nil),
+							"id":      tftypes.NewValue(tftypes.String, nil),
 						}),
 						Schema: resources.SchemaOrganizationMember,
 					},
 				}, &res)
 
-				if tc.organizationID == nil || tc.email == nil {
-					require.Len(t, res.Diagnostics, 2, "Expected one diagnostic")
-					require.Equal(t, res.Diagnostics[0].Summary(), "Invalid Organization ID")
-					require.Equal(t, res.Diagnostics[1].Summary(), "Invalid Email")
+				if tc.email == nil {
+					require.Len(t, res.Diagnostics, 1, "Expected one diagnostic")
+					require.Contains(t, collectionutils.Map(res.Diagnostics, func(d diag.Diagnostic) string {
+						return d.Summary()
+					}), "Invalid Email")
 				} else {
 					require.Empty(t, res.Diagnostics, "Expected no diagnostics")
 				}

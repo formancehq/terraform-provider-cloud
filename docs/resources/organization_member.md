@@ -18,7 +18,6 @@ Manages organization members and invitations in Formance Cloud. This resource ca
 ### Required
 
 - `email` (String) The email address of the user to invite or add to the organization.
-- `organization_id` (String) The organization ID where the member will be added.
 
 ### Optional
 

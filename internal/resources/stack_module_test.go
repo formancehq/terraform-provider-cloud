@@ -2,10 +2,12 @@ package resources_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
@@ -33,7 +35,7 @@ func TestStackModuleConfigure(t *testing.T) {
 				expectedErr:  resources.ErrProviderDataNotSet,
 			},
 			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
+				providerData: internal.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
 			},
 		} {
 
@@ -98,25 +100,19 @@ func TestStackModuleValidateConfig(t *testing.T) {
 				og.ValidateConfig(ctx, resource.ValidateConfigRequest{
 					Config: tfsdk.Config{
 						Raw: tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"name":            tftypes.String,
-								"organization_id": tftypes.String,
-								"stack_id":        tftypes.String,
-							},
+							AttributeTypes: getSchemaTypes(resources.SchemaStackModule),
 						}, map[string]tftypes.Value{
-							"name":            tftypes.NewValue(tftypes.String, tc.name),
-							"organization_id": tftypes.NewValue(tftypes.String, tc.organizationID),
-							"stack_id":        tftypes.NewValue(tftypes.String, tc.stackID),
+							"name":     tftypes.NewValue(tftypes.String, tc.name),
+							"stack_id": tftypes.NewValue(tftypes.String, tc.stackID),
 						}),
 						Schema: resources.SchemaStackModule,
 					},
 				}, &res)
 
 				if tc.name == nil || tc.organizationID == nil || tc.stackID == nil {
-					require.Len(t, res.Diagnostics, 3, "Expected one diagnostic for missing name")
+					require.Len(t, res.Diagnostics, 2, "Expected one diagnostic for missing name")
 					require.Equal(t, res.Diagnostics[0].Summary(), "Invalid Name")
 					require.Equal(t, res.Diagnostics[1].Summary(), "Invalid Stack ID")
-					require.Equal(t, res.Diagnostics[2].Summary(), "Invalid Organization ID")
 				} else {
 					require.Empty(t, res.Diagnostics, "Expected no diagnostics")
 				}

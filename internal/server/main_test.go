@@ -1,21 +1,10 @@
-package resources_test
+package server_test
 
 import (
-	"context"
-	"testing"
-
 	"github.com/formancehq/go-libs/v3/logging"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
-
-func test(t *testing.T, fn func(ctx context.Context)) {
-	t.Parallel()
-
-	ctx := logging.TestingContext()
-
-	fn(ctx)
-}
 
 func getSchemaTypes(schema schema.Schema) map[string]tftypes.Type {
 	attributeTypes := make(map[string]tftypes.Type)

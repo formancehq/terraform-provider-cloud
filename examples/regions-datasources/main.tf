@@ -28,8 +28,7 @@ variable "region_datasource_name" {
 
 
 data "formancecloud_regions" "dev" {
-  name            = var.region_datasource_name
-  organization_id = formancecloud_organization.default.id
+  name = var.region_datasource_name
 }
 
 output "region_datasource_id" {

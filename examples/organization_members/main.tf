@@ -23,7 +23,6 @@ resource "formancecloud_organization" "default" {
 }
 
 resource "formancecloud_organization_member" "default" {
-  organization_id = formancecloud_organization.default.id
-  email           = "test@formance.cloud"
-  role            = "ADMIN"
+  email = "test@formance.cloud"
+  role  = "ADMIN"
 }

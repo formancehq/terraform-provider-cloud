@@ -81,29 +81,25 @@ resource "formancecloud_organization" "main" {
 
 # Création d'une région privée pour l'Europe
 resource "formancecloud_region" "europe" {
-  name            = "europe-west"
-  organization_id = formancecloud_organization.main.id
+  name = "europe-west"
 }
 
 # Création d'une région privée pour les US (optionnel)
 resource "formancecloud_region" "us" {
-  name            = "us-east"
-  organization_id = formancecloud_organization.main.id
+  name = "us-east"
 }
 
 # Récupération des versions disponibles
 data "formancecloud_region_versions" "europe" {
-  id              = formancecloud_region.europe.id
-  organization_id = formancecloud_organization.main.id
+  id = formancecloud_region.europe.id
 }
 
 # Création des stacks pour chaque environnement
 resource "formancecloud_stack" "environments" {
   for_each = toset(var.environments)
 
-  name            = each.value
-  organization_id = formancecloud_organization.main.id
-  region_id       = formancecloud_region.europe.id
+  name      = each.value
+  region_id = formancecloud_region.europe.id
 
   # Utiliser la dernière version stable pour dev/staging, version fixe pour prod
   version = each.value == "production" ? "v2.0.0" : data.formancecloud_region_versions.europe.versions[0].name
@@ -127,9 +123,8 @@ resource "formancecloud_stack_module" "modules" {
     }
   }
 
-  name            = each.value.module
-  stack_id        = formancecloud_stack.environments[each.value.stack_key].id
-  organization_id = formancecloud_organization.main.id
+  name     = each.value.module
+  stack_id = formancecloud_stack.environments[each.value.stack_key].id
 
   # Les modules ont des dépendances, s'assurer qu'ils sont créés dans le bon ordre
   depends_on = [
@@ -141,9 +136,8 @@ resource "formancecloud_stack_module" "modules" {
 resource "formancecloud_organization_member" "team" {
   for_each = var.team_members
 
-  organization_id = formancecloud_organization.main.id
-  email           = each.value.email
-  role            = each.value.role
+  email = each.value.email
+  role  = each.value.role
 }
 
 # Configuration des accès aux stacks
@@ -182,27 +176,24 @@ resource "formancecloud_stack_member" "access" {
     ]) : item.key => item
   }
 
-  organization_id = formancecloud_organization.main.id
-  stack_id        = formancecloud_stack.environments[each.value.env].id
-  user_id         = formancecloud_organization_member.team[each.value.member_name].user_id
-  role            = each.value.role
+  stack_id = formancecloud_stack.environments[each.value.env].id
+  user_id  = formancecloud_organization_member.team[each.value.member_name].user_id
+  role     = each.value.role
 }
 
 # Stack dédié pour les tests d'intégration (CI/CD)
 resource "formancecloud_stack" "ci" {
-  name            = "ci-testing"
-  organization_id = formancecloud_organization.main.id
-  region_id       = formancecloud_region.europe.id
-  force_destroy   = true # Peut être supprimé sans confirmation
+  name          = "ci-testing"
+  region_id     = formancecloud_region.europe.id
+  force_destroy = true # Peut être supprimé sans confirmation
 }
 
 # Modules minimaux pour les tests CI
 resource "formancecloud_stack_module" "ci_modules" {
   for_each = toset(["ledger", "auth"])
 
-  name            = each.value
-  stack_id        = formancecloud_stack.ci.id
-  organization_id = formancecloud_organization.main.id
+  name     = each.value
+  stack_id = formancecloud_stack.ci.id
 }
 
 # Outputs utiles

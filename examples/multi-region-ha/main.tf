@@ -74,16 +74,14 @@ resource "formancecloud_organization" "global" {
 resource "formancecloud_region" "regions" {
   for_each = var.regions
 
-  name            = each.value.name
-  organization_id = formancecloud_organization.global.id
+  name = each.value.name
 }
 
 # Récupération des versions par région
 data "formancecloud_region_versions" "versions" {
   for_each = formancecloud_region.regions
 
-  id              = each.value.id
-  organization_id = formancecloud_organization.global.id
+  id = each.value.id
 }
 
 # Local pour déterminer la version à utiliser
@@ -162,9 +160,8 @@ resource "formancecloud_stack_module" "additional" {
     ]) : item.key => item
   }
 
-  name            = each.value.module
-  stack_id        = [for k, v in formancecloud_stack.multi_region : v.id if v.name == each.value.stack_name][0]
-  organization_id = formancecloud_organization.global.id
+  name     = each.value.module
+  stack_id = [for k, v in formancecloud_stack.multi_region : v.id if v.name == each.value.stack_name][0]
 }
 
 # Configuration des équipes par région
@@ -233,20 +230,18 @@ resource "formancecloud_stack_member" "regional_access" {
 
 # Stack de disaster recovery
 resource "formancecloud_stack" "dr" {
-  name            = "disaster-recovery"
-  organization_id = formancecloud_organization.global.id
-  region_id       = formancecloud_region.regions["us"].id # DR dans une région différente du primaire
-  version         = local.global_version
-  force_destroy   = false
+  name          = "disaster-recovery"
+  region_id     = formancecloud_region.regions["us"].id # DR dans une région différente du primaire
+  version       = local.global_version
+  force_destroy = false
 }
 
 # Modules minimaux pour le DR
 resource "formancecloud_stack_module" "dr_modules" {
   for_each = toset(["ledger", "auth", "stargate"])
 
-  name            = each.value
-  stack_id        = formancecloud_stack.dr.id
-  organization_id = formancecloud_organization.global.id
+  name     = each.value
+  stack_id = formancecloud_stack.dr.id
 }
 
 # Outputs pour le monitoring et la configuration

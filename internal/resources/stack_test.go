@@ -2,10 +2,12 @@ package resources_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
@@ -35,7 +37,7 @@ func TestStackConfigure(t *testing.T) {
 				expectedErr:  resources.ErrProviderDataNotSet,
 			},
 			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
+				providerData: internal.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
 			},
 		} {
 
@@ -76,35 +78,34 @@ func TestStackMetadata(t *testing.T) {
 
 func TestStackCreate(t *testing.T) {
 	type testCase struct {
-		name           string
-		organizationID string
-		regionID       string
-		version        string
+		name     string
+		regionID string
+		version  string
 	}
 
 	for _, tc := range []testCase{
 		{
-			name:           uuid.NewString(),
-			organizationID: uuid.NewString(),
+			name: uuid.NewString(),
 		},
 		{},
 	} {
 		t.Run(t.Name(), func(t *testing.T) {
 			test(t, func(ctx context.Context) {
 				r := resources.NewStack(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
-
+				organizationId := uuid.NewString()
 				configureRes := resource.ConfigureResponse{
 					Diagnostics: []diag.Diagnostic{},
 				}
 				ctrl := gomock.NewController(t)
 				apiMock := pkg.NewMockDefaultAPI(ctrl)
+				store := internal.NewStore(apiMock, fmt.Sprintf("organization_%s", organizationId))
 				r.Configure(ctx, resource.ConfigureRequest{
-					ProviderData: apiMock,
+					ProviderData: store,
 				}, &configureRes)
 
 				require.Empty(t, configureRes.Diagnostics, "Expected no diagnostics on configure")
 
-				apiMock.EXPECT().CreateStack(gomock.Any(), tc.organizationID).Return(sdk.ApiCreateStackRequest{
+				apiMock.EXPECT().CreateStack(gomock.Any(), organizationId).Return(sdk.ApiCreateStackRequest{
 					ApiService: apiMock,
 				})
 
@@ -127,7 +128,7 @@ func TestStackCreate(t *testing.T) {
 					Data: &sdk.Stack{
 						Id:             uuid.NewString(),
 						Name:           tc.name,
-						OrganizationId: tc.organizationID,
+						OrganizationId: organizationId,
 						RegionID:       tc.regionID,
 						Version:        pointer.For(tc.version),
 						Uri:            "https://example.com",
@@ -137,23 +138,14 @@ func TestStackCreate(t *testing.T) {
 				req := resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"id":              tftypes.String,
-								"name":            tftypes.String,
-								"organization_id": tftypes.String,
-								"region_id":       tftypes.String,
-								"version":         tftypes.String,
-								"force_destroy":   tftypes.Bool,
-								"uri":             tftypes.String,
-							},
+							AttributeTypes: getSchemaTypes(resources.SchemaStack),
 						}, map[string]tftypes.Value{
-							"id":              tftypes.NewValue(tftypes.String, nil),
-							"name":            tftypes.NewValue(tftypes.String, tc.name),
-							"organization_id": tftypes.NewValue(tftypes.String, tc.organizationID),
-							"region_id":       tftypes.NewValue(tftypes.String, tc.regionID),
-							"version":         tftypes.NewValue(tftypes.String, tc.version),
-							"force_destroy":   tftypes.NewValue(tftypes.Bool, nil),
-							"uri":             tftypes.NewValue(tftypes.String, "https://example.com"),
+							"id":            tftypes.NewValue(tftypes.String, nil),
+							"name":          tftypes.NewValue(tftypes.String, tc.name),
+							"region_id":     tftypes.NewValue(tftypes.String, tc.regionID),
+							"version":       tftypes.NewValue(tftypes.String, tc.version),
+							"force_destroy": tftypes.NewValue(tftypes.Bool, nil),
+							"uri":           tftypes.NewValue(tftypes.String, "https://example.com"),
 						}),
 						Schema: resources.SchemaStack,
 					},
@@ -200,33 +192,22 @@ func TestStackValidateConfig(t *testing.T) {
 				r.ValidateConfig(ctx, resource.ValidateConfigRequest{
 					Config: tfsdk.Config{
 						Raw: tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"name":            tftypes.String,
-								"organization_id": tftypes.String,
-								"region_id":       tftypes.String,
-								"version":         tftypes.String,
-								"id":              tftypes.String,
-								"force_destroy":   tftypes.Bool,
-								"uri":             tftypes.String,
-							},
+							AttributeTypes: getSchemaTypes(resources.SchemaStack),
 						}, map[string]tftypes.Value{
-							"name":            tftypes.NewValue(tftypes.String, nil),
-							"organization_id": tftypes.NewValue(tftypes.String, tc.organizationID),
-							"region_id":       tftypes.NewValue(tftypes.String, tc.regionID),
-							"version":         tftypes.NewValue(tftypes.String, nil),
-							"id":              tftypes.NewValue(tftypes.String, nil),
-							"force_destroy":   tftypes.NewValue(tftypes.Bool, nil),
-							"uri":             tftypes.NewValue(tftypes.String, nil),
+							"name":          tftypes.NewValue(tftypes.String, nil),
+							"region_id":     tftypes.NewValue(tftypes.String, tc.regionID),
+							"version":       tftypes.NewValue(tftypes.String, nil),
+							"id":            tftypes.NewValue(tftypes.String, nil),
+							"force_destroy": tftypes.NewValue(tftypes.Bool, nil),
+							"uri":           tftypes.NewValue(tftypes.String, nil),
 						}),
 						Schema: resources.SchemaStack,
 					},
 				}, &res)
 
 				if tc.organizationID == nil || tc.regionID == nil {
-					require.Len(t, res.Diagnostics, 2, "Expected one diagnostic for each missing field")
-
-					require.Equal(t, res.Diagnostics[0].Summary(), "Invalid Organization ID")
-					require.Equal(t, res.Diagnostics[1].Summary(), "Invalid Region ID")
+					require.Len(t, res.Diagnostics, 1, "Expected one diagnostic for each missing field")
+					require.Equal(t, res.Diagnostics[0].Summary(), "Invalid Region ID")
 
 				} else {
 					require.Empty(t, res.Diagnostics, "Expected no diagnostics")

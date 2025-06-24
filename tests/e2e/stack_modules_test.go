@@ -27,14 +27,8 @@ func TestStackModule(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 					provider "formancecloud" {}
-					
-					data "formancecloud_organizations" "default" {
-						id = "`+OrganizationId+`"
-					}
-
 					data "formancecloud_regions" "dev" {
 						name = "%s"
-						organization_id = data.formancecloud_organizations.default.id
 					}
 
 					output "region_id" {
@@ -43,7 +37,6 @@ func TestStackModule(t *testing.T) {
 
 					resource "formancecloud_stack" "default" {
 						name = "test"
-						organization_id = data.formancecloud_organizations.default.id
 						region_id = data.formancecloud_regions.dev.id
 
 						version = "default"
@@ -52,19 +45,16 @@ func TestStackModule(t *testing.T) {
 
 					resource "formancecloud_stack_module" "default_webhooks" {
 						name = "webhooks"
-						organization_id = data.formancecloud_organizations.default.id
 						stack_id = formancecloud_stack.default.id
 					}
 
 					resource "formancecloud_stack_module" "default_reconciliation" {
 						name = "reconciliation"
-						organization_id = data.formancecloud_organizations.default.id
 						stack_id = formancecloud_stack.default.id
 					}
 
 					resource "formancecloud_stack_module" "default_orchestration" {
 						name = "orchestration"
-						organization_id = data.formancecloud_organizations.default.id
 						stack_id = formancecloud_stack.default.id
 					}
 

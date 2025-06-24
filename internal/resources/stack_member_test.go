@@ -2,11 +2,14 @@ package resources_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	"github.com/google/uuid"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -31,7 +34,7 @@ func TestStackMemberConfigure(t *testing.T) {
 				expectedErr:  resources.ErrProviderDataNotSet,
 			},
 			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
+				providerData: internal.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
 			},
 		} {
 
@@ -72,9 +75,8 @@ func TestStackMemberMetadata(t *testing.T) {
 
 func TestStackMemberValidateConfig(t *testing.T) {
 	type testCase struct {
-		organizationID *string
-		stackID        *string
-		userID         *string
+		stackID *string
+		userID  *string
 	}
 	for _, tc := range []testCase{} {
 		t.Run(t.Name(), func(t *testing.T) {
@@ -88,17 +90,11 @@ func TestStackMemberValidateConfig(t *testing.T) {
 				og.ValidateConfig(ctx, resource.ValidateConfigRequest{
 					Config: tfsdk.Config{
 						Raw: tftypes.NewValue(tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"organization_id": tftypes.String,
-								"stack_id":        tftypes.String,
-								"user_id":         tftypes.String,
-								"role":            tftypes.String,
-							},
+							AttributeTypes: getSchemaTypes(resources.SchemaStackMember),
 						}, map[string]tftypes.Value{
-							"organization_id": tftypes.NewValue(tftypes.String, tc.organizationID),
-							"stack_id":        tftypes.NewValue(tftypes.String, tc.stackID),
-							"user_id":         tftypes.NewValue(tftypes.String, tc.userID),
-							"role":            tftypes.NewValue(tftypes.String, nil),
+							"stack_id": tftypes.NewValue(tftypes.String, tc.stackID),
+							"user_id":  tftypes.NewValue(tftypes.String, tc.userID),
+							"role":     tftypes.NewValue(tftypes.String, nil),
 						}),
 						Schema: resources.SchemaStackMember,
 					},

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -14,10 +15,9 @@ import (
 )
 
 var (
-	_ resource.Resource                     = &StackMember{}
-	_ resource.ResourceWithConfigure        = &StackMember{}
-	_ resource.ResourceWithConfigValidators = &StackMember{}
-	_ resource.ResourceWithValidateConfig   = &StackMember{}
+	_ resource.Resource                   = &StackMember{}
+	_ resource.ResourceWithConfigure      = &StackMember{}
+	_ resource.ResourceWithValidateConfig = &StackMember{}
 )
 
 var SchemaStackMember = schema.Schema{
@@ -31,10 +31,6 @@ var SchemaStackMember = schema.Schema{
 			Required:    true,
 			Description: "The ID of the stack where the user will be granted access.",
 		},
-		"organization_id": schema.StringAttribute{
-			Required:    true,
-			Description: "The organization ID that owns the stack.",
-		},
 		"role": schema.StringAttribute{
 			Optional:    true,
 			Computed:    true,
@@ -45,14 +41,13 @@ var SchemaStackMember = schema.Schema{
 
 type StackMember struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *internal.Store
 }
 
 type StackMemberModel struct {
-	Role           types.String `tfsdk:"role"`
-	UserId         types.String `tfsdk:"user_id"`
-	StackId        types.String `tfsdk:"stack_id"`
-	OrganizationId types.String `tfsdk:"organization_id"`
+	Role    types.String `tfsdk:"role"`
+	UserId  types.String `tfsdk:"user_id"`
+	StackId types.String `tfsdk:"stack_id"`
 }
 
 func NewStackMember(logger logging.Logger) func() resource.Resource {
@@ -71,14 +66,6 @@ func (s *StackMember) ValidateConfig(ctx context.Context, req resource.ValidateC
 		return
 	}
 
-	if config.OrganizationId.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("organization_id"),
-			"Invalid organization ID",
-			"The organization_id attribute must not be null.",
-		)
-	}
-
 	if config.StackId.IsNull() {
 		res.Diagnostics.AddAttributeError(
 			path.Root("stack_id"),
@@ -95,27 +82,22 @@ func (s *StackMember) ValidateConfig(ctx context.Context, req resource.ValidateC
 	}
 }
 
-// ConfigValidators implements resource.ResourceWithConfigValidators.
-func (s *StackMember) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
-	return nil
-}
-
 // Configure implements resource.ResourceWithConfigure.
 func (s *StackMember) Configure(ctx context.Context, req resource.ConfigureRequest, res *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*internal.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *internal.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	s.sdk = sdk
+	s.store = store
 }
 
 // Create implements resource.Resource.
@@ -130,7 +112,7 @@ func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, re
 	if r := plan.Role.ValueString(); r != "" {
 		body.Role = sdk.Role(r)
 	}
-	resp, err := s.sdk.UpsertStackUserAccess(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
+	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -147,7 +129,7 @@ func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	resp, err := s.sdk.DeleteStackUserAccess(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
+	resp, err := s.store.GetSDK().DeleteStackUserAccess(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -166,7 +148,7 @@ func (s *StackMember) Update(ctx context.Context, req resource.UpdateRequest, re
 	if r := plan.Role.ValueString(); r != "" {
 		body.Role = sdk.Role(r)
 	}
-	resp, err := s.sdk.UpsertStackUserAccess(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
+	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -188,7 +170,7 @@ func (s *StackMember) Read(ctx context.Context, req resource.ReadRequest, res *r
 		return
 	}
 
-	userAccess, resp, err := s.sdk.ReadStackUserAccess(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
+	userAccess, resp, err := s.store.GetSDK().ReadStackUserAccess(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
