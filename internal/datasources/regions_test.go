@@ -33,7 +33,7 @@ func TestRegionsConfigure(t *testing.T) {
 			expectedErr:  resources.ErrProviderDataNotSet,
 		},
 		{
-			providerData: internal.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
+			providerData: internal.NewStore(pkg.NewMockCloudSDK(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
 		},
 	} {
 		ctx := logging.TestingContext()

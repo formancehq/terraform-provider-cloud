@@ -104,7 +104,7 @@ func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	resp, err := s.store.GetSDK().EnableModule(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString()).Name(plan.Name.ValueString()).Execute()
+	resp, err := s.store.GetSDK().EnableModule(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.Name.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -121,7 +121,7 @@ func (s *StackModule) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	resp, err := s.store.GetSDK().DisableModule(ctx, s.store.GetOrganizationID(), state.StackId.ValueString()).Name(state.Name.ValueString()).Execute()
+	resp, err := s.store.GetSDK().DisableModule(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.Name.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -142,7 +142,7 @@ func (s *StackModule) Read(ctx context.Context, req resource.ReadRequest, res *r
 		return
 	}
 
-	modules, resp, err := s.store.GetSDK().ListModules(ctx, s.store.GetOrganizationID(), state.StackId.ValueString()).Execute()
+	modules, resp, err := s.store.GetSDK().ListModules(ctx, s.store.GetOrganizationID(), state.StackId.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return

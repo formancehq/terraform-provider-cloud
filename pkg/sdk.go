@@ -15,7 +15,7 @@ type Creds interface {
 }
 
 //go:generate rm -rf ../sdk
-//go:generate openapi-generator-cli generate -i ./openapi.yaml -g go -o ../sdk --git-user-id=formancehq --git-repo-id=terraform-provider-cloud -p packageVersion=latest -p isGoSubmodule=true -p packageName=sdk -p disallowAdditionalPropertiesIfNotPresent=false -p generateInterfaces=true -t ../openapi-templates/go
+//go:generate openapi-generator-cli generate -i ./openapi.yaml -g go -o ../sdk --git-user-id=formancehq --git-repo-id=terraform-provider-cloud -p packageVersion=latest -p isGoSubmodule=true -p packageName=sdk -p disallowAdditionalPropertiesIfNotPresent=false -p generateInterfaces=true
 //go:generate rm -rf ../sdk/test
 //go:generate rm -rf ../sdk/docs
 func NewSDK(creds Creds, transport http.RoundTripper) sdk.DefaultAPI {

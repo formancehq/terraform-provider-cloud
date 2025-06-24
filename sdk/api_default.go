@@ -629,7 +629,6 @@ func (r ApiAcceptInvitationRequest) Execute() (*http.Response, error) {
 	return r.ApiService.AcceptInvitationExecute(r)
 }
 
-
 /*
 AcceptInvitation Accept invitation
 
@@ -732,10 +731,6 @@ func (r ApiAddFeaturesRequest) AddFeaturesRequest(addFeaturesRequest AddFeatures
 
 func (r ApiAddFeaturesRequest) Execute() (*http.Response, error) {
 	return r.ApiService.AddFeaturesExecute(r)
-}
-
-func (r ApiAddFeaturesRequest) GetAddFeaturesRequest() *AddFeaturesRequest {
-	return r.addFeaturesRequest
 }
 
 /*
@@ -848,13 +843,6 @@ func (r ApiCreateInvitationRequest) InvitationClaim(invitationClaim InvitationCl
 
 func (r ApiCreateInvitationRequest) Execute() (*CreateInvitationResponse, *http.Response, error) {
 	return r.ApiService.CreateInvitationExecute(r)
-}
-
-func (r ApiCreateInvitationRequest) GetEmail() *string {
-	return r.email
-}
-func (r ApiCreateInvitationRequest) GetInvitationClaim() *InvitationClaim {
-	return r.invitationClaim
 }
 
 /*
@@ -977,10 +965,6 @@ func (r ApiCreateOrganizationRequest) Execute() (*CreateOrganizationResponse, *h
 	return r.ApiService.CreateOrganizationExecute(r)
 }
 
-func (r ApiCreateOrganizationRequest) GetBody() *OrganizationData {
-	return r.body
-}
-
 /*
 CreateOrganization Create organization
 
@@ -1093,10 +1077,6 @@ func (r ApiCreatePrivateRegionRequest) CreatePrivateRegionRequest(createPrivateR
 
 func (r ApiCreatePrivateRegionRequest) Execute() (*CreatedPrivateRegionResponse, *http.Response, error) {
 	return r.ApiService.CreatePrivateRegionExecute(r)
-}
-
-func (r ApiCreatePrivateRegionRequest) GetCreatePrivateRegionRequest() *CreatePrivateRegionRequest {
-	return r.createPrivateRegionRequest
 }
 
 /*
@@ -1216,10 +1196,6 @@ func (r ApiCreateStackRequest) Execute() (*CreateStackResponse, *http.Response, 
 	return r.ApiService.CreateStackExecute(r)
 }
 
-func (r ApiCreateStackRequest) GetCreateStackRequest() *CreateStackRequest {
-	return r.createStackRequest
-}
-
 /*
 CreateStack Create stack
 
@@ -1331,7 +1307,6 @@ func (r ApiDeclineInvitationRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DeclineInvitationExecute(r)
 }
 
-
 /*
 DeclineInvitation Decline invitation
 
@@ -1430,7 +1405,6 @@ type ApiDeleteFeatureRequest struct {
 func (r ApiDeleteFeatureRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DeleteFeatureExecute(r)
 }
-
 
 /*
 DeleteFeature Delete feature
@@ -1534,7 +1508,6 @@ func (r ApiDeleteInvitationRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DeleteInvitationExecute(r)
 }
 
-
 /*
 DeleteInvitation Delete invitation
 
@@ -1636,7 +1609,6 @@ func (r ApiDeleteOrganizationRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DeleteOrganizationExecute(r)
 }
 
-
 /*
 DeleteOrganization Delete organization
 
@@ -1735,7 +1707,6 @@ type ApiDeleteRegionRequest struct {
 func (r ApiDeleteRegionRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DeleteRegionExecute(r)
 }
-
 
 /*
 DeleteRegion Delete region
@@ -1845,10 +1816,6 @@ func (r ApiDeleteStackRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DeleteStackExecute(r)
 }
 
-func (r ApiDeleteStackRequest) GetForce() *bool {
-	return r.force
-}
-
 /*
 DeleteStack Delete stack
 
@@ -1955,7 +1922,6 @@ func (r ApiDeleteStackUserAccessRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DeleteStackUserAccessExecute(r)
 }
 
-
 /*
 DeleteStackUserAccess Delete stack user access role within an organization
 
@@ -2060,7 +2026,6 @@ type ApiDeleteUserFromOrganizationRequest struct {
 func (r ApiDeleteUserFromOrganizationRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DeleteUserFromOrganizationExecute(r)
 }
-
 
 /*
 DeleteUserFromOrganization delete user from organization
@@ -2173,10 +2138,6 @@ func (r ApiDisableModuleRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DisableModuleExecute(r)
 }
 
-func (r ApiDisableModuleRequest) GetName() *string {
-	return r.name
-}
-
 /*
 DisableModule disable module
 
@@ -2283,7 +2244,6 @@ func (r ApiDisableStackRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DisableStackExecute(r)
 }
 
-
 /*
 DisableStack Disable stack
 
@@ -2385,7 +2345,6 @@ type ApiDisableStargateRequest struct {
 func (r ApiDisableStargateRequest) Execute() (*http.Response, error) {
 	return r.ApiService.DisableStargateExecute(r)
 }
-
 
 /*
 DisableStargate Disable stargate on a stack
@@ -2495,10 +2454,6 @@ func (r ApiEnableModuleRequest) Execute() (*http.Response, error) {
 	return r.ApiService.EnableModuleExecute(r)
 }
 
-func (r ApiEnableModuleRequest) GetName() *string {
-	return r.name
-}
-
 /*
 EnableModule enable module
 
@@ -2605,7 +2560,6 @@ func (r ApiEnableStackRequest) Execute() (*http.Response, error) {
 	return r.ApiService.EnableStackExecute(r)
 }
 
-
 /*
 EnableStack Enable stack
 
@@ -2708,7 +2662,6 @@ func (r ApiEnableStargateRequest) Execute() (*http.Response, error) {
 	return r.ApiService.EnableStargateExecute(r)
 }
 
-
 /*
 EnableStargate Enable stargate on a stack
 
@@ -2810,7 +2763,6 @@ type ApiGetRegionRequest struct {
 func (r ApiGetRegionRequest) Execute() (*GetRegionResponse, *http.Response, error) {
 	return r.ApiService.GetRegionExecute(r)
 }
-
 
 /*
 GetRegion Get region
@@ -2925,7 +2877,6 @@ func (r ApiGetRegionVersionsRequest) Execute() (*GetRegionVersionsResponse, *htt
 	return r.ApiService.GetRegionVersionsExecute(r)
 }
 
-
 /*
 GetRegionVersions Get region versions
 
@@ -3037,7 +2988,6 @@ func (r ApiGetServerInfoRequest) Execute() (*ServerInfo, *http.Response, error) 
 	return r.ApiService.GetServerInfoExecute(r)
 }
 
-
 /*
 GetServerInfo Get server info
 
@@ -3144,7 +3094,6 @@ type ApiGetStackRequest struct {
 func (r ApiGetStackRequest) Execute() (*CreateStackResponse, *http.Response, error) {
 	return r.ApiService.GetStackExecute(r)
 }
-
 
 /*
 GetStack Find stack
@@ -3257,7 +3206,6 @@ type ApiListFeaturesRequest struct {
 func (r ApiListFeaturesRequest) Execute() (*ListFeatures200Response, *http.Response, error) {
 	return r.ApiService.ListFeaturesExecute(r)
 }
-
 
 /*
 ListFeatures List features
@@ -3379,13 +3327,6 @@ func (r ApiListInvitationsRequest) Organization(organization string) ApiListInvi
 
 func (r ApiListInvitationsRequest) Execute() (*ListInvitationsResponse, *http.Response, error) {
 	return r.ApiService.ListInvitationsExecute(r)
-}
-
-func (r ApiListInvitationsRequest) GetStatus() *string {
-	return r.status
-}
-func (r ApiListInvitationsRequest) GetOrganization() *string {
-	return r.organization
 }
 
 /*
@@ -3542,28 +3483,6 @@ func (r ApiListLogsRequest) Execute() (*LogCursor, *http.Response, error) {
 	return r.ApiService.ListLogsExecute(r)
 }
 
-func (r ApiListLogsRequest) GetStackId() *string {
-	return r.stackId
-}
-func (r ApiListLogsRequest) GetCursor() *string {
-	return r.cursor
-}
-func (r ApiListLogsRequest) GetPageSize() *int32 {
-	return r.pageSize
-}
-func (r ApiListLogsRequest) GetAction() *Action {
-	return r.action
-}
-func (r ApiListLogsRequest) GetUserId() *string {
-	return r.userId
-}
-func (r ApiListLogsRequest) GetKey() *string {
-	return r.key
-}
-func (r ApiListLogsRequest) GetValue() *string {
-	return r.value
-}
-
 /*
 ListLogs List logs
 
@@ -3695,7 +3614,6 @@ func (r ApiListModulesRequest) Execute() (*ListModulesResponse, *http.Response, 
 	return r.ApiService.ListModulesExecute(r)
 }
 
-
 /*
 ListModules List modules of a stack
 
@@ -3815,10 +3733,6 @@ func (r ApiListOrganizationInvitationsRequest) Execute() (*ListInvitationsRespon
 	return r.ApiService.ListOrganizationInvitationsExecute(r)
 }
 
-func (r ApiListOrganizationInvitationsRequest) GetStatus() *string {
-	return r.status
-}
-
 /*
 ListOrganizationInvitations List invitations of the organization
 
@@ -3936,10 +3850,6 @@ func (r ApiListOrganizationsRequest) Execute() (*ListOrganizationExpandedRespons
 	return r.ApiService.ListOrganizationsExecute(r)
 }
 
-func (r ApiListOrganizationsRequest) GetExpand() *bool {
-	return r.expand
-}
-
 /*
 ListOrganizations List organizations of the connected user
 
@@ -4048,7 +3958,6 @@ func (r ApiListOrganizationsExpandedRequest) Execute() (*ListOrganizationExpande
 	return r.ApiService.ListOrganizationsExpandedExecute(r)
 }
 
-
 /*
 ListOrganizationsExpanded List organizations of the connected user with expanded data
 
@@ -4149,7 +4058,6 @@ type ApiListRegionsRequest struct {
 func (r ApiListRegionsRequest) Execute() (*ListRegionsResponse, *http.Response, error) {
 	return r.ApiService.ListRegionsExecute(r)
 }
-
 
 /*
 ListRegions List regions
@@ -4260,7 +4168,6 @@ type ApiListStackUsersAccessesRequest struct {
 func (r ApiListStackUsersAccessesRequest) Execute() (*StackUserAccessResponse, *http.Response, error) {
 	return r.ApiService.ListStackUsersAccessesExecute(r)
 }
-
 
 /*
 ListStackUsersAccesses List stack users accesses within an organization
@@ -4389,13 +4296,6 @@ func (r ApiListStacksRequest) Execute() (*ListStacksResponse, *http.Response, er
 	return r.ApiService.ListStacksExecute(r)
 }
 
-func (r ApiListStacksRequest) GetAll() *bool {
-	return r.all
-}
-func (r ApiListStacksRequest) GetDeleted() *bool {
-	return r.deleted
-}
-
 /*
 ListStacks List stacks
 
@@ -4511,7 +4411,6 @@ func (r ApiListUsersOfOrganizationRequest) Execute() (*ListUsersResponse, *http.
 	return r.ApiService.ListUsersOfOrganizationExecute(r)
 }
 
-
 /*
 ListUsersOfOrganization List users of organization
 
@@ -4619,7 +4518,6 @@ type ApiReadConnectedUserRequest struct {
 func (r ApiReadConnectedUserRequest) Execute() (*ReadUserResponse, *http.Response, error) {
 	return r.ApiService.ReadConnectedUserExecute(r)
 }
-
 
 /*
 ReadConnectedUser Read user
@@ -4731,10 +4629,6 @@ func (r ApiReadOrganizationRequest) Expand(expand bool) ApiReadOrganizationReque
 
 func (r ApiReadOrganizationRequest) Execute() (*ReadOrganizationResponse, *http.Response, error) {
 	return r.ApiService.ReadOrganizationExecute(r)
-}
-
-func (r ApiReadOrganizationRequest) GetExpand() *bool {
-	return r.expand
 }
 
 /*
@@ -4850,7 +4744,6 @@ type ApiReadStackUserAccessRequest struct {
 func (r ApiReadStackUserAccessRequest) Execute() (*ReadStackUserAccess, *http.Response, error) {
 	return r.ApiService.ReadStackUserAccessExecute(r)
 }
-
 
 /*
 ReadStackUserAccess Read stack user access role within an organization
@@ -4968,7 +4861,6 @@ func (r ApiReadUserOfOrganizationRequest) Execute() (*ReadOrganizationUserRespon
 	return r.ApiService.ReadUserOfOrganizationExecute(r)
 }
 
-
 /*
 ReadUserOfOrganization Read user of organization
 
@@ -5081,7 +4973,6 @@ type ApiRestoreStackRequest struct {
 func (r ApiRestoreStackRequest) Execute() (*CreateStackResponse, *http.Response, error) {
 	return r.ApiService.RestoreStackExecute(r)
 }
-
 
 /*
 RestoreStack Restore stack
@@ -5201,10 +5092,6 @@ func (r ApiUpdateOrganizationRequest) Execute() (*ReadOrganizationResponse, *htt
 	return r.ApiService.UpdateOrganizationExecute(r)
 }
 
-func (r ApiUpdateOrganizationRequest) GetOrganizationData() *OrganizationData {
-	return r.organizationData
-}
-
 /*
 UpdateOrganization Update organization
 
@@ -5321,10 +5208,6 @@ func (r ApiUpdateStackRequest) UpdateStackRequest(updateStackRequest UpdateStack
 
 func (r ApiUpdateStackRequest) Execute() (*CreateStackResponse, *http.Response, error) {
 	return r.ApiService.UpdateStackExecute(r)
-}
-
-func (r ApiUpdateStackRequest) GetUpdateStackRequest() *UpdateStackRequest {
-	return r.updateStackRequest
 }
 
 /*
@@ -5448,10 +5331,6 @@ func (r ApiUpgradeStackRequest) Execute() (*http.Response, error) {
 	return r.ApiService.UpgradeStackExecute(r)
 }
 
-func (r ApiUpgradeStackRequest) GetStackVersion() *StackVersion {
-	return r.stackVersion
-}
-
 /*
 UpgradeStack Upgrade stack
 
@@ -5560,10 +5439,6 @@ func (r ApiUpsertOrganizationUserRequest) UpdateOrganizationUserRequest(updateOr
 
 func (r ApiUpsertOrganizationUserRequest) Execute() (*http.Response, error) {
 	return r.ApiService.UpsertOrganizationUserExecute(r)
-}
-
-func (r ApiUpsertOrganizationUserRequest) GetUpdateOrganizationUserRequest() *UpdateOrganizationUserRequest {
-	return r.updateOrganizationUserRequest
 }
 
 /*
@@ -5675,10 +5550,6 @@ func (r ApiUpsertStackUserAccessRequest) UpdateStackUserRequest(updateStackUserR
 
 func (r ApiUpsertStackUserAccessRequest) Execute() (*http.Response, error) {
 	return r.ApiService.UpsertStackUserAccessExecute(r)
-}
-
-func (r ApiUpsertStackUserAccessRequest) GetUpdateStackUserRequest() *UpdateStackUserRequest {
-	return r.updateStackUserRequest
 }
 
 /*

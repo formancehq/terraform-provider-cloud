@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
@@ -55,7 +56,7 @@ func (f *ProviderModelAdapter) UserAgent() string {
 type FormanceCloudProvider struct {
 	logger               logging.Logger
 	transport            http.RoundTripper
-	sdkFactory           pkg.SDKFactory
+	sdkFactory           pkg.CloudFactory
 	tokenProviderFactory pkg.TokenProviderFactory
 
 	Endpoint string
@@ -143,6 +144,7 @@ func (p *FormanceCloudProvider) Resources(ctx context.Context) []func() resource
 		resources.NewStackModule(p.logger.WithField("resource", "stack_module")),
 		resources.NewStackMember(p.logger.WithField("resource", "stack_member")),
 		resources.NewOrganizationMember(p.logger.WithField("resource", "organization_member")),
+		resources.NewNoop(p.logger.WithField("resource", "noop")),
 	}
 }
 
@@ -155,8 +157,10 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
+	var clientID string
 	if data.ClientId.IsNull() {
 		if p.ClientId != "" {
+			clientID = p.ClientId
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("client_id"),
 				"Missing client_id Configuration",
@@ -166,12 +170,22 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 		} else {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("client_id"),
-				"Missing Client ID Configuration",
+				"Missing client_id Configuration",
 				"While configuring the provider, the client id was not found. "+
 					"the FORMANCE_CLOUD_CLIENT_ID environment variable or provider "+
 					"configuration block client_id attribute.",
 			)
 		}
+	} else {
+		clientID = data.ClientId.ValueString()
+	}
+
+	if clientID != "" && !strings.HasPrefix(p.ClientId, "organization_") {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("client_id"),
+			"Invalid client_id",
+			"The client_id must start with 'organization_' to be used with Formance Cloud.",
+		)
 	}
 
 	if data.ClientSecret.IsNull() {
@@ -185,7 +199,7 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 		} else {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("client_secret"),
-				"Missing API Token Configuration",
+				"Missing client_secret Configuration",
 				"While configuring the provider, the API token was not found in "+
 					"the FORMANCE_CLOUD_CLIENT_SECRET environment variable or provider "+
 					"configuration block api_token attribute.",
@@ -197,14 +211,14 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 		if p.Endpoint != "" {
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("endpoint"),
-				fmt.Sprintf("Missing Endpoint Configuration use %s", p.Endpoint),
+				fmt.Sprintf("Missing endpoint Configuration use %s", p.Endpoint),
 				"While configuring the provider, the endpoint was not found "+
 					"However the FORMANCE_CLOUD_API_ENDPOINT environment variable was set",
 			)
 		} else {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("endpoint"),
-				"Missing Endpoint Configuration",
+				"Missing endpoint Configuration",
 				"While configuring the provider, the endpoint was not found. "+
 					"the FORMANCE_CLOUD_API_ENDPOINT environment variable or provider "+
 					"configuration block endpoint attribute.",
@@ -219,7 +233,7 @@ func New(
 	clientId,
 	clientSecret string,
 	transport http.RoundTripper,
-	sdkFactory pkg.SDKFactory,
+	sdkFactory pkg.CloudFactory,
 	tokenFactory pkg.TokenProviderFactory,
 ) func() provider.Provider {
 	return func() provider.Provider {

@@ -112,7 +112,7 @@ func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, re
 	if r := plan.Role.ValueString(); r != "" {
 		body.Role = sdk.Role(r)
 	}
-	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
+	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.UserId.ValueString(), body)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -129,7 +129,7 @@ func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	resp, err := s.store.GetSDK().DeleteStackUserAccess(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
+	resp, err := s.store.GetSDK().DeleteStackUserAccess(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.UserId.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -148,7 +148,7 @@ func (s *StackMember) Update(ctx context.Context, req resource.UpdateRequest, re
 	if r := plan.Role.ValueString(); r != "" {
 		body.Role = sdk.Role(r)
 	}
-	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.UserId.ValueString()).UpdateStackUserRequest(body).Execute()
+	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.UserId.ValueString(), body)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -170,7 +170,7 @@ func (s *StackMember) Read(ctx context.Context, req resource.ReadRequest, res *r
 		return
 	}
 
-	userAccess, resp, err := s.store.GetSDK().ReadStackUserAccess(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.UserId.ValueString()).Execute()
+	userAccess, resp, err := s.store.GetSDK().ReadStackUserAccess(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.UserId.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return

@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 		transport = otlp.NewRoundTripper(http.DefaultTransport, false)
 	}
 
-	Provider = server.New(logging.Testing(), endpoint, clientID, clientSecret, transport, pkg.NewSDK, pkg.NewTokenProvider)
+	Provider = server.New(logging.Testing(), endpoint, clientID, clientSecret, transport, pkg.NewCloudSDK(), pkg.NewTokenProvider)
 
 	// Setup non destroyable resources
 	RegionName = os.Getenv("FORMANCE_CLOUD_REGION_NAME")

@@ -120,17 +120,12 @@ func (s *OrganizationMember) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	// Call the SDK method to create the resource here
-	sdkReq := s.store.GetSDK().CreateInvitation(ctx, s.store.GetOrganizationID()).
-		Email(plan.Email.ValueString())
-
+	claim := sdk.InvitationClaim{}
 	if plan.Role.ValueString() != "" {
-		sdkReq = sdkReq.InvitationClaim(sdk.InvitationClaim{
-			Role: pointer.For(sdk.Role(plan.Role.ValueString())),
-		})
+		claim.Role = pointer.For(sdk.Role(plan.Role.ValueString()))
 	}
 
-	obj, resp, err := sdkReq.Execute()
+	obj, resp, err := s.store.GetSDK().CreateInvitation(ctx, s.store.GetOrganizationID(), plan.Email.ValueString(), claim)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -155,7 +150,7 @@ func (s *OrganizationMember) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, s.store.GetOrganizationID()).Execute()
+	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, s.store.GetOrganizationID())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -167,13 +162,13 @@ func (s *OrganizationMember) Delete(ctx context.Context, req resource.DeleteRequ
 
 	switch obj.Status {
 	case "PENDING":
-		resp, err := s.store.GetSDK().DeleteInvitation(ctx, s.store.GetOrganizationID(), state.ID.ValueString()).Execute()
+		resp, err := s.store.GetSDK().DeleteInvitation(ctx, s.store.GetOrganizationID(), state.ID.ValueString())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 	case "ACCEPTED":
-		resp, err := s.store.GetSDK().DeleteUserFromOrganization(ctx, s.store.GetOrganizationID(), state.UserId.ValueString()).Execute()
+		resp, err := s.store.GetSDK().DeleteUserOfOrganization(ctx, s.store.GetOrganizationID(), state.UserId.ValueString())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
@@ -195,7 +190,7 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, s.store.GetOrganizationID()).Execute()
+	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, s.store.GetOrganizationID())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -215,7 +210,7 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 		}
 		state.ID = types.StringValue(obj.Id)
 	case "ACCEPTED":
-		user, resp, err := s.store.GetSDK().ReadUserOfOrganization(ctx, s.store.GetOrganizationID(), state.UserId.ValueString()).Execute()
+		user, resp, err := s.store.GetSDK().ReadUserOfOrganization(ctx, s.store.GetOrganizationID(), state.UserId.ValueString())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
@@ -236,7 +231,7 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, s.store.GetOrganizationID()).Execute()
+	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, s.store.GetOrganizationID())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -248,20 +243,18 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 
 	switch obj.Status {
 	case "PENDING":
-		resp, err := s.store.GetSDK().DeleteInvitation(ctx, s.store.GetOrganizationID(), state.ID.ValueString()).Execute()
+		resp, err := s.store.GetSDK().DeleteInvitation(ctx, s.store.GetOrganizationID(), state.ID.ValueString())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
 		}
 
-		sdkReq := s.store.GetSDK().CreateInvitation(ctx, s.store.GetOrganizationID()).
-			Email(state.Email.ValueString())
+		claim := sdk.InvitationClaim{}
 		if state.Role.ValueString() != "" {
-			sdkReq = sdkReq.InvitationClaim(sdk.InvitationClaim{
-				Role: pointer.For(sdk.Role(state.Role.ValueString())),
-			})
+			claim.Role = pointer.For(sdk.Role(state.Role.ValueString()))
 		}
-		obj, respCreate, err := sdkReq.Execute()
+
+		obj, respCreate, err := s.store.GetSDK().CreateInvitation(ctx, s.store.GetOrganizationID(), state.Email.ValueString(), claim)
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, respCreate, &res.Diagnostics)
 			return
@@ -281,7 +274,7 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 		body := sdk.UpdateOrganizationUserRequest{
 			Role: sdk.Role(state.Role.ValueString()),
 		}
-		resp, err := s.store.GetSDK().UpsertOrganizationUser(ctx, s.store.GetOrganizationID(), state.UserId.ValueString()).UpdateOrganizationUserRequest(body).Execute()
+		resp, err := s.store.GetSDK().UpsertUserOfOrganization(ctx, s.store.GetOrganizationID(), state.UserId.ValueString(), body)
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
