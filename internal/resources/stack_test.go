@@ -11,8 +11,6 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -37,7 +35,7 @@ func TestStackConfigure(t *testing.T) {
 				expectedErr:  resources.ErrProviderDataNotSet,
 			},
 			{
-				providerData: internal.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
+				providerData: internal.NewStore(pkg.NewMockCloudSDK(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
 			},
 		} {
 
@@ -97,7 +95,7 @@ func TestStackCreate(t *testing.T) {
 					Diagnostics: []diag.Diagnostic{},
 				}
 				ctrl := gomock.NewController(t)
-				apiMock := pkg.NewMockDefaultAPI(ctrl)
+				apiMock := pkg.NewMockCloudSDK(ctrl)
 				store := internal.NewStore(apiMock, fmt.Sprintf("organization_%s", organizationId))
 				r.Configure(ctx, resource.ConfigureRequest{
 					ProviderData: store,
@@ -105,26 +103,15 @@ func TestStackCreate(t *testing.T) {
 
 				require.Empty(t, configureRes.Diagnostics, "Expected no diagnostics on configure")
 
-				apiMock.EXPECT().CreateStack(gomock.Any(), organizationId).Return(sdk.ApiCreateStackRequest{
-					ApiService: apiMock,
-				})
-
 				md := map[string]string{
 					"github.com/formancehq/terraform-provider-cloud/protected": "true",
 				}
-				expectedBody := sdk.CreateStackRequest{
+				apiMock.EXPECT().CreateStack(gomock.Any(), organizationId, sdk.CreateStackRequest{
 					Name:     tc.name,
 					Metadata: &md,
 					RegionID: tc.regionID,
 					Version:  &tc.version,
-				}
-
-				apiMock.EXPECT().CreateStackExecute(
-					gomock.Cond(
-						func(r sdk.ApiCreateStackRequest) bool {
-							return cmp.Equal(r.GetCreateStackRequest(), &expectedBody, cmp.AllowUnexported(sdk.CreateStackRequest{}), cmpopts.IgnoreUnexported(sdk.CreateStackRequest{}))
-						}),
-				).Return(&sdk.CreateStackResponse{
+				}).Return(&sdk.CreateStackResponse{
 					Data: &sdk.Stack{
 						Id:             uuid.NewString(),
 						Name:           tc.name,

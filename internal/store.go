@@ -3,17 +3,17 @@ package internal
 import (
 	"strings"
 
-	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/formancehq/terraform-provider-cloud/pkg"
 )
 
 // Store provides a shared storage for provider-wide data
 type Store struct {
 	clientID string
-	sdk      sdk.DefaultAPI
+	sdk      pkg.CloudSDK
 }
 
 // NewStore creates a new Store instance
-func NewStore(sdkClient sdk.DefaultAPI, clientID string) *Store {
+func NewStore(sdkClient pkg.CloudSDK, clientID string) *Store {
 	return &Store{
 		sdk:      sdkClient,
 		clientID: clientID,
@@ -21,7 +21,7 @@ func NewStore(sdkClient sdk.DefaultAPI, clientID string) *Store {
 }
 
 // GetSDK returns the SDK client
-func (s *Store) GetSDK() sdk.DefaultAPI {
+func (s *Store) GetSDK() pkg.CloudSDK {
 	return s.sdk
 }
 

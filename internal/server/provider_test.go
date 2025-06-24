@@ -20,9 +20,8 @@ import (
 
 func TestProviderMetadata(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	sdkFactory, _ := pkg.NewMockSDK(ctrl)
 	tokenFactory, _ := pkg.NewMockTokenProvider(ctrl)
-	p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, sdkFactory, tokenFactory)()
+	p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewCloudSDK(), tokenFactory)()
 
 	res := provider.MetadataResponse{}
 	p.Metadata(logging.TestingContext(), provider.MetadataRequest{}, &res)
@@ -49,9 +48,8 @@ func TestProviderConfigure(t *testing.T) {
 		t.Run(fmt.Sprintf("%s clientId %t clientSecret %t endpoint %t", t.Name(), tc.ClientId != "", tc.ClientSecret != "", tc.Endpoint != ""), func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			sdkFactory, _ := pkg.NewMockSDK(ctrl)
 			tokenFactory, mockTp := pkg.NewMockTokenProvider(ctrl)
-			p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, sdkFactory, tokenFactory)()
+			p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewCloudSDK(), tokenFactory)()
 
 			res := provider.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},

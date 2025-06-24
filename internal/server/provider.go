@@ -55,7 +55,7 @@ func (f *ProviderModelAdapter) UserAgent() string {
 type FormanceCloudProvider struct {
 	logger               logging.Logger
 	transport            http.RoundTripper
-	sdkFactory           pkg.SDKFactory
+	sdkFactory           pkg.CloudFactory
 	tokenProviderFactory pkg.TokenProviderFactory
 
 	Endpoint string
@@ -219,7 +219,7 @@ func New(
 	clientId,
 	clientSecret string,
 	transport http.RoundTripper,
-	sdkFactory pkg.SDKFactory,
+	sdkFactory pkg.CloudFactory,
 	tokenFactory pkg.TokenProviderFactory,
 ) func() provider.Provider {
 	return func() provider.Provider {

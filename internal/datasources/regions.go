@@ -101,14 +101,14 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 	var obj sdk.AnyRegion
 	switch {
 	case !data.ID.IsNull():
-		objs, res, err := r.store.GetSDK().GetRegion(ctx, r.store.GetOrganizationID(), data.ID.ValueString()).Execute()
+		objs, res, err := r.store.GetSDK().GetRegion(ctx, r.store.GetOrganizationID(), data.ID.ValueString())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
 		}
 		obj = objs.Data
 	case !data.Name.IsNull():
-		objs, res, err := r.store.GetSDK().ListRegions(ctx, r.store.GetOrganizationID()).Execute()
+		objs, res, err := r.store.GetSDK().ListRegions(ctx, r.store.GetOrganizationID())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return

@@ -6,7 +6,7 @@ default:
 pc: pre-commit
 
 [group('qa')]
-pre-commit: tidy lint lint-integration generate
+pre-commit: tidy generate lint lint-integration 
 
 [group('qa')]
 lint:

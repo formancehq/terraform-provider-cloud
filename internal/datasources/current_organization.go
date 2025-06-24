@@ -92,7 +92,7 @@ func (c *CurrentOrganization) Read(ctx context.Context, req datasource.ReadReque
 	logging.FromContext(ctx).Debugf("Reading current organization")
 
 	orgID := c.store.GetOrganizationID()
-	org, res, err := c.store.GetSDK().ReadOrganization(ctx, orgID).Execute()
+	org, res, err := c.store.GetSDK().ReadOrganization(ctx, orgID)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return

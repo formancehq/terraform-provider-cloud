@@ -115,7 +115,7 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 	if !data.ID.IsNull() {
 		regionID = data.ID.ValueString()
 	} else {
-		regions, res, err := r.store.GetSDK().ListRegions(ctx, r.store.GetOrganizationID()).Execute()
+		regions, res, err := r.store.GetSDK().ListRegions(ctx, r.store.GetOrganizationID())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
@@ -137,7 +137,7 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 		data.ID = types.StringValue(regionID)
 	}
 
-	obj, res, err := r.store.GetSDK().GetRegionVersions(ctx, r.store.GetOrganizationID(), regionID).Execute()
+	obj, res, err := r.store.GetSDK().GetRegionVersions(ctx, r.store.GetOrganizationID(), regionID)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return

@@ -33,7 +33,7 @@ func NewProvider(logger logging.Logger,
 	clientId FormanceCloudClientId,
 	clientSecret FormanceCloudClientSecret,
 	transport http.RoundTripper,
-	sdkFactory pkg.SDKFactory,
+	sdkFactory pkg.CloudFactory,
 	tokenFactory pkg.TokenProviderFactory,
 ) ProviderFactory {
 	return New(
@@ -58,7 +58,7 @@ func NewModule(ctx context.Context, flagset *pflag.FlagSet) fx.Option {
 		fx.Supply(FormanceCloudClientSecret(clientSecret)),
 		fx.Supply(FormanceCloudEndpoint(endpoint)),
 		fx.Supply(fx.Annotate(transport, fx.As(new(http.RoundTripper)))),
-		fx.Provide(pkg.NewSdkFactory),
+		fx.Provide(pkg.NewCloudSDK),
 		fx.Provide(pkg.NewTokenProviderFactory),
 		fx.Provide(NewProvider),
 		fx.Provide(NewAPI),
