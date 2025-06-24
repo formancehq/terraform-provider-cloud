@@ -17,7 +17,7 @@ tidy:
   @go mod tidy
 
 [group('test')]
-tests: tests-unit tests-e2e coverage
+tests: tests-unit tests-e2e tests-integration coverage
 
 [group('test')]
 coverage:
