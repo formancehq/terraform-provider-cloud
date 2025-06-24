@@ -6,6 +6,7 @@ import (
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -16,11 +17,10 @@ import (
 )
 
 var (
-	_ resource.Resource                     = &Stack{}
-	_ resource.ResourceWithConfigure        = &Stack{}
-	_ resource.ResourceWithConfigValidators = &Stack{}
-	_ resource.ResourceWithValidateConfig   = &Stack{}
-	_ resource.ResourceWithImportState      = &Stack{}
+	_ resource.Resource                   = &Stack{}
+	_ resource.ResourceWithConfigure      = &Stack{}
+	_ resource.ResourceWithValidateConfig = &Stack{}
+	_ resource.ResourceWithImportState    = &Stack{}
 )
 
 var SchemaStack = schema.Schema{
@@ -34,10 +34,6 @@ var SchemaStack = schema.Schema{
 			Description: "The name of the stack. Must be unique within the organization.",
 			Optional:    true,
 			Computed:    true,
-		},
-		"organization_id": schema.StringAttribute{
-			Description: "The organization ID where the stack will be created.",
-			Required:    true,
 		},
 		"region_id": schema.StringAttribute{
 			Description: "The region ID where the stack will be deployed.",
@@ -63,10 +59,9 @@ type StackModel struct {
 	ID   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 
-	OrganizationID types.String `tfsdk:"organization_id"`
-	RegionID       types.String `tfsdk:"region_id"`
-	Version        types.String `tfsdk:"version"`
-	URI            types.String `tfsdk:"uri"`
+	RegionID types.String `tfsdk:"region_id"`
+	Version  types.String `tfsdk:"version"`
+	URI      types.String `tfsdk:"uri"`
 
 	ForceDestroy types.Bool `tfsdk:"force_destroy"`
 }
@@ -77,9 +72,6 @@ func (m *StackModel) GetID() string {
 func (m *StackModel) GetName() string {
 	return m.Name.ValueString()
 }
-func (m *StackModel) GetOrganizationID() string {
-	return m.OrganizationID.ValueString()
-}
 
 func (m *StackModel) GetRegionID() string {
 	return m.RegionID.ValueString()
@@ -87,7 +79,7 @@ func (m *StackModel) GetRegionID() string {
 
 type Stack struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *internal.Store
 }
 
 func NewStack(logger logging.Logger) func() resource.Resource {
@@ -117,18 +109,9 @@ func (s *Stack) ValidateConfig(ctx context.Context, req resource.ValidateConfigR
 		return
 	}
 
-	if config.OrganizationID.IsNull() {
-		res.Diagnostics.AddError("Invalid Organization ID", "Organization ID cannot be null")
-	}
-
 	if config.RegionID.IsNull() {
 		res.Diagnostics.AddError("Invalid Region ID", "Region ID cannot be null")
 	}
-}
-
-// ConfigValidators implements resource.ResourceWithConfigValidators.
-func (s *Stack) ConfigValidators(context.Context) []resource.ConfigValidator {
-	return nil
 }
 
 // Configure implements resource.ResourceWithConfigure.
@@ -137,16 +120,16 @@ func (s *Stack) Configure(ctx context.Context, req resource.ConfigureRequest, re
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*internal.Store)
 	if !ok {
 		resp.Diagnostics.AddError(
 			ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *internal.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	s.sdk = sdk
+	s.store = store
 }
 
 // Create implements resource.Resource.
@@ -170,7 +153,7 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 		Version:  pointer.For(plan.Version.ValueString()),
 	}
 
-	obj, res, err := s.sdk.CreateStack(ctx, plan.GetOrganizationID()).CreateStackRequest(createStackRequest).Execute()
+	obj, res, err := s.store.GetSDK().CreateStack(ctx, s.store.GetOrganizationID()).CreateStackRequest(createStackRequest).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
@@ -178,7 +161,6 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 
 	plan.ID = types.StringValue(obj.Data.Id)
 	plan.Name = types.StringValue(obj.Data.Name)
-	plan.OrganizationID = types.StringValue(obj.Data.OrganizationId)
 	plan.RegionID = types.StringValue(obj.Data.RegionID)
 	plan.URI = types.StringValue(obj.Data.Uri)
 	plan.Version = types.StringNull()
@@ -200,7 +182,7 @@ func (s *Stack) Delete(ctx context.Context, req resource.DeleteRequest, resp *re
 		return
 	}
 
-	res, err := s.sdk.DeleteStack(ctx, plan.GetOrganizationID(), plan.GetID()).Force(plan.ForceDestroy.ValueBool()).Execute()
+	res, err := s.store.GetSDK().DeleteStack(ctx, s.store.GetOrganizationID(), plan.GetID()).Force(plan.ForceDestroy.ValueBool()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
@@ -224,7 +206,7 @@ func (s *Stack) Read(ctx context.Context, req resource.ReadRequest, resp *resour
 		return
 	}
 
-	obj, res, err := s.sdk.GetStack(ctx, plan.GetOrganizationID(), plan.GetID()).Execute()
+	obj, res, err := s.store.GetSDK().GetStack(ctx, s.store.GetOrganizationID(), plan.GetID()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
@@ -232,7 +214,6 @@ func (s *Stack) Read(ctx context.Context, req resource.ReadRequest, resp *resour
 
 	plan.ID = types.StringValue(obj.Data.Id)
 	plan.Name = types.StringValue(obj.Data.Name)
-	plan.OrganizationID = types.StringValue(obj.Data.OrganizationId)
 	plan.Version = types.StringNull()
 	if obj.Data.Version != nil {
 		plan.Version = types.StringValue(*obj.Data.Version)
@@ -262,7 +243,6 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 		return
 	}
 	plan.ID = state.ID
-	plan.OrganizationID = state.OrganizationID
 	plan.RegionID = state.RegionID
 	if plan.Name.ValueString() != state.Name.ValueString() {
 		updateRequest := sdk.UpdateStackRequest{
@@ -271,7 +251,7 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 				"github.com/formancehq/terraform-provider-cloud/protected": "true",
 			}),
 		}
-		obj, resp, err := s.sdk.UpdateStack(ctx, plan.GetOrganizationID(), plan.GetID()).UpdateStackRequest(updateRequest).Execute()
+		obj, resp, err := s.store.GetSDK().UpdateStack(ctx, s.store.GetOrganizationID(), plan.GetID()).UpdateStackRequest(updateRequest).Execute()
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
@@ -283,7 +263,7 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 	if state.Version.ValueString() != plan.Version.ValueString() {
 		if !semver.IsValid(plan.Version.ValueString()) ||
 			(semver.IsValid(plan.Version.ValueString()) && semver.Compare(state.Version.ValueString(), plan.Version.ValueString()) >= 0) {
-			resp, err := s.sdk.UpgradeStack(ctx, plan.GetOrganizationID(), plan.GetID()).StackVersion(sdk.StackVersion{
+			resp, err := s.store.GetSDK().UpgradeStack(ctx, s.store.GetOrganizationID(), plan.GetID()).StackVersion(sdk.StackVersion{
 				Version: pointer.For(plan.Version.ValueString()),
 			}).Execute()
 			if err != nil {

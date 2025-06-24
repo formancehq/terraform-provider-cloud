@@ -1,6 +1,6 @@
 # Formance Cloud Terraform Provider
 
-The Formance Cloud Terraform provider allows you to manage your Formance Cloud resources via Infrastructure as Code (IaC). This provider supports managing organizations, stacks, regions, and modules.
+The Formance Cloud Terraform provider allows you to manage your Formance Cloud resources via Infrastructure as Code (IaC). This provider supports managing stacks and stack modules.
 
 ## Table of Contents
 
@@ -62,29 +62,26 @@ provider "formancecloud" {
   # Credentials can be set via environment variables
 }
 
-# Create an organization
-resource "formancecloud_organization" "main" {
-  name = "my-organization"
-}
+# Get current organization
+data "formancecloud_current_organization" "current" {}
 
-# Create a private region
-resource "formancecloud_region" "europe" {
-  name            = "europe-west"
-  organization_id = formancecloud_organization.main.id
+# Get available regions
+data "formancecloud_regions" "default" {
+  organization_id = data.formancecloud_current_organization.current.id
 }
 
 # Create a stack
 resource "formancecloud_stack" "production" {
   name            = "production"
-  organization_id = formancecloud_organization.main.id
-  region_id       = formancecloud_region.europe.id
+  organization_id = data.formancecloud_current_organization.current.id
+  region_id       = data.formancecloud_regions.default.regions[0].id
 }
 
 # Enable the ledger module
 resource "formancecloud_stack_module" "ledger" {
   name            = "ledger"
   stack_id        = formancecloud_stack.production.id
-  organization_id = formancecloud_organization.main.id
+  organization_id = data.formancecloud_current_organization.current.id
 }
 ```
 
@@ -108,21 +105,11 @@ The provider uses OAuth2 authentication with client credentials. To obtain your 
 
 ## Available Resources
 
-### Organizations
-- `formancecloud_organization` - Manages a Formance Cloud organization
-
 ### Stacks
 - `formancecloud_stack` - Manages an isolated environment for your Formance services
 
-### Regions
-- `formancecloud_region` - Manages a dedicated private region
-
 ### Modules
 - `formancecloud_stack_module` - Enables/disables modules on a stack
-
-### Access Management
-- `formancecloud_organization_member` - Manages organization members
-- `formancecloud_stack_member` - Manages stack access
 
 ## Data Sources
 
@@ -136,6 +123,14 @@ The provider uses OAuth2 authentication with client credentials. To obtain your 
 ### Multi-Environment Deployment
 
 ```hcl
+# Get current organization
+data "formancecloud_current_organization" "current" {}
+
+# Get available regions
+data "formancecloud_regions" "default" {
+  organization_id = data.formancecloud_current_organization.current.id
+}
+
 # Variables for environments
 variable "environments" {
   default = ["development", "staging", "production"]
@@ -145,8 +140,8 @@ variable "environments" {
 resource "formancecloud_stack" "env" {
   for_each        = toset(var.environments)
   name            = each.value
-  organization_id = formancecloud_organization.main.id
-  region_id       = formancecloud_region.europe.id
+  organization_id = data.formancecloud_current_organization.current.id
+  region_id       = data.formancecloud_regions.default.regions[0].id
 }
 
 # Enable necessary modules for each stack
@@ -154,54 +149,7 @@ resource "formancecloud_stack_module" "ledger" {
   for_each        = formancecloud_stack.env
   name            = "ledger"
   stack_id        = each.value.id
-  organization_id = formancecloud_organization.main.id
-}
-```
-
-### Access Management with Teams
-
-```hcl
-# Define teams and their access
-locals {
-  teams = {
-    developers = {
-      members = ["dev1@example.com", "dev2@example.com"]
-      role    = "WRITE"
-    }
-    observers = {
-      members = ["observer1@example.com", "observer2@example.com"]
-      role    = "READ"
-    }
-  }
-}
-
-# Add members to the organization
-resource "formancecloud_organization_member" "members" {
-  for_each        = toset(flatten([for team in local.teams : team.members]))
-  organization_id = formancecloud_organization.main.id
-  email          = each.value
-  role           = "READ" # Minimum organization access
-}
-
-# Grant stack access according to teams
-resource "formancecloud_stack_member" "team_access" {
-  for_each = {
-    for member in flatten([
-      for team_name, team in local.teams : [
-        for email in team.members : {
-          key     = "${team_name}-${email}"
-          email   = email
-          role    = team.role
-          user_id = formancecloud_organization_member.members[email].user_id
-        }
-      ]
-    ]) : member.key => member
-  }
-  
-  organization_id = formancecloud_organization.main.id
-  stack_id       = formancecloud_stack.production.id
-  user_id        = each.value.user_id
-  role           = each.value.role
+  organization_id = data.formancecloud_current_organization.current.id
 }
 ```
 

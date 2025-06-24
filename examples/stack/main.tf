@@ -35,7 +35,6 @@ resource "formancecloud_region" "dev" {}
 
 
 resource "formancecloud_stack" "default" {
-  name            = "test-stack"
-  organization_id = formancecloud_organization.default.id
-  region_id       = formancecloud_region.dev.id
+  name      = "test-stack"
+  region_id = formancecloud_region.dev.id
 }

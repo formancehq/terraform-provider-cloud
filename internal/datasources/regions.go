@@ -6,9 +6,11 @@ import (
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -16,57 +18,38 @@ import (
 )
 
 var (
-	_ datasource.DataSource                   = &Region{}
-	_ datasource.DataSourceWithConfigure      = &Region{}
-	_ datasource.DataSourceWithValidateConfig = &Region{}
+	_ datasource.DataSource                     = &Region{}
+	_ datasource.DataSourceWithConfigure        = &Region{}
+	_ datasource.DataSourceWithConfigValidators = &Region{}
 )
 
 type Region struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
-}
-
-// ValidateConfig implements datasource.DataSourceWithValidateConfig.
-func (r *Region) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, res *datasource.ValidateConfigResponse) {
-	var config RegionModel
-	res.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-	if res.Diagnostics.HasError() {
-		return
-	}
-
-	if config.Name.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("name"),
-			"Name must be set.",
-			"Region name cannot be empty.",
-		)
-	}
-
-	if config.OrganizationID.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("organization_id"),
-			"Organization ID must be set.",
-			"Region organization ID cannot be null.",
-		)
-	}
+	store  *internal.Store
 }
 
 var SchemaRegion = schema.Schema{
-	Description: "Retrieves information about a specific region by name within an organization.",
+	Description: "Retrieves information about regions within an organization. If name is specified, returns a specific region by name. Otherwise, returns the first available region sorted deterministically by ID.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The unique identifier of the region.",
-			Computed:    true,
+			Optional:    true,
 		},
 		"name": schema.StringAttribute{
-			Description: "The name of the region to retrieve.",
-			Required:    true,
-		},
-		"organization_id": schema.StringAttribute{
-			Description: "The organization ID where the region is located.",
-			Required:    true,
+			Description: "The name of the region to retrieve. If not specified, returns the first available region sorted deterministically by ID.",
+			Optional:    true,
 		},
 	},
+}
+
+// ConfigValidators implements datasource.DataSourceWithConfigValidators.
+func (r *Region) ConfigValidators(context.Context) []datasource.ConfigValidator {
+	return []datasource.ConfigValidator{
+		datasourcevalidator.AtLeastOneOf(
+			path.MatchRoot("id"),
+			path.MatchRoot("name"),
+		),
+	}
 }
 
 // Configure implements datasource.DataSourceWithConfigure.
@@ -75,22 +58,21 @@ func (r *Region) Configure(ctx context.Context, req datasource.ConfigureRequest,
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*internal.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			resources.ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *internal.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	r.sdk = sdk
+	r.store = store
 }
 
 type RegionModel struct {
-	ID             types.String `tfsdk:"id"`
-	Name           types.String `tfsdk:"name"`
-	OrganizationID types.String `tfsdk:"organization_id"`
+	ID   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
 }
 
 func NewRegions(logger logging.Logger) func() datasource.DataSource {
@@ -116,29 +98,40 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		return
 	}
 
-	objs, res, err := r.sdk.ListRegions(ctx, data.OrganizationID.ValueString()).Execute()
-	if err != nil {
-		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
-		return
-	}
-
-	obj := collectionutils.First(objs.Data, func(o sdk.AnyRegion) bool {
-		return o.Name == data.Name.ValueString()
-	})
-	if obj.Id == "" {
+	var obj sdk.AnyRegion
+	switch {
+	case !data.ID.IsNull():
+		objs, res, err := r.store.GetSDK().GetRegion(ctx, r.store.GetOrganizationID(), data.ID.ValueString()).Execute()
+		if err != nil {
+			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			return
+		}
+		obj = objs.Data
+	case !data.Name.IsNull():
+		objs, res, err := r.store.GetSDK().ListRegions(ctx, r.store.GetOrganizationID()).Execute()
+		if err != nil {
+			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			return
+		}
+		obj = collectionutils.First(objs.Data, func(o sdk.AnyRegion) bool {
+			return o.Name == data.Name.ValueString()
+		})
+		if obj.Id == "" {
+			resp.Diagnostics.AddError(
+				"Region not found",
+				fmt.Sprintf("No region found with name '%s' in organization '%s'", data.Name.ValueString(), r.store.GetOrganizationID()),
+			)
+			return
+		}
+	default:
 		resp.Diagnostics.AddError(
-			"Region not found",
-			fmt.Sprintf("No region found with name '%s' in organization '%s'", data.Name.ValueString(), data.OrganizationID.ValueString()),
+			"Region ID or Name required",
+			"Either 'id' or 'name' must be specified to retrieve a region.",
 		)
 		return
 	}
 
 	data.ID = types.StringValue(obj.Id)
 	data.Name = types.StringValue(obj.Name)
-	data.OrganizationID = types.StringNull()
-	if obj.OrganizationID != nil {
-		data.OrganizationID = types.StringValue(*obj.OrganizationID)
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

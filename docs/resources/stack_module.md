@@ -18,5 +18,4 @@ Manages modules within a Formance Cloud stack. Modules are individual services t
 ### Required
 
 - `name` (String) The name of the module to enable. Valid module names include: ledger, payments, webhooks, wallets, search, reconciliation, orchestration, auth, stargate.
-- `organization_id` (String) The organization ID that owns the stack.
 - `stack_id` (String) The ID of the stack where the module will be enabled.

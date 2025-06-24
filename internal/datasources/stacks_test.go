@@ -1,11 +1,12 @@
 package datasources_test
 
 import (
-	"context"
+	"fmt"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/datasources"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
@@ -19,103 +20,116 @@ import (
 )
 
 func TestStacksConfigure(t *testing.T) {
-	test(t, func(ctx context.Context) {
-
-		type testCase struct {
-			providerData any
-			expectedErr  error
-		}
-
-		for _, tc := range []testCase{
-			{},
-			{
-				providerData: "something",
-				expectedErr:  resources.ErrProviderDataNotSet,
-			},
-			{
-				providerData: pkg.NewMockDefaultAPI(gomock.NewController(t)),
-			},
-		} {
-
-			og := datasources.NewStacks(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
-
-			res := datasource.ConfigureResponse{
-				Diagnostics: []diag.Diagnostic{},
-			}
-
-			og.Configure(ctx, datasource.ConfigureRequest{
-				ProviderData: tc.providerData,
-			}, &res)
-
-			if tc.expectedErr != nil {
-				require.Len(t, res.Diagnostics, 1, "Expected one diagnostic")
-				require.Equal(t, res.Diagnostics[0].Summary(), tc.expectedErr.Error())
-			} else {
-				require.Empty(t, res.Diagnostics, "Expected no diagnostics")
-			}
-
-		}
-	})
-}
-
-func TestStacksMetadata(t *testing.T) {
-	test(t, func(ctx context.Context) {
-		og := datasources.NewStacks(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
-
-		res := datasource.MetadataResponse{}
-
-		og.Metadata(ctx, datasource.MetadataRequest{
-			ProviderTypeName: "test",
-		}, &res)
-
-		require.Contains(t, res.TypeName, "_stacks")
-	})
-}
-
-func TestStacksValidateConfig(t *testing.T) {
 	type testCase struct {
-		id             *string
-		organizationID *string
+		providerData any
+		expectedErr  error
 	}
 
 	for _, tc := range []testCase{
 		{},
 		{
-			id:             pointer.For(uuid.NewString()),
-			organizationID: pointer.For(uuid.NewString()),
+			providerData: "something",
+			expectedErr:  resources.ErrProviderDataNotSet,
+		},
+		{
+			providerData: internal.NewStore(pkg.NewMockDefaultAPI(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
 		},
 	} {
-		t.Run(t.Name(), func(t *testing.T) {
+		ctx := logging.TestingContext()
+		og := datasources.NewStacks(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
+
+		res := datasource.ConfigureResponse{
+			Diagnostics: []diag.Diagnostic{},
+		}
+
+		og.Configure(ctx, datasource.ConfigureRequest{
+			ProviderData: tc.providerData,
+		}, &res)
+
+		if tc.expectedErr != nil {
+			require.Len(t, res.Diagnostics, 1, "Expected one diagnostic")
+			require.Equal(t, res.Diagnostics[0].Summary(), tc.expectedErr.Error())
+		} else {
+			require.Empty(t, res.Diagnostics, "Expected no diagnostics")
+		}
+
+	}
+
+}
+
+func TestStacksMetadata(t *testing.T) {
+	ctx := logging.TestingContext()
+	og := datasources.NewStacks(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
+
+	res := datasource.MetadataResponse{}
+
+	og.Metadata(ctx, datasource.MetadataRequest{
+		ProviderTypeName: "test",
+	}, &res)
+
+	require.Contains(t, res.TypeName, "_stacks")
+
+}
+
+func TestStacksConfigValidator(t *testing.T) {
+	type testCase struct {
+		id          *string
+		name        *string
+		expectedErr error
+	}
+
+	for i, tc := range []testCase{
+		{
+			expectedErr: fmt.Errorf("Missing Attribute Configuration"),
+		},
+		{
+			id:   pointer.For(uuid.NewString()),
+			name: pointer.For(uuid.NewString()),
+		},
+		{
+			id: pointer.For(uuid.NewString()),
+		},
+		{
+			name: pointer.For(uuid.NewString()),
+		},
+	} {
+		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
 			t.Parallel()
 			ctx := logging.TestingContext()
 
-			og := datasources.NewStacks(logging.FromContext(ctx))().(datasource.DataSourceWithValidateConfig)
+			og := datasources.NewStacks(logging.FromContext(ctx))().(datasource.DataSourceWithConfigValidators)
 
-			res := datasource.ValidateConfigResponse{
-				Diagnostics: []diag.Diagnostic{},
-			}
-			og.ValidateConfig(ctx, datasource.ValidateConfigRequest{
-				Config: tfsdk.Config{
-					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"id":              tftypes.String,
-							"organization_id": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"id":              tftypes.NewValue(tftypes.String, tc.id),
-						"organization_id": tftypes.NewValue(tftypes.String, tc.organizationID),
-					}),
-					Schema: datasources.SchemaStack,
-				},
-			}, &res)
+			schemaStackType := getSchemaTypes(datasources.SchemaStack)
+			validators := og.ConfigValidators(ctx)
+			for _, validator := range validators {
+				res := datasource.ValidateConfigResponse{
+					Diagnostics: []diag.Diagnostic{},
+				}
+				validator.ValidateDataSource(ctx, datasource.ValidateConfigRequest{
+					Config: tfsdk.Config{
+						Raw: tftypes.NewValue(tftypes.Object{
+							AttributeTypes: schemaStackType,
+							OptionalAttributes: map[string]struct{}{
+								"region_id": {},
+								"state":     {},
+								"status":    {},
+							},
+						}, map[string]tftypes.Value{
+							"name": tftypes.NewValue(tftypes.String, tc.name),
+							"id":   tftypes.NewValue(tftypes.String, tc.id),
+						}),
+						Schema: datasources.SchemaStack,
+					},
+				}, &res)
 
-			if tc.id == nil || tc.organizationID == nil {
-				require.Len(t, res.Diagnostics, 2, "Expected 2 diagnostic")
-				require.Equal(t, res.Diagnostics[0].Summary(), "ID must be set.")
-				require.Equal(t, res.Diagnostics[1].Summary(), "Organization ID must be set.")
-			} else {
-				require.Empty(t, res.Diagnostics, "Expected no diagnostics")
+				if tc.expectedErr != nil {
+					require.Len(t, res.Diagnostics, 1, "Expected one diagnostic")
+					require.Equal(t, res.Diagnostics[0].Summary(), tc.expectedErr.Error())
+				} else {
+					require.Empty(t, res.Diagnostics, "Expected no diagnostics")
+				}
 			}
+
 		})
 	}
 }

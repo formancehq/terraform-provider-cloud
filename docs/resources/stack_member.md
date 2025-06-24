@@ -17,7 +17,6 @@ Manages stack members and their access levels in Formance Cloud. This resource a
 
 ### Required
 
-- `organization_id` (String) The organization ID that owns the stack.
 - `stack_id` (String) The ID of the stack where the user will be granted access.
 - `user_id` (String) The ID of the user to grant access to the stack. The user must already be a member of the organization.
 

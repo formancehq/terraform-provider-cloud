@@ -60,11 +60,7 @@ func TestProviderConfigure(t *testing.T) {
 			p.Configure(logging.TestingContext(), provider.ConfigureRequest{
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"client_id":     tftypes.String,
-							"client_secret": tftypes.String,
-							"endpoint":      tftypes.String,
-						},
+						AttributeTypes: getSchemaTypes(server.Schema),
 					}, map[string]tftypes.Value{
 						"client_id":     tftypes.NewValue(tftypes.String, tc.ClientId),
 						"client_secret": tftypes.NewValue(tftypes.String, tc.ClientSecret),

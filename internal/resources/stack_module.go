@@ -6,6 +6,7 @@ import (
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -15,15 +16,14 @@ import (
 )
 
 var (
-	_ resource.Resource                     = &StackModule{}
-	_ resource.ResourceWithConfigure        = &StackModule{}
-	_ resource.ResourceWithConfigValidators = &StackModule{}
-	_ resource.ResourceWithValidateConfig   = &StackModule{}
+	_ resource.Resource                   = &StackModule{}
+	_ resource.ResourceWithConfigure      = &StackModule{}
+	_ resource.ResourceWithValidateConfig = &StackModule{}
 )
 
 type StackModule struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *internal.Store
 }
 
 var SchemaStackModule = schema.Schema{
@@ -37,17 +37,12 @@ var SchemaStackModule = schema.Schema{
 			Description: "The ID of the stack where the module will be enabled.",
 			Required:    true,
 		},
-		"organization_id": schema.StringAttribute{
-			Description: "The organization ID that owns the stack.",
-			Required:    true,
-		},
 	},
 }
 
 type StackModuleModel struct {
-	Name           types.String `tfsdk:"name"`
-	StackId        types.String `tfsdk:"stack_id"`
-	OrganizationId types.String `tfsdk:"organization_id"`
+	Name    types.String `tfsdk:"name"`
+	StackId types.String `tfsdk:"stack_id"`
 }
 
 func NewStackModule(logger logging.Logger) func() resource.Resource {
@@ -81,19 +76,6 @@ func (s *StackModule) ValidateConfig(ctx context.Context, req resource.ValidateC
 			"The stack_id attribute must not be null.",
 		)
 	}
-
-	if config.OrganizationId.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("organization_id"),
-			"Invalid Organization ID",
-			"The organization_id attribute must not be null.",
-		)
-	}
-}
-
-// ConfigValidators implements resource.ResourceWithConfigValidators.
-func (s *StackModule) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
-	return nil
 }
 
 // Configure implements resource.ResourceWithConfigure.
@@ -102,16 +84,16 @@ func (s *StackModule) Configure(ctx context.Context, req resource.ConfigureReque
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*internal.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *internal.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	s.sdk = sdk
+	s.store = store
 }
 
 // Create implements resource.Resource.
@@ -122,7 +104,7 @@ func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	resp, err := s.sdk.EnableModule(ctx, plan.OrganizationId.ValueString(), plan.StackId.ValueString()).Name(plan.Name.ValueString()).Execute()
+	resp, err := s.store.GetSDK().EnableModule(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString()).Name(plan.Name.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -139,7 +121,7 @@ func (s *StackModule) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	resp, err := s.sdk.DisableModule(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString()).Name(state.Name.ValueString()).Execute()
+	resp, err := s.store.GetSDK().DisableModule(ctx, s.store.GetOrganizationID(), state.StackId.ValueString()).Name(state.Name.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -160,7 +142,7 @@ func (s *StackModule) Read(ctx context.Context, req resource.ReadRequest, res *r
 		return
 	}
 
-	modules, resp, err := s.sdk.ListModules(ctx, state.OrganizationId.ValueString(), state.StackId.ValueString()).Execute()
+	modules, resp, err := s.store.GetSDK().ListModules(ctx, s.store.GetOrganizationID(), state.StackId.ValueString()).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return

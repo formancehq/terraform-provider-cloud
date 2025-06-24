@@ -3,11 +3,15 @@ package datasources
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -15,51 +19,48 @@ import (
 )
 
 var (
-	_ datasource.DataSource                   = &Stack{}
-	_ datasource.DataSourceWithConfigure      = &Stack{}
-	_ datasource.DataSourceWithValidateConfig = &Stack{}
+	_ datasource.DataSource                     = &Stack{}
+	_ datasource.DataSourceWithConfigure        = &Stack{}
+	_ datasource.DataSourceWithConfigValidators = &Stack{}
 )
 
 type Stack struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *internal.Store
 }
 
-// ValidateConfig implements datasource.DataSourceWithValidateConfig.
-func (s *Stack) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, res *datasource.ValidateConfigResponse) {
-	var config StackModel
-	res.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-	if res.Diagnostics.HasError() {
-		return
-	}
-
-	if config.ID.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("id"),
-			"ID must be set.",
-			"ID cannot be empty.",
-		)
-	}
-
-	if config.OrganizationID.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("organization_id"),
-			"Organization ID must be set.",
-			"Organization ID cannot be null.",
-		)
+// ConfigValidators implements datasource.DataSourceWithConfigValidators.
+func (s *Stack) ConfigValidators(context.Context) []datasource.ConfigValidator {
+	return []datasource.ConfigValidator{
+		datasourcevalidator.AtLeastOneOf(
+			path.MatchRoot("id"),
+			path.MatchRoot("name"),
+		),
 	}
 }
 
 var SchemaStack = schema.Schema{
-	Description: "Retrieves information about a specific Formance Cloud stack by ID.",
+	Description: "Retrieves information about a Formance Cloud stack. If id is specified, returns a specific stack by ID. Otherwise, returns the first available stack sorted alphabetically by name for predictable behavior.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Description: "The unique identifier of the stack to retrieve.",
-			Required:    true,
+			Description: "The unique identifier of the stack. If not specified, returns the first available stack sorted alphabetically by name.",
+			Optional:    true,
 		},
-		"organization_id": schema.StringAttribute{
-			Description: "The organization ID that owns the stack.",
-			Required:    true,
+		"name": schema.StringAttribute{
+			Description: "The name of the stack.",
+			Optional:    true,
+		},
+		"region_id": schema.StringAttribute{
+			Description: "The region ID where the stack is installed.",
+			Computed:    true,
+		},
+		"status": schema.StringAttribute{
+			Description: "The current status of the stack.",
+			Computed:    true,
+		},
+		"state": schema.StringAttribute{
+			Description: "The current state of the stack.",
+			Computed:    true,
 		},
 	},
 }
@@ -70,21 +71,24 @@ func (s *Stack) Configure(ctx context.Context, req datasource.ConfigureRequest, 
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*internal.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			resources.ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *internal.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	s.sdk = sdk
+	s.store = store
 }
 
 type StackModel struct {
-	ID             types.String `tfsdk:"id"`
-	OrganizationID types.String `tfsdk:"organization_id"`
+	ID       types.String `tfsdk:"id"`
+	Name     types.String `tfsdk:"name"`
+	RegionID types.String `tfsdk:"region_id"`
+	Status   types.String `tfsdk:"status"`
+	State    types.String `tfsdk:"state"`
 }
 
 func NewStacks(logger logging.Logger) func() datasource.DataSource {
@@ -106,19 +110,47 @@ func (s *Stack) Schema(ctx context.Context, req datasource.SchemaRequest, resp *
 func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data StackModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
-	obj, res, err := s.sdk.GetStack(ctx, data.OrganizationID.ValueString(), data.ID.ValueString()).Execute()
-	if err != nil {
-		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if obj == nil {
-		resp.Diagnostics.AddError("Unable to read stack", "Stack not found")
-		return
+	var stack sdk.Stack
+
+	if data.ID.IsNull() {
+		obj, res, err := s.store.GetSDK().GetStack(ctx, s.store.GetOrganizationID(), data.ID.ValueString()).Execute()
+		if err != nil {
+			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			return
+		}
+
+		stack = *obj.Data
+	} else {
+		listResp, res, err := s.store.GetSDK().ListStacks(ctx, s.store.GetOrganizationID()).Execute()
+		if err != nil {
+			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			return
+		}
+
+		if len(listResp.Data) == 0 {
+			resp.Diagnostics.AddError(
+				"No stacks found",
+				fmt.Sprintf("No stacks found in organization '%s'", s.store.GetOrganizationID()),
+			)
+			return
+		}
+
+		sort.Slice(listResp.Data, func(i, j int) bool {
+			return strings.ToLower(listResp.Data[i].Name) < strings.ToLower(listResp.Data[j].Name)
+		})
+
+		stack = listResp.Data[0]
 	}
-	data.ID = types.StringValue(obj.Data.Id)
-	data.OrganizationID = types.StringValue(obj.Data.OrganizationId)
+
+	data.ID = types.StringValue(stack.Id)
+	data.Name = types.StringValue(stack.Name)
+	data.RegionID = types.StringValue(stack.RegionID)
+	data.Status = types.StringValue(stack.Status)
+	data.State = types.StringValue(stack.State)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

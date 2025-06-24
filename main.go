@@ -1,6 +1,9 @@
 // Format Terraform code for use in documentation.
 // If you do not have Terraform installed, you can remove the formatting command, but it is suggested
 // to ensure the documentation is formatted properly.
+
+//go:generate rm -rf docs
+//go:generate mkdir docs
 //go:generate terraform fmt -recursive ./examples/
 
 // Generate documentation.

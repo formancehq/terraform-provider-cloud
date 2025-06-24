@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"sort"
 
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -16,50 +18,32 @@ import (
 )
 
 var (
-	_ datasource.DataSource                   = &RegionVersions{}
-	_ datasource.DataSourceWithConfigure      = &RegionVersions{}
-	_ datasource.DataSourceWithValidateConfig = &RegionVersions{}
+	_ datasource.DataSource                     = &RegionVersions{}
+	_ datasource.DataSourceWithConfigure        = &RegionVersions{}
+	_ datasource.DataSourceWithConfigValidators = &RegionVersions{}
 )
 
 type RegionVersions struct {
 	logger logging.Logger
-	sdk    sdk.DefaultAPI
+	store  *internal.Store
 }
 
-// ValidateConfig implements datasource.DataSourceWithValidateConfig.
-func (r *RegionVersions) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, res *datasource.ValidateConfigResponse) {
-	var config RegionVersionsModel
-	res.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-	if res.Diagnostics.HasError() {
-		return
-	}
-	if config.ID.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("id"),
-			"ID must be set.",
-			"RegionVersions ID cannot be empty.",
-		)
-	}
-
-	if config.OrganizationID.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("organization_id"),
-			"Organization ID must be set.",
-			"RegionVersions organization ID cannot be null.",
-		)
+// ConfigValidators implements datasource.DataSourceWithConfigValidators.
+func (r *RegionVersions) ConfigValidators(context.Context) []datasource.ConfigValidator {
+	return []datasource.ConfigValidator{
+		datasourcevalidator.AtLeastOneOf(
+			path.MatchRoot("id"),
+			path.MatchRoot("name"),
+		),
 	}
 }
 
 var SchemaRegionVersions = schema.Schema{
-	Description: "Retrieves the list of available Formance versions for a specific region.",
+	Description: "Retrieves the list of available Formance versions for a region. If id is specified, uses that region. Otherwise, uses the first available region sorted deterministically by ID.",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
-			Description: "The unique identifier of the region.",
-			Required:    true,
-		},
-		"organization_id": schema.StringAttribute{
-			Description: "The organization ID that owns the region.",
-			Required:    true,
+			Description: "The unique identifier of the region. If not specified, uses the first available region sorted deterministically by ID.",
+			Optional:    true,
 		},
 		"versions": schema.ListNestedAttribute{
 			Description: "The list of available Formance versions in the region.",
@@ -82,22 +66,21 @@ func (r *RegionVersions) Configure(ctx context.Context, req datasource.Configure
 		return
 	}
 
-	sdk, ok := req.ProviderData.(sdk.DefaultAPI)
+	store, ok := req.ProviderData.(*internal.Store)
 	if !ok {
 		res.Diagnostics.AddError(
 			resources.ErrProviderDataNotSet.Error(),
-			fmt.Sprintf("Expected *FormanceCloudProviderModel, got: %T", req.ProviderData),
+			fmt.Sprintf("Expected *internal.Store, got: %T", req.ProviderData),
 		)
 		return
 	}
 
-	r.sdk = sdk
+	r.store = store
 }
 
 type RegionVersionsModel struct {
-	ID             types.String `tfsdk:"id"`
-	OrganizationID types.String `tfsdk:"organization_id"`
-	Versions       []Version    `tfsdk:"versions"`
+	ID       types.String `tfsdk:"id"`
+	Versions []Version    `tfsdk:"versions"`
 }
 
 type Version struct {
@@ -127,7 +110,34 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	obj, res, err := r.sdk.GetRegionVersions(ctx, data.OrganizationID.ValueString(), data.ID.ValueString()).Execute()
+	var regionID string
+
+	if !data.ID.IsNull() {
+		regionID = data.ID.ValueString()
+	} else {
+		regions, res, err := r.store.GetSDK().ListRegions(ctx, r.store.GetOrganizationID()).Execute()
+		if err != nil {
+			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			return
+		}
+
+		if len(regions.Data) == 0 {
+			resp.Diagnostics.AddError(
+				"No regions found",
+				fmt.Sprintf("No regions found in organization '%s'", r.store.GetOrganizationID()),
+			)
+			return
+		}
+
+		sort.Slice(regions.Data, func(i, j int) bool {
+			return regions.Data[i].Id < regions.Data[j].Id
+		})
+
+		regionID = regions.Data[0].Id
+		data.ID = types.StringValue(regionID)
+	}
+
+	obj, res, err := r.store.GetSDK().GetRegionVersions(ctx, r.store.GetOrganizationID(), regionID).Execute()
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
