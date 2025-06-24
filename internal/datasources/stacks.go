@@ -115,8 +115,8 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 	}
 
 	var stack sdk.Stack
-
-	if data.ID.IsNull() {
+	switch {
+	case data.ID.ValueString() != "":
 		obj, res, err := s.store.GetSDK().ReadStack(ctx, s.store.GetOrganizationID(), data.ID.ValueString())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
@@ -124,7 +124,7 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 		}
 
 		stack = *obj.Data
-	} else {
+	case data.Name.ValueString() != "":
 		listResp, res, err := s.store.GetSDK().ListStacks(ctx, s.store.GetOrganizationID())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
@@ -144,6 +144,12 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 		})
 
 		stack = listResp.Data[0]
+	default:
+		resp.Diagnostics.AddError(
+			"Missing Stack Identifier",
+			"Either 'id' or 'name' must be specified to retrieve a stack.",
+		)
+		return
 	}
 
 	data.ID = types.StringValue(stack.Id)
