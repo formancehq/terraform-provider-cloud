@@ -31,7 +31,7 @@ func NewNoop(logger logging.Logger) func() resource.Resource {
 }
 
 var SchemaNoop = schema.Schema{
-	Description: "",
+	Description: "A no-operation resource for testing purposes. This resource performs no actual operations and exists solely for provider testing and validation.",
 	Attributes:  map[string]schema.Attribute{},
 }
 
