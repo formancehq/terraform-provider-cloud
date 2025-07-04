@@ -10,32 +10,19 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
-	_ datasource.DataSource                     = &RegionVersions{}
-	_ datasource.DataSourceWithConfigure        = &RegionVersions{}
-	_ datasource.DataSourceWithConfigValidators = &RegionVersions{}
+	_ datasource.DataSource              = &RegionVersions{}
+	_ datasource.DataSourceWithConfigure = &RegionVersions{}
 )
 
 type RegionVersions struct {
 	logger logging.Logger
 	store  *internal.Store
-}
-
-// ConfigValidators implements datasource.DataSourceWithConfigValidators.
-func (r *RegionVersions) ConfigValidators(context.Context) []datasource.ConfigValidator {
-	return []datasource.ConfigValidator{
-		datasourcevalidator.AtLeastOneOf(
-			path.MatchRoot("id"),
-			path.MatchRoot("name"),
-		),
-	}
 }
 
 var SchemaRegionVersions = schema.Schema{

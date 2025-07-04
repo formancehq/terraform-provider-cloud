@@ -10,16 +10,14 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
-	_ resource.Resource                   = &OrganizationMember{}
-	_ resource.ResourceWithConfigure      = &OrganizationMember{}
-	_ resource.ResourceWithValidateConfig = &OrganizationMember{}
+	_ resource.Resource              = &OrganizationMember{}
+	_ resource.ResourceWithConfigure = &OrganizationMember{}
 )
 
 type OrganizationMember struct {
@@ -65,7 +63,7 @@ var SchemaOrganizationMember = schema.Schema{
 			Computed:    true,
 		},
 		"role": schema.StringAttribute{
-			Description: "The role to assign to the user in the organization. Valid values are: NONE, READ, WRITE.",
+			Description: "The role to assign to the user in the organization. Valid values are: GUEST, ADMIN.",
 			Optional:    true,
 			Computed:    true,
 		},
@@ -75,23 +73,6 @@ var SchemaOrganizationMember = schema.Schema{
 // Schema implements resource.Resource.
 func (s *OrganizationMember) Schema(ctx context.Context, req resource.SchemaRequest, res *resource.SchemaResponse) {
 	res.Schema = SchemaOrganizationMember
-}
-
-// ValidateConfig implements resource.ResourceWithValidateConfig.
-func (s *OrganizationMember) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, res *resource.ValidateConfigResponse) {
-	var config OrganizationMemberModel
-	res.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-	if res.Diagnostics.HasError() {
-		return
-	}
-
-	if config.Email.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("email"),
-			"Invalid Email",
-			"The email attribute must not be null.",
-		)
-	}
 }
 
 // Configure implements resource.ResourceWithConfigure.

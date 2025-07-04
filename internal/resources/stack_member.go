@@ -8,16 +8,14 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
-	_ resource.Resource                   = &StackMember{}
-	_ resource.ResourceWithConfigure      = &StackMember{}
-	_ resource.ResourceWithValidateConfig = &StackMember{}
+	_ resource.Resource              = &StackMember{}
+	_ resource.ResourceWithConfigure = &StackMember{}
 )
 
 var SchemaStackMember = schema.Schema{
@@ -32,9 +30,8 @@ var SchemaStackMember = schema.Schema{
 			Description: "The ID of the stack where the user will be granted access.",
 		},
 		"role": schema.StringAttribute{
-			Optional:    true,
-			Computed:    true,
-			Description: "The role to assign to the user for this stack. Valid values are: NONE, READ, WRITE.",
+			Required:    true,
+			Description: "The role to assign to the user for this stack. Valid values are: GUEST, ADMIN.",
 		},
 	},
 }
@@ -58,30 +55,6 @@ func NewStackMember(logger logging.Logger) func() resource.Resource {
 	}
 }
 
-// ValidateConfig implements resource.ResourceWithValidateConfig.
-func (s *StackMember) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, res *resource.ValidateConfigResponse) {
-	var config StackMemberModel
-	res.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-	if res.Diagnostics.HasError() {
-		return
-	}
-
-	if config.StackId.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("stack_id"),
-			"Invalid stack ID",
-			"The stack_id attribute must not be null.",
-		)
-	}
-	if config.UserId.IsNull() {
-		res.Diagnostics.AddAttributeError(
-			path.Root("user_id"),
-			"Invalid user ID",
-			"The user_id attribute must not be null.",
-		)
-	}
-}
-
 // Configure implements resource.ResourceWithConfigure.
 func (s *StackMember) Configure(ctx context.Context, req resource.ConfigureRequest, res *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
@@ -102,16 +75,21 @@ func (s *StackMember) Configure(ctx context.Context, req resource.ConfigureReque
 
 // Create implements resource.Resource.
 func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, res *resource.CreateResponse) {
+	logger := s.logger.WithField("func", "Create")
+	logger.Debug("Creating stack member")
+	defer logger.Debug("Finished creating stack member")
+	ctx = logging.ContextWithLogger(ctx, logger)
+
 	var plan StackMemberModel
 	res.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if res.Diagnostics.HasError() {
 		return
 	}
 
-	body := sdk.UpdateStackUserRequest{}
-	if r := plan.Role.ValueString(); r != "" {
-		body.Role = sdk.Role(r)
+	body := sdk.UpdateStackUserRequest{
+		Role: sdk.Role(plan.Role.ValueString()),
 	}
+
 	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.UserId.ValueString(), body)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
@@ -123,6 +101,11 @@ func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, re
 
 // Delete implements resource.Resource.
 func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, res *resource.DeleteResponse) {
+	logger := s.logger.WithField("func", "Delete")
+	logger.Debug("Deleting stack member")
+	defer logger.Debug("Finished deleting stack member")
+	ctx = logging.ContextWithLogger(ctx, logger)
+
 	var state StackMemberModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {
@@ -138,6 +121,11 @@ func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 // Update implements resource.Resource.
 func (s *StackMember) Update(ctx context.Context, req resource.UpdateRequest, res *resource.UpdateResponse) {
+	logger := s.logger.WithField("func", "Update")
+	logger.Debug("Updating stack member")
+	defer logger.Debug("Finished updating stack member")
+	ctx = logging.ContextWithLogger(ctx, logger)
+
 	var plan StackMemberModel
 	res.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if res.Diagnostics.HasError() {
@@ -164,6 +152,11 @@ func (s *StackMember) Metadata(_ context.Context, req resource.MetadataRequest, 
 
 // Read implements resource.Resource.
 func (s *StackMember) Read(ctx context.Context, req resource.ReadRequest, res *resource.ReadResponse) {
+	logger := s.logger.WithField("func", "Read")
+	logger.Debug("Reading stack member")
+	defer logger.Debug("Finished reading stack member")
+	ctx = logging.ContextWithLogger(ctx, logger)
+
 	var state StackMemberModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {
