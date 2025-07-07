@@ -26,7 +26,7 @@ func TestProviderMetadata(t *testing.T) {
 	res := provider.MetadataResponse{}
 	p.Metadata(logging.TestingContext(), provider.MetadataRequest{}, &res)
 
-	require.Equal(t, res.TypeName, "formancecloud")
+	require.Equal(t, res.TypeName, "cloud")
 	require.Equal(t, res.Version, "develop")
 }
 

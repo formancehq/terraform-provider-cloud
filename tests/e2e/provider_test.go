@@ -14,7 +14,7 @@ func TestProvider(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"formancecloud": providerserver.NewProtocol6WithError(Provider()),
+			"cloud": providerserver.NewProtocol6WithError(Provider()),
 		},
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version0_15_0),
@@ -22,7 +22,7 @@ func TestProvider(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "formancecloud" {
+					provider "cloud" {
 						client_id     = "client_id"
 						client_secret = "client_secret"
 						endpoint      = "https://app.staging.formance.cloud/api"

@@ -28,9 +28,9 @@ func TestRegionVersions(t *testing.T) {
 		{
 			step: resource.TestStep{
 				Config: `
-					provider "formancecloud" {}
+					provider "cloud" {}
 
-					data "formancecloud_region_versions" "default" {
+					data "cloud_region_versions" "default" {
 						id = "another-region-id"
 					}
 				`,
@@ -39,9 +39,9 @@ func TestRegionVersions(t *testing.T) {
 		{
 			step: resource.TestStep{
 				Config: `
-				provider "formancecloud" {}
+				provider "cloud" {}
 				
-				data "formancecloud_region_versions" "default" {}				
+				data "cloud_region_versions" "default" {}				
 				`,
 			},
 			expectedCalls: func(cloudSdk *pkg.MockCloudSDK, tokenProvider *pkg.MockTokenProviderImpl) {
@@ -103,7 +103,7 @@ func TestRegionVersions(t *testing.T) {
 
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-					"formancecloud": providerserver.NewProtocol6WithError(cloudProvider()),
+					"cloud": providerserver.NewProtocol6WithError(cloudProvider()),
 				},
 				TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 					tfversion.SkipBelow(tfversion.Version0_15_0),

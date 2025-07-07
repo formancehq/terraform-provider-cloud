@@ -72,9 +72,9 @@ func TestProvider(t *testing.T) {
 
 			noopStep := resource.TestStep{
 				Config: `
-					provider "formancecloud" {}
+					provider "cloud" {}
 
-					resource "formancecloud_noop" "default" {}
+					resource "cloud_noop" "default" {}
 
 				`,
 			}
@@ -85,7 +85,7 @@ func TestProvider(t *testing.T) {
 
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-					"formancecloud": providerserver.NewProtocol6WithError(cloudProvider()),
+					"cloud": providerserver.NewProtocol6WithError(cloudProvider()),
 				},
 				TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 					tfversion.SkipBelow(tfversion.Version0_15_0),

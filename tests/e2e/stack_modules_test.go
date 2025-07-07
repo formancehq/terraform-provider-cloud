@@ -18,7 +18,7 @@ func TestStackModule(t *testing.T) {
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"formancecloud": providerserver.NewProtocol6WithError(Provider()),
+			"cloud": providerserver.NewProtocol6WithError(Provider()),
 		},
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version0_15_0),
@@ -26,36 +26,36 @@ func TestStackModule(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-					provider "formancecloud" {}
-					data "formancecloud_regions" "dev" {
+					provider "cloud" {}
+					data "cloud_regions" "dev" {
 						name = "%s"
 					}
 
 					output "region_id" {
-						value = data.formancecloud_regions.dev.id
+						value = data.cloud_regions.dev.id
 					}
 
-					resource "formancecloud_stack" "default" {
+					resource "cloud_stack" "default" {
 						name = "test"
-						region_id = data.formancecloud_regions.dev.id
+						region_id = data.cloud_regions.dev.id
 
 						version = "default"
 						force_destroy = true
 					}
 
-					resource "formancecloud_stack_module" "default_webhooks" {
+					resource "cloud_stack_module" "default_webhooks" {
 						name = "webhooks"
-						stack_id = formancecloud_stack.default.id
+						stack_id = cloud_stack.default.id
 					}
 
-					resource "formancecloud_stack_module" "default_reconciliation" {
+					resource "cloud_stack_module" "default_reconciliation" {
 						name = "reconciliation"
-						stack_id = formancecloud_stack.default.id
+						stack_id = cloud_stack.default.id
 					}
 
-					resource "formancecloud_stack_module" "default_orchestration" {
+					resource "cloud_stack_module" "default_orchestration" {
 						name = "orchestration"
-						stack_id = formancecloud_stack.default.id
+						stack_id = cloud_stack.default.id
 					}
 
 				`, RegionName),
@@ -63,9 +63,9 @@ func TestStackModule(t *testing.T) {
 					resource.TestMatchOutput("region_id", regexp.MustCompile(`.+`)),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("formancecloud_stack.default", tfjsonpath.New("name"), knownvalue.StringExact("test")),
-					statecheck.ExpectKnownValue("formancecloud_stack.default", tfjsonpath.New("id"), knownvalue.StringRegexp(regexp.MustCompile(`.+`))),
-					statecheck.ExpectKnownValue("formancecloud_stack.default", tfjsonpath.New("force_destroy"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("cloud_stack.default", tfjsonpath.New("name"), knownvalue.StringExact("test")),
+					statecheck.ExpectKnownValue("cloud_stack.default", tfjsonpath.New("id"), knownvalue.StringRegexp(regexp.MustCompile(`.+`))),
+					statecheck.ExpectKnownValue("cloud_stack.default", tfjsonpath.New("force_destroy"), knownvalue.Bool(true)),
 				},
 			},
 			{

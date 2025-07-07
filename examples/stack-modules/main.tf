@@ -1,12 +1,12 @@
 terraform {
   required_providers {
-    formancecloud = {
+    cloud = {
       source = "formancehq/cloud"
     }
   }
 }
 
-provider "formancecloud" {}
+provider "cloud" {}
 
 # TF_VAR_import_organization_id
 variable "import_organization_id" {
@@ -14,10 +14,10 @@ variable "import_organization_id" {
 }
 
 import {
-  to = formancecloud_organization.default
+  to = cloud_organization.default
   id = var.import_organization_id
 }
-resource "formancecloud_organization" "default" {
+resource "cloud_organization" "default" {
   name = "default"
 }
 
@@ -26,30 +26,30 @@ variable "region_datasource_name" {
 }
 
 output "region_datasource_name" {
-  value = data.formancecloud_regions.dev.id
+  value = data.cloud_regions.dev.id
 }
 
-data "formancecloud_regions" "dev" {
+data "cloud_regions" "dev" {
   name = var.region_datasource_name
 }
 
-resource "formancecloud_stack" "default" {
+resource "cloud_stack" "default" {
   name      = "test-stack"
-  region_id = data.formancecloud_regions.dev.id
+  region_id = data.cloud_regions.dev.id
   version   = "default"
 }
 
-resource "formancecloud_stack_module" "default_webhooks" {
+resource "cloud_stack_module" "default_webhooks" {
   name     = "webhooks"
-  stack_id = formancecloud_stack.default.id
+  stack_id = cloud_stack.default.id
 }
 
-resource "formancecloud_stack_module" "default_reconciliation" {
+resource "cloud_stack_module" "default_reconciliation" {
   name     = "reconciliation"
-  stack_id = formancecloud_stack.default.id
+  stack_id = cloud_stack.default.id
 }
 
-resource "formancecloud_stack_module" "default_orchestration" {
+resource "cloud_stack_module" "default_orchestration" {
   name     = "orchestration"
-  stack_id = formancecloud_stack.default.id
+  stack_id = cloud_stack.default.id
 }

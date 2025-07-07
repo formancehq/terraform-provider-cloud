@@ -1,12 +1,12 @@
 terraform {
   required_providers {
-    formancecloud = {
+    cloud = {
       source = "formancehq/cloud"
     }
   }
 }
 
-provider "formancecloud" {}
+provider "cloud" {}
 
 # TF_VAR_import_organization_id
 variable "import_organization_id" {
@@ -14,10 +14,10 @@ variable "import_organization_id" {
 }
 
 import {
-  to = formancecloud_organization.default
+  to = cloud_organization.default
   id = var.import_organization_id
 }
-resource "formancecloud_organization" "default" {
+resource "cloud_organization" "default" {
   name = "default"
 }
 
@@ -27,10 +27,10 @@ variable "region_datasource_name" {
 }
 
 
-data "formancecloud_regions" "dev" {
+data "cloud_regions" "dev" {
   name = var.region_datasource_name
 }
 
 output "region_datasource_id" {
-  value = data.formancecloud_regions.dev.id
+  value = data.cloud_regions.dev.id
 }
