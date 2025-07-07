@@ -17,9 +17,6 @@ Manages stack members and their access levels in Formance Cloud. This resource a
 
 ### Required
 
+- `role` (String) The role to assign to the user for this stack. Valid values are: GUEST, ADMIN.
 - `stack_id` (String) The ID of the stack where the user will be granted access.
 - `user_id` (String) The ID of the user to grant access to the stack. The user must already be a member of the organization.
-
-### Optional
-
-- `role` (String) The role to assign to the user for this stack. Valid values are: NONE, READ, WRITE.

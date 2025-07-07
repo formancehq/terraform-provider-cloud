@@ -21,7 +21,7 @@ Manages organization members and invitations in Formance Cloud. This resource ca
 
 ### Optional
 
-- `role` (String) The role to assign to the user in the organization. Valid values are: NONE, READ, WRITE.
+- `role` (String) The role to assign to the user in the organization. Valid values are: GUEST, ADMIN.
 
 ### Read-Only
 
