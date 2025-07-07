@@ -1,12 +1,12 @@
 terraform {
   required_providers {
-    formancecloud = {
+    cloud = {
       source = "formancehq/cloud"
     }
   }
 }
 
-provider "formancecloud" {}
+provider "cloud" {}
 
 # TF_VAR_import_organization_id
 variable "import_organization_id" {
@@ -14,11 +14,11 @@ variable "import_organization_id" {
 }
 
 import {
-  to = formancecloud_organization.default
+  to = cloud_organization.default
   id = var.import_organization_id
 }
 
-resource "formancecloud_organization" "default" {
+resource "cloud_organization" "default" {
   name                        = "formancehq"
   domain                      = "exemple.com"
   default_organization_access = "GUEST"

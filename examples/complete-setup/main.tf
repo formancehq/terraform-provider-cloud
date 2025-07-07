@@ -3,15 +3,15 @@
 
 terraform {
   required_providers {
-    formancecloud = {
-      source  = "formancehq/formancecloud"
+    cloud = {
+      source  = "formancehq/cloud"
       version = "~> 1.0"
     }
   }
 }
 
 # Configuration du provider (credentials via variables d'environnement)
-provider "formancecloud" {}
+provider "cloud" {}
 
 # Variables de configuration
 variable "organization_name" {
@@ -72,7 +72,7 @@ variable "modules_to_enable" {
 }
 
 # Création de l'organisation
-resource "formancecloud_organization" "main" {
+resource "cloud_organization" "main" {
   name                        = var.organization_name
   domain                      = var.domain
   default_organization_access = "READ"
@@ -80,29 +80,29 @@ resource "formancecloud_organization" "main" {
 }
 
 # Création d'une région privée pour l'Europe
-resource "formancecloud_region" "europe" {
+resource "cloud_region" "europe" {
   name = "europe-west"
 }
 
 # Création d'une région privée pour les US (optionnel)
-resource "formancecloud_region" "us" {
+resource "cloud_region" "us" {
   name = "us-east"
 }
 
 # Récupération des versions disponibles
-data "formancecloud_region_versions" "europe" {
-  id = formancecloud_region.europe.id
+data "cloud_region_versions" "europe" {
+  id = cloud_region.europe.id
 }
 
 # Création des stacks pour chaque environnement
-resource "formancecloud_stack" "environments" {
+resource "cloud_stack" "environments" {
   for_each = toset(var.environments)
 
   name      = each.value
-  region_id = formancecloud_region.europe.id
+  region_id = cloud_region.europe.id
 
   # Utiliser la dernière version stable pour dev/staging, version fixe pour prod
-  version = each.value == "production" ? "v2.0.0" : data.formancecloud_region_versions.europe.versions[0].name
+  version = each.value == "production" ? "v2.0.0" : data.cloud_region_versions.europe.versions[0].name
 
   # Protection contre la suppression accidentelle en production
   force_destroy = each.value != "production"
@@ -114,9 +114,9 @@ resource "formancecloud_stack" "environments" {
 }
 
 # Activation des modules sur chaque stack
-resource "formancecloud_stack_module" "modules" {
+resource "cloud_stack_module" "modules" {
   for_each = {
-    for pair in setproduct(keys(formancecloud_stack.environments), var.modules_to_enable) :
+    for pair in setproduct(keys(cloud_stack.environments), var.modules_to_enable) :
     "${pair[0]}-${pair[1]}" => {
       stack_key = pair[0]
       module    = pair[1]
@@ -124,16 +124,16 @@ resource "formancecloud_stack_module" "modules" {
   }
 
   name     = each.value.module
-  stack_id = formancecloud_stack.environments[each.value.stack_key].id
+  stack_id = cloud_stack.environments[each.value.stack_key].id
 
   # Les modules ont des dépendances, s'assurer qu'ils sont créés dans le bon ordre
   depends_on = [
-    formancecloud_stack.environments
+    cloud_stack.environments
   ]
 }
 
 # Ajout des membres à l'organisation
-resource "formancecloud_organization_member" "team" {
+resource "cloud_organization_member" "team" {
   for_each = var.team_members
 
   email = each.value.email
@@ -162,7 +162,7 @@ locals {
 }
 
 # Attribution des accès aux stacks
-resource "formancecloud_stack_member" "access" {
+resource "cloud_stack_member" "access" {
   for_each = {
     for item in flatten([
       for env, access in local.stack_access : [
@@ -176,50 +176,50 @@ resource "formancecloud_stack_member" "access" {
     ]) : item.key => item
   }
 
-  stack_id = formancecloud_stack.environments[each.value.env].id
-  user_id  = formancecloud_organization_member.team[each.value.member_name].user_id
+  stack_id = cloud_stack.environments[each.value.env].id
+  user_id  = cloud_organization_member.team[each.value.member_name].user_id
   role     = each.value.role
 }
 
 # Stack dédié pour les tests d'intégration (CI/CD)
-resource "formancecloud_stack" "ci" {
+resource "cloud_stack" "ci" {
   name          = "ci-testing"
-  region_id     = formancecloud_region.europe.id
+  region_id     = cloud_region.europe.id
   force_destroy = true # Peut être supprimé sans confirmation
 }
 
 # Modules minimaux pour les tests CI
-resource "formancecloud_stack_module" "ci_modules" {
+resource "cloud_stack_module" "ci_modules" {
   for_each = toset(["ledger", "auth"])
 
   name     = each.value
-  stack_id = formancecloud_stack.ci.id
+  stack_id = cloud_stack.ci.id
 }
 
 # Outputs utiles
 output "organization_id" {
   description = "ID de l'organisation créée"
-  value       = formancecloud_organization.main.id
+  value       = cloud_organization.main.id
 }
 
 output "stack_urls" {
   description = "URLs des stacks créés"
   value = {
-    for name, stack in formancecloud_stack.environments : name => stack.uri
+    for name, stack in cloud_stack.environments : name => stack.uri
   }
 }
 
 output "region_endpoints" {
   description = "Endpoints des régions"
   value = {
-    europe = formancecloud_region.europe.base_url
-    us     = formancecloud_region.us.base_url
+    europe = cloud_region.europe.base_url
+    us     = cloud_region.us.base_url
   }
 }
 
 output "ci_stack_url" {
   description = "URL du stack CI pour les tests automatisés"
-  value       = formancecloud_stack.ci.uri
+  value       = cloud_stack.ci.uri
 }
 
 # Note importante sur le secret de région (affiché uniquement à la création)

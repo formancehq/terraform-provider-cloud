@@ -32,9 +32,9 @@ func TestOrganizationMember(t *testing.T) {
 			step: []resource.TestStep{
 				{
 					Config: `
-						provider "formancecloud" {}
+						provider "cloud" {}
 
-						resource "formancecloud_organization_member" "default" {
+						resource "cloud_organization_member" "default" {
 							email = "example@formance.com"
 						}
 					`,
@@ -73,9 +73,9 @@ func TestOrganizationMember(t *testing.T) {
 			step: []resource.TestStep{
 				{
 					Config: `
-						provider "formancecloud" {}
+						provider "cloud" {}
 
-						resource "formancecloud_organization_member" "default" {
+						resource "cloud_organization_member" "default" {
 							email = "example@formance.com"
 						}
 					`,
@@ -125,9 +125,9 @@ func TestOrganizationMember(t *testing.T) {
 			step: []resource.TestStep{
 				{
 					Config: `
-						provider "formancecloud" {}
+						provider "cloud" {}
 
-						resource "formancecloud_organization_member" "default" {}
+						resource "cloud_organization_member" "default" {}
 					`,
 					ExpectError: regexp.MustCompile(`"email" is required`),
 				},
@@ -159,7 +159,7 @@ func TestOrganizationMember(t *testing.T) {
 
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-					"formancecloud": providerserver.NewProtocol6WithError(cloudProvider()),
+					"cloud": providerserver.NewProtocol6WithError(cloudProvider()),
 				},
 				TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 					tfversion.SkipBelow(tfversion.Version0_15_0),

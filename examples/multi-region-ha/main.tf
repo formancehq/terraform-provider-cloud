@@ -3,14 +3,14 @@
 
 terraform {
   required_providers {
-    formancecloud = {
-      source  = "formancehq/formancecloud"
+    cloud = {
+      source  = "formancehq/cloud"
       version = "~> 1.0"
     }
   }
 }
 
-provider "formancecloud" {}
+provider "cloud" {}
 
 # Variables de configuration
 variable "organization_name" {
@@ -63,7 +63,7 @@ variable "disaster_recovery_config" {
 }
 
 # Organisation principale
-resource "formancecloud_organization" "global" {
+resource "cloud_organization" "global" {
   name                        = var.organization_name
   domain                      = "${var.organization_name}.global"
   default_organization_access = "READ"
@@ -71,15 +71,15 @@ resource "formancecloud_organization" "global" {
 }
 
 # Création des régions
-resource "formancecloud_region" "regions" {
+resource "cloud_region" "regions" {
   for_each = var.regions
 
   name = each.value.name
 }
 
 # Récupération des versions par région
-data "formancecloud_region_versions" "versions" {
-  for_each = formancecloud_region.regions
+data "cloud_region_versions" "versions" {
+  for_each = cloud_region.regions
 
   id = each.value.id
 }
@@ -87,7 +87,7 @@ data "formancecloud_region_versions" "versions" {
 # Local pour déterminer la version à utiliser
 locals {
   # Utiliser la même version sur toutes les régions pour la cohérence
-  global_version = data.formancecloud_region_versions.versions["europe"].versions[0].name
+  global_version = data.cloud_region_versions.versions["europe"].versions[0].name
 
   # Création d'une structure plate pour les stacks
   stacks_config = flatten([
@@ -95,7 +95,7 @@ locals {
       for stack_name in region.stacks : {
         key        = "${region_key}-${stack_name}"
         region_key = region_key
-        region_id  = formancecloud_region.regions[region_key].id
+        region_id  = cloud_region.regions[region_key].id
         stack_name = stack_name
         is_primary = region.primary
       }
@@ -104,13 +104,13 @@ locals {
 }
 
 # Création des stacks dans chaque région
-resource "formancecloud_stack" "multi_region" {
+resource "cloud_stack" "multi_region" {
   for_each = {
     for stack in local.stacks_config : stack.key => stack
   }
 
   name            = each.value.stack_name
-  organization_id = formancecloud_organization.global.id
+  organization_id = cloud_organization.global.id
   region_id       = each.value.region_id
   version         = local.global_version
 
@@ -124,9 +124,9 @@ resource "formancecloud_stack" "multi_region" {
 }
 
 # Activation des modules critiques sur tous les stacks
-resource "formancecloud_stack_module" "critical" {
+resource "cloud_stack_module" "critical" {
   for_each = {
-    for pair in setproduct(keys(formancecloud_stack.multi_region), var.critical_modules) :
+    for pair in setproduct(keys(cloud_stack.multi_region), var.critical_modules) :
     "${pair[0]}-${pair[1]}" => {
       stack_key = pair[0]
       module    = pair[1]
@@ -134,8 +134,8 @@ resource "formancecloud_stack_module" "critical" {
   }
 
   name            = each.value.module
-  stack_id        = formancecloud_stack.multi_region[each.value.stack_key].id
-  organization_id = formancecloud_organization.global.id
+  stack_id        = cloud_stack.multi_region[each.value.stack_key].id
+  organization_id = cloud_organization.global.id
 }
 
 # Modules additionnels pour certains stacks
@@ -147,7 +147,7 @@ locals {
   }
 }
 
-resource "formancecloud_stack_module" "additional" {
+resource "cloud_stack_module" "additional" {
   for_each = {
     for item in flatten([
       for stack_name, modules in local.additional_modules : [
@@ -161,7 +161,7 @@ resource "formancecloud_stack_module" "additional" {
   }
 
   name     = each.value.module
-  stack_id = [for k, v in formancecloud_stack.multi_region : v.id if v.name == each.value.stack_name][0]
+  stack_id = [for k, v in cloud_stack.multi_region : v.id if v.name == each.value.stack_name][0]
 }
 
 # Configuration des équipes par région
@@ -187,7 +187,7 @@ variable "regional_teams" {
 }
 
 # Ajout des membres régionaux
-resource "formancecloud_organization_member" "regional_teams" {
+resource "cloud_organization_member" "regional_teams" {
   for_each = {
     for item in flatten([
       for region, members in var.regional_teams : [
@@ -200,18 +200,18 @@ resource "formancecloud_organization_member" "regional_teams" {
     ]) : item.key => item
   }
 
-  organization_id = formancecloud_organization.global.id
+  organization_id = cloud_organization.global.id
   email           = each.value.email
   role            = each.value.role
 }
 
 # Attribution des accès par région
-resource "formancecloud_stack_member" "regional_access" {
+resource "cloud_stack_member" "regional_access" {
   for_each = {
     for item in flatten([
       for region, members in var.regional_teams : [
         for member in members : [
-          for stack in formancecloud_stack.multi_region : {
+          for stack in cloud_stack.multi_region : {
             key        = "${region}-${member.email}-${stack.name}"
             stack_id   = stack.id
             user_email = member.email
@@ -222,37 +222,37 @@ resource "formancecloud_stack_member" "regional_access" {
     ]) : item.key => item
   }
 
-  organization_id = formancecloud_organization.global.id
+  organization_id = cloud_organization.global.id
   stack_id        = each.value.stack_id
-  user_id         = formancecloud_organization_member.regional_teams["${split("-", each.value.key)[0]}-${each.value.user_email}"].user_id
+  user_id         = cloud_organization_member.regional_teams["${split("-", each.value.key)[0]}-${each.value.user_email}"].user_id
   role            = each.value.role
 }
 
 # Stack de disaster recovery
-resource "formancecloud_stack" "dr" {
+resource "cloud_stack" "dr" {
   name          = "disaster-recovery"
-  region_id     = formancecloud_region.regions["us"].id # DR dans une région différente du primaire
+  region_id     = cloud_region.regions["us"].id # DR dans une région différente du primaire
   version       = local.global_version
   force_destroy = false
 }
 
 # Modules minimaux pour le DR
-resource "formancecloud_stack_module" "dr_modules" {
+resource "cloud_stack_module" "dr_modules" {
   for_each = toset(["ledger", "auth", "stargate"])
 
   name     = each.value
-  stack_id = formancecloud_stack.dr.id
+  stack_id = cloud_stack.dr.id
 }
 
 # Outputs pour le monitoring et la configuration
 output "regional_endpoints" {
   description = "Endpoints par région"
   value = {
-    for key, region in formancecloud_region.regions : key => {
+    for key, region in cloud_region.regions : key => {
       region_id = region.id
       base_url  = region.base_url
       stacks = {
-        for stack_key, stack in formancecloud_stack.multi_region :
+        for stack_key, stack in cloud_stack.multi_region :
         stack.name => stack.uri if contains(split("-", stack_key), key)
       }
     }
@@ -266,14 +266,14 @@ output "primary_region" {
 
 output "dr_stack_uri" {
   description = "URI du stack de disaster recovery"
-  value       = formancecloud_stack.dr.uri
+  value       = cloud_stack.dr.uri
   sensitive   = true
 }
 
 output "health_check_endpoints" {
   description = "Endpoints pour les health checks"
   value = {
-    for key, stack in formancecloud_stack.multi_region :
+    for key, stack in cloud_stack.multi_region :
     stack.name => "${stack.uri}/health"
   }
 }
@@ -283,9 +283,9 @@ output "ha_configuration_note" {
   value = <<-EOT
     Configuration haute disponibilité déployée:
     - ${length(var.regions)} régions configurées
-    - ${length(formancecloud_stack.multi_region)} stacks déployés
+    - ${length(cloud_stack.multi_region)} stacks déployés
     - Région primaire: ${[for k, v in var.regions : k if v.primary][0]}
-    - Stack DR: ${formancecloud_stack.dr.name}
+    - Stack DR: ${cloud_stack.dr.name}
     
     Pour activer le basculement automatique, configurez votre solution de load balancing
     pour router le trafic entre les régions selon vos besoins.

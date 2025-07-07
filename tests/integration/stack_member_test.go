@@ -29,8 +29,8 @@ func TestStackMember(t *testing.T) {
 			step: []resource.TestStep{
 				{
 					Config: `
-						provider "formancecloud" {}
-						resource "formancecloud_stack_member" "test" {
+						provider "cloud" {}
+						resource "cloud_stack_member" "test" {
 							user_id  = "user-id-123"
 							stack_id = "stack-id-456"
 							role	 = "GUEST"
@@ -39,8 +39,8 @@ func TestStackMember(t *testing.T) {
 				},
 				{
 					Config: `
-						provider "formancecloud" {}
-						resource "formancecloud_stack_member" "test" {
+						provider "cloud" {}
+						resource "cloud_stack_member" "test" {
 							user_id  = "user-id-123"
 							stack_id = "stack-id-456"
 							role	 = "ADMIN"
@@ -80,8 +80,8 @@ func TestStackMember(t *testing.T) {
 			step: []resource.TestStep{
 				{
 					Config: `
-						provider "formancecloud" {}
-						resource "formancecloud_stack_member" "test" {
+						provider "cloud" {}
+						resource "cloud_stack_member" "test" {
 							user_id  = "user-id-123"
 							stack_id = "stack-id-456"
 						}
@@ -118,7 +118,7 @@ func TestStackMember(t *testing.T) {
 
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-					"formancecloud": providerserver.NewProtocol6WithError(cloudProvider()),
+					"cloud": providerserver.NewProtocol6WithError(cloudProvider()),
 				},
 				TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 					tfversion.SkipBelow(tfversion.Version0_15_0),

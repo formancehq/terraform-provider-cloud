@@ -1,28 +1,29 @@
 terraform {
   required_providers {
-    formancecloud = {
+    cloud = {
       source = "formancehq/cloud"
+      configuration_aliases = [
+        cloud.dev,
+        cloud.prod
+      ]
+      version = "0.0.5"
     }
   }
 }
 
-provider "formancecloud" {}
-
-# TF_VAR_import_organization_id
-variable "import_organization_id" {
-  type = string
+provider "cloud" {
+  alias = "dev"
 }
 
-import {
-  to = formancecloud_organization.default
-  id = var.import_organization_id
+provider "cloud" {
+  alias = "prod"
 }
 
-resource "formancecloud_organization" "default" {
-  name = "default"
+data "cloud_current_organization" "default" {
+  provider = cloud.prod
 }
 
-resource "formancecloud_region" "dev" {
-  depends_on = [formancecloud_organization.default]
-  name       = "dev"
+data "cloud_regions" "dev" {
+  provider = cloud.dev
+  name     = "staging"
 }

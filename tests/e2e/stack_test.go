@@ -18,7 +18,7 @@ func TestStack(t *testing.T) {
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"formancecloud": providerserver.NewProtocol6WithError(Provider()),
+			"cloud": providerserver.NewProtocol6WithError(Provider()),
 		},
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version0_15_0),
@@ -26,18 +26,18 @@ func TestStack(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-					provider "formancecloud" {}
-					data "formancecloud_regions" "dev" {
+					provider "cloud" {}
+					data "cloud_regions" "dev" {
 						name = "%s"
 					}
 
 					output "region_id" {
-						value = data.formancecloud_regions.dev.id
+						value = data.cloud_regions.dev.id
 					}
 
-					resource "formancecloud_stack" "test" {
+					resource "cloud_stack" "test" {
 						name = "test"
-						region_id = data.formancecloud_regions.dev.id
+						region_id = data.cloud_regions.dev.id
 
 						force_destroy = true
 					}
@@ -46,9 +46,9 @@ func TestStack(t *testing.T) {
 					resource.TestMatchOutput("region_id", regexp.MustCompile(`.+`)),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("formancecloud_stack.test", tfjsonpath.New("name"), knownvalue.StringExact("test")),
-					statecheck.ExpectKnownValue("formancecloud_stack.test", tfjsonpath.New("id"), knownvalue.StringRegexp(regexp.MustCompile(`.+`))),
-					statecheck.ExpectKnownValue("formancecloud_stack.test", tfjsonpath.New("force_destroy"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("cloud_stack.test", tfjsonpath.New("name"), knownvalue.StringExact("test")),
+					statecheck.ExpectKnownValue("cloud_stack.test", tfjsonpath.New("id"), knownvalue.StringRegexp(regexp.MustCompile(`.+`))),
+					statecheck.ExpectKnownValue("cloud_stack.test", tfjsonpath.New("force_destroy"), knownvalue.Bool(true)),
 				},
 			},
 			{

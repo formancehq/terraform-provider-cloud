@@ -21,13 +21,13 @@ The Formance Cloud Terraform provider allows you to manage your Formance Cloud r
 ```hcl
 terraform {
   required_providers {
-    formancecloud = {
-      source  = "formancehq/formancecloud"
+    cloud = {
+      source  = "formancehq/cloud"
     }
   }
 }
 
-provider "formancecloud" {
+provider "cloud" {
   # Configuration...
 }
 ```
@@ -39,7 +39,7 @@ The provider can be configured in two ways:
 ### 1. Direct Configuration
 
 ```hcl
-provider "formancecloud" {
+provider "cloud" {
   client_id     = "your-client-id"
   client_secret = "your-client-secret"
 }
@@ -58,30 +58,28 @@ Here's a minimal example to get started with the Formance Cloud provider:
 
 ```hcl
 # Provider configuration
-provider "formancecloud" {
+provider "cloud" {
   # Credentials can be set via environment variables
 }
 
 # Get current organization
-data "formancecloud_current_organization" "current" {}
+data "cloud_current_organization" "current" {}
 
 # Get available regions
-data "formancecloud_regions" "default" {
-  organization_id = data.formancecloud_current_organization.current.id
+data "cloud_regions" "default" {
+  organization_id = data.cloud_current_organization.current.id
 }
 
 # Create a stack
-resource "formancecloud_stack" "production" {
+resource "cloud_stack" "production" {
   name            = "production"
-  organization_id = data.formancecloud_current_organization.current.id
-  region_id       = data.formancecloud_regions.default.regions[0].id
+  region_id       = data.cloud_regions.default.regions[0].id
 }
 
 # Enable the ledger module
-resource "formancecloud_stack_module" "ledger" {
+resource "cloud_stack_module" "ledger" {
   name            = "ledger"
-  stack_id        = formancecloud_stack.production.id
-  organization_id = data.formancecloud_current_organization.current.id
+  stack_id        = cloud_stack.production.id
 }
 ```
 
@@ -106,17 +104,17 @@ The provider uses OAuth2 authentication with client credentials. To obtain your 
 ## Available Resources
 
 ### Stacks
-- `formancecloud_stack` - Manages an isolated environment for your Formance services
+- `cloud_stack` - Manages an isolated environment for your Formance services
 
 ### Modules
-- `formancecloud_stack_module` - Enables/disables modules on a stack
+- `cloud_stack_module` - Enables/disables modules on a stack
 
 ## Data Sources
 
-- `formancecloud_organizations` - Retrieves organization information
-- `formancecloud_stacks` - Retrieves stack information
-- `formancecloud_regions` - Retrieves region information
-- `formancecloud_region_versions` - Lists available versions in a region
+- `cloud_organizations` - Retrieves organization information
+- `cloud_stacks` - Retrieves stack information
+- `cloud_regions` - Retrieves region information
+- `cloud_region_versions` - Lists available versions in a region
 
 ## Examples
 
@@ -124,12 +122,10 @@ The provider uses OAuth2 authentication with client credentials. To obtain your 
 
 ```hcl
 # Get current organization
-data "formancecloud_current_organization" "current" {}
+data "cloud_current_organization" "current" {}
 
 # Get available regions
-data "formancecloud_regions" "default" {
-  organization_id = data.formancecloud_current_organization.current.id
-}
+data "cloud_regions" "default" {}
 
 # Variables for environments
 variable "environments" {
@@ -137,19 +133,17 @@ variable "environments" {
 }
 
 # Create a stack for each environment
-resource "formancecloud_stack" "env" {
+resource "cloud_stack" "env" {
   for_each        = toset(var.environments)
   name            = each.value
-  organization_id = data.formancecloud_current_organization.current.id
-  region_id       = data.formancecloud_regions.default.regions[0].id
+  region_id       = data.cloud_regions.default.regions[0].id
 }
 
 # Enable necessary modules for each stack
-resource "formancecloud_stack_module" "ledger" {
-  for_each        = formancecloud_stack.env
+resource "cloud_stack_module" "ledger" {
+  for_each        = cloud_stack.env
   name            = "ledger"
   stack_id        = each.value.id
-  organization_id = data.formancecloud_current_organization.current.id
 }
 ```
 

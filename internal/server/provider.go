@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	providerType = "formancecloud"
+	providerType = "cloud"
 )
 
 type FormanceCloudProviderModel struct {

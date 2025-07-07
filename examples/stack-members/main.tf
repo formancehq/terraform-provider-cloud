@@ -1,12 +1,12 @@
 terraform {
   required_providers {
-    formancecloud = {
+    cloud = {
       source = "formancehq/cloud"
     }
   }
 }
 
-provider "formancecloud" {}
+provider "cloud" {}
 
 # TF_VAR_import_organization_id
 variable "import_organization_id" {
@@ -14,28 +14,28 @@ variable "import_organization_id" {
 }
 
 import {
-  to = formancecloud_organization.default
+  to = cloud_organization.default
   id = var.import_organization_id
 }
-resource "formancecloud_organization" "default" {
+resource "cloud_organization" "default" {
   name = "default"
 }
 
-resource "formancecloud_organization_member" "default" {
+resource "cloud_organization_member" "default" {
   email = "example@formance.dev"
   role  = "ADMIN"
 }
 
-resource "formancecloud_region" "dev" {}
+resource "cloud_region" "dev" {}
 
-resource "formancecloud_stack" "default" {
+resource "cloud_stack" "default" {
   name      = "default"
-  region_id = formancecloud_region.dev.id
+  region_id = cloud_region.dev.id
 }
 
-resource "formancecloud_stack_member" "default" {
-  stack_id = formancecloud_stack.default.id
-  user_id  = formancecloud_organization_member.default.user_id
+resource "cloud_stack_member" "default" {
+  stack_id = cloud_stack.default.id
+  user_id  = cloud_organization_member.default.user_id
 
   role = "ADMIN"
 }

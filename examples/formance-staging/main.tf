@@ -1,15 +1,15 @@
 terraform {
   required_providers {
-    formancecloud = {
+    cloud = {
       source = "formancehq/cloud"
     }
   }
 }
 
-provider "formancecloud" {
+provider "cloud" {
   endpoint = "https://app.staging.formance.cloud/api"
 }
 
-resource "formancecloud_organization" "default" {
+resource "cloud_organization" "default" {
   name = "formancehq"
 }
