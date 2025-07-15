@@ -20,7 +20,7 @@ import {
 
 resource "cloud_organization" "default" {
   name                        = "formancehq"
-  domain                      = "exemple.com"
+  domain                      = "example.com"
   default_organization_access = "GUEST"
   default_stack_access        = "ADMIN"
 }

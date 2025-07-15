@@ -1,5 +1,5 @@
-# Configuration multi-régions haute disponibilité
-# Cet exemple montre comment déployer Formance Cloud sur plusieurs régions
+# Multi-region high availability configuration
+# This example shows how to deploy Formance Cloud across multiple regions
 
 terraform {
   required_providers {
@@ -12,14 +12,14 @@ terraform {
 
 provider "cloud" {}
 
-# Variables de configuration
+# Configuration variables
 variable "organization_name" {
-  description = "Nom de l'organisation"
+  description = "Organization name"
   type        = string
 }
 
 variable "regions" {
-  description = "Configuration des régions"
+  description = "Regions configuration"
   type = map(object({
     name    = string
     primary = bool
@@ -45,13 +45,13 @@ variable "regions" {
 }
 
 variable "critical_modules" {
-  description = "Modules critiques à déployer sur tous les stacks"
+  description = "Critical modules to deploy on all stacks"
   type        = list(string)
   default     = ["ledger", "payments", "auth", "stargate"]
 }
 
 variable "disaster_recovery_config" {
-  description = "Configuration pour la reprise d'activité"
+  description = "Disaster recovery configuration"
   type = object({
     enable_cross_region_backup = bool
     backup_retention_days      = number
@@ -62,7 +62,7 @@ variable "disaster_recovery_config" {
   }
 }
 
-# Organisation principale
+# Main organization
 resource "cloud_organization" "global" {
   name                        = var.organization_name
   domain                      = "${var.organization_name}.global"
@@ -70,26 +70,26 @@ resource "cloud_organization" "global" {
   default_stack_access        = "NONE"
 }
 
-# Création des régions
+# Creating regions
 resource "cloud_region" "regions" {
   for_each = var.regions
 
   name = each.value.name
 }
 
-# Récupération des versions par région
+# Fetching versions by region
 data "cloud_region_versions" "versions" {
   for_each = cloud_region.regions
 
   id = each.value.id
 }
 
-# Local pour déterminer la version à utiliser
+# Local to determine which version to use
 locals {
-  # Utiliser la même version sur toutes les régions pour la cohérence
+  # Use the same version across all regions for consistency
   global_version = data.cloud_region_versions.versions["europe"].versions[0].name
 
-  # Création d'une structure plate pour les stacks
+  # Creating a flat structure for stacks
   stacks_config = flatten([
     for region_key, region in var.regions : [
       for stack_name in region.stacks : {
@@ -103,7 +103,7 @@ locals {
   ])
 }
 
-# Création des stacks dans chaque région
+# Creating stacks in each region
 resource "cloud_stack" "multi_region" {
   for_each = {
     for stack in local.stacks_config : stack.key => stack
@@ -114,16 +114,16 @@ resource "cloud_stack" "multi_region" {
   region_id       = each.value.region_id
   version         = local.global_version
 
-  # Les stacks de production ne peuvent pas être supprimés facilement
+  # Production stacks cannot be easily deleted
   force_destroy = !contains(["production"], split("-", each.value.stack_name)[0])
 
   lifecycle {
-    # Créer les nouvelles ressources avant de détruire les anciennes
+    # Create new resources before destroying old ones
     create_before_destroy = true
   }
 }
 
-# Activation des modules critiques sur tous les stacks
+# Enabling critical modules on all stacks
 resource "cloud_stack_module" "critical" {
   for_each = {
     for pair in setproduct(keys(cloud_stack.multi_region), var.critical_modules) :
@@ -138,7 +138,7 @@ resource "cloud_stack_module" "critical" {
   organization_id = cloud_organization.global.id
 }
 
-# Modules additionnels pour certains stacks
+# Additional modules for specific stacks
 locals {
   additional_modules = {
     "production-eu"   = ["reconciliation", "webhooks", "search"]
@@ -164,9 +164,9 @@ resource "cloud_stack_module" "additional" {
   stack_id = [for k, v in cloud_stack.multi_region : v.id if v.name == each.value.stack_name][0]
 }
 
-# Configuration des équipes par région
+# Regional teams configuration
 variable "regional_teams" {
-  description = "Équipes régionales"
+  description = "Regional teams"
   type = map(list(object({
     email = string
     role  = string
@@ -186,7 +186,7 @@ variable "regional_teams" {
   }
 }
 
-# Ajout des membres régionaux
+# Adding regional members
 resource "cloud_organization_member" "regional_teams" {
   for_each = {
     for item in flatten([
@@ -205,7 +205,7 @@ resource "cloud_organization_member" "regional_teams" {
   role            = each.value.role
 }
 
-# Attribution des accès par région
+# Assigning access by region
 resource "cloud_stack_member" "regional_access" {
   for_each = {
     for item in flatten([
@@ -228,15 +228,15 @@ resource "cloud_stack_member" "regional_access" {
   role            = each.value.role
 }
 
-# Stack de disaster recovery
+# Disaster recovery stack
 resource "cloud_stack" "dr" {
   name          = "disaster-recovery"
-  region_id     = cloud_region.regions["us"].id # DR dans une région différente du primaire
+  region_id     = cloud_region.regions["us"].id # DR in a different region from primary
   version       = local.global_version
   force_destroy = false
 }
 
-# Modules minimaux pour le DR
+# Minimal modules for DR
 resource "cloud_stack_module" "dr_modules" {
   for_each = toset(["ledger", "auth", "stargate"])
 
@@ -244,9 +244,9 @@ resource "cloud_stack_module" "dr_modules" {
   stack_id = cloud_stack.dr.id
 }
 
-# Outputs pour le monitoring et la configuration
+# Outputs for monitoring and configuration
 output "regional_endpoints" {
-  description = "Endpoints par région"
+  description = "Endpoints by region"
   value = {
     for key, region in cloud_region.regions : key => {
       region_id = region.id
@@ -260,34 +260,34 @@ output "regional_endpoints" {
 }
 
 output "primary_region" {
-  description = "Région primaire"
+  description = "Primary region"
   value       = [for k, v in var.regions : k if v.primary][0]
 }
 
 output "dr_stack_uri" {
-  description = "URI du stack de disaster recovery"
+  description = "Disaster recovery stack URI"
   value       = cloud_stack.dr.uri
   sensitive   = true
 }
 
 output "health_check_endpoints" {
-  description = "Endpoints pour les health checks"
+  description = "Health check endpoints"
   value = {
     for key, stack in cloud_stack.multi_region :
     stack.name => "${stack.uri}/health"
   }
 }
 
-# Note sur la haute disponibilité
+# Note about high availability
 output "ha_configuration_note" {
   value = <<-EOT
-    Configuration haute disponibilité déployée:
-    - ${length(var.regions)} régions configurées
-    - ${length(cloud_stack.multi_region)} stacks déployés
-    - Région primaire: ${[for k, v in var.regions : k if v.primary][0]}
-    - Stack DR: ${cloud_stack.dr.name}
+    High availability configuration deployed:
+    - ${length(var.regions)} regions configured
+    - ${length(cloud_stack.multi_region)} stacks deployed
+    - Primary region: ${[for k, v in var.regions : k if v.primary][0]}
+    - DR stack: ${cloud_stack.dr.name}
     
-    Pour activer le basculement automatique, configurez votre solution de load balancing
-    pour router le trafic entre les régions selon vos besoins.
+    To enable automatic failover, configure your load balancing solution
+    to route traffic between regions according to your needs.
   EOT
 }

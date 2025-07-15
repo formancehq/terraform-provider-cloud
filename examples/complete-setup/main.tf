@@ -1,5 +1,5 @@
-# Exemple complet de configuration Formance Cloud avec Terraform
-# Cet exemple montre comment configurer une infrastructure complète
+# Complete example of Formance Cloud configuration with Terraform
+# This example shows how to configure a complete infrastructure
 
 terraform {
   required_providers {
@@ -10,30 +10,30 @@ terraform {
   }
 }
 
-# Configuration du provider (credentials via variables d'environnement)
+# Provider configuration (credentials via environment variables)
 provider "cloud" {}
 
-# Variables de configuration
+# Configuration variables
 variable "organization_name" {
-  description = "Nom de l'organisation"
+  description = "Organization name"
   type        = string
   default     = "my-company"
 }
 
 variable "domain" {
-  description = "Domaine de l'organisation"
+  description = "Organization domain"
   type        = string
   default     = "mycompany.com"
 }
 
 variable "environments" {
-  description = "Liste des environnements à créer"
+  description = "List of environments to create"
   type        = list(string)
   default     = ["development", "staging", "production"]
 }
 
 variable "team_members" {
-  description = "Membres de l'équipe et leurs rôles"
+  description = "Team members and their roles"
   type = map(object({
     email = string
     role  = string
@@ -59,7 +59,7 @@ variable "team_members" {
 }
 
 variable "modules_to_enable" {
-  description = "Modules à activer sur les stacks"
+  description = "Modules to enable on stacks"
   type        = list(string)
   default = [
     "ledger",
@@ -71,49 +71,49 @@ variable "modules_to_enable" {
   ]
 }
 
-# Création de l'organisation
+# Organization creation
 resource "cloud_organization" "main" {
   name                        = var.organization_name
   domain                      = var.domain
   default_organization_access = "READ"
-  default_stack_access        = "NONE" # Accès explicite requis
+  default_stack_access        = "NONE" # Explicit access required
 }
 
-# Création d'une région privée pour l'Europe
+# Creation of a private region for Europe
 resource "cloud_region" "europe" {
   name = "europe-west"
 }
 
-# Création d'une région privée pour les US (optionnel)
+# Creation of a private region for US (optional)
 resource "cloud_region" "us" {
   name = "us-east"
 }
 
-# Récupération des versions disponibles
+# Fetching available versions
 data "cloud_region_versions" "europe" {
   id = cloud_region.europe.id
 }
 
-# Création des stacks pour chaque environnement
+# Creating stacks for each environment
 resource "cloud_stack" "environments" {
   for_each = toset(var.environments)
 
   name      = each.value
   region_id = cloud_region.europe.id
 
-  # Utiliser la dernière version stable pour dev/staging, version fixe pour prod
+  # Use latest stable version for dev/staging, fixed version for prod
   version = each.value == "production" ? "v2.0.0" : data.cloud_region_versions.europe.versions[0].name
 
-  # Protection contre la suppression accidentelle en production
+  # Protection against accidental deletion in production
   force_destroy = each.value != "production"
 
   lifecycle {
-    # Empêcher la suppression accidentelle du stack de production
-    prevent_destroy = false # Mettre à true en production réelle
+    # Prevent accidental deletion of production stack
+    prevent_destroy = false # Set to true in real production
   }
 }
 
-# Activation des modules sur chaque stack
+# Enabling modules on each stack
 resource "cloud_stack_module" "modules" {
   for_each = {
     for pair in setproduct(keys(cloud_stack.environments), var.modules_to_enable) :
@@ -126,13 +126,13 @@ resource "cloud_stack_module" "modules" {
   name     = each.value.module
   stack_id = cloud_stack.environments[each.value.stack_key].id
 
-  # Les modules ont des dépendances, s'assurer qu'ils sont créés dans le bon ordre
+  # Modules have dependencies, ensure they are created in the right order
   depends_on = [
     cloud_stack.environments
   ]
 }
 
-# Ajout des membres à l'organisation
+# Adding members to the organization
 resource "cloud_organization_member" "team" {
   for_each = var.team_members
 
@@ -140,20 +140,20 @@ resource "cloud_organization_member" "team" {
   role  = each.value.role
 }
 
-# Configuration des accès aux stacks
+# Stack access configuration
 locals {
-  # Matrice des accès : qui a accès à quel environnement
+  # Access matrix: who has access to which environment
   stack_access = {
-    # Tout le monde a accès au dev
+    # Everyone has access to dev
     development = {
       for name, member in var.team_members : name => member.role
     }
-    # Seuls les devs ont accès au staging
+    # Only devs have access to staging
     staging = {
       for name, member in var.team_members : name => member.role
       if member.role == "WRITE"
     }
-    # Accès restreint à la production
+    # Restricted access to production
     production = {
       lead_dev = "WRITE"
       analyst  = "READ"
@@ -161,7 +161,7 @@ locals {
   }
 }
 
-# Attribution des accès aux stacks
+# Assigning access to stacks
 resource "cloud_stack_member" "access" {
   for_each = {
     for item in flatten([
@@ -181,14 +181,14 @@ resource "cloud_stack_member" "access" {
   role     = each.value.role
 }
 
-# Stack dédié pour les tests d'intégration (CI/CD)
+# Dedicated stack for integration tests (CI/CD)
 resource "cloud_stack" "ci" {
   name          = "ci-testing"
   region_id     = cloud_region.europe.id
-  force_destroy = true # Peut être supprimé sans confirmation
+  force_destroy = true # Can be deleted without confirmation
 }
 
-# Modules minimaux pour les tests CI
+# Minimal modules for CI tests
 resource "cloud_stack_module" "ci_modules" {
   for_each = toset(["ledger", "auth"])
 
@@ -196,21 +196,21 @@ resource "cloud_stack_module" "ci_modules" {
   stack_id = cloud_stack.ci.id
 }
 
-# Outputs utiles
+# Useful outputs
 output "organization_id" {
-  description = "ID de l'organisation créée"
+  description = "ID of the created organization"
   value       = cloud_organization.main.id
 }
 
 output "stack_urls" {
-  description = "URLs des stacks créés"
+  description = "URLs of created stacks"
   value = {
     for name, stack in cloud_stack.environments : name => stack.uri
   }
 }
 
 output "region_endpoints" {
-  description = "Endpoints des régions"
+  description = "Region endpoints"
   value = {
     europe = cloud_region.europe.base_url
     us     = cloud_region.us.base_url
@@ -218,12 +218,12 @@ output "region_endpoints" {
 }
 
 output "ci_stack_url" {
-  description = "URL du stack CI pour les tests automatisés"
+  description = "CI stack URL for automated tests"
   value       = cloud_stack.ci.uri
 }
 
-# Note importante sur le secret de région (affiché uniquement à la création)
+# Important note about region secret (displayed only at creation)
 output "region_secret_note" {
-  description = "Note sur les secrets de région"
-  value       = "Les secrets de région sont disponibles uniquement lors de la création. Stockez-les de manière sécurisée."
+  description = "Note about region secrets"
+  value       = "Region secrets are available only at creation time. Store them securely."
 }
