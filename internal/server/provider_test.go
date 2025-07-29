@@ -8,6 +8,7 @@ import (
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	"github.com/formancehq/terraform-provider-cloud/pkg/testprovider"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -20,7 +21,7 @@ import (
 
 func TestProviderMetadata(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	tokenFactory, _ := pkg.NewMockTokenProvider(ctrl)
+	tokenFactory, _ := testprovider.NewMockTokenProvider(ctrl)
 	p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewCloudSDK(), tokenFactory)()
 
 	res := provider.MetadataResponse{}
@@ -48,7 +49,7 @@ func TestProviderConfigure(t *testing.T) {
 		t.Run(fmt.Sprintf("%s clientId %t clientSecret %t endpoint %t", t.Name(), tc.ClientId != "", tc.ClientSecret != "", tc.Endpoint != ""), func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			tokenFactory, mockTp := pkg.NewMockTokenProvider(ctrl)
+			tokenFactory, mockTp := testprovider.NewMockTokenProvider(ctrl)
 			p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewCloudSDK(), tokenFactory)()
 
 			res := provider.ConfigureResponse{

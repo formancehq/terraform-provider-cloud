@@ -157,6 +157,75 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /organizations/{organizationId}/authentication-provider:
+    get:
+      summary: Read authentication provider
+      operationId: readAuthenticationProvider
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        200:
+          description: Authentication provider details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationProviderResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: Upsert an authentication provider
+      operationId: upsertAuthenticationProvider
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertAuthenticationProviderRequest"
+      responses:
+        200:
+          description: Authentication provider created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationProviderResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete authentication provider
+      operationId: deleteAuthenticationProvider
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        204:
+          description: Authentication provider deleted
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /organizations/{organizationId}/features:
     get:
       summary: List features
@@ -235,6 +304,182 @@ paths:
       responses:
         204:
           description: Feature deleted
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /organizations/{organizationId}/client:
+    get:
+      summary: Read organization client (DEPRECATED) (until 12/31/2025)
+      operationId: readOrganizationClient
+      deprecated: true
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        200:
+          description: Organization client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateOrganizationClientResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: Create organization client (DEPRECATED) (until 12/31/2025)
+      operationId: createOrganizationClient
+      deprecated: true
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        201:
+          description: Client organization created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateOrganizationClientResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete organization client (DEPRECATED) (until 12/31/2025)
+      operationId: deleteOrganizationClient
+      deprecated: true
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        204:
+          description: Client deleted
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /organizations/{organizationId}/clients:
+    get:
+      summary: Read organization clients
+      operationId: organizationClientsRead
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        200:
+          description: Organization client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadOrganizationClientsResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create organization client
+      operationId: organizationClientCreate
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrganizationClientRequest"
+      responses:
+        201:
+          description: Organization client created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateOrganizationClientResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /organizations/{organizationId}/clients/{clientId}:
+    get:
+      summary: Read organization client
+      operationId: organizationClientRead
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      - name: clientId
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        200:
+          description: Organization client details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadOrganizationClientResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete organization client
+      operationId: organizationClientDelete
+      parameters:
+      - name: organizationId
+        in: path
+        schema:
+          type: string
+        required: true
+      - name: clientId
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        204:
+          description: Client deleted
         default:
           description: Error
           content:
@@ -1438,6 +1683,68 @@ components:
         domain:
           type: string
           description: Organization domain
+    CreateOrganizationClientRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Description of the client
+    CreateOrganizationClientResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: "#/components/schemas/OrganizationClient"
+    ReadOrganizationClientResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: "#/components/schemas/OrganizationClient"
+    ReadOrganizationClientsResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          allOf:
+          - $ref: "#/components/schemas/Cursor"
+          - type: object
+            required:
+            - data
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrganizationClient"
+    OrganizationClient:
+      type: object
+      required:
+      - id
+      - secret
+      - createdAt
+      - description
+      properties:
+        id:
+          type: string
+          description: Organization ID
+        secret:
+          type: object
+          required:
+          - lastDigits
+          properties:
+            lastDigits:
+              type: string
+            clear:
+              type: string
+        description:
+          type: string
+          description: Description of the client
+        createdAt:
+          type: string
+          format: date-time
     Organization:
       allOf:
       - $ref: "#/components/schemas/OrganizationData"
@@ -1554,6 +1861,7 @@ components:
         - regionID
         - stargateEnabled
         - synchronised
+        - modules
         properties:
           id:
             type: string
@@ -1567,6 +1875,8 @@ components:
           regionID:
             type: string
             description: The region where the stack is installed
+          region:
+            $ref: "#/components/schemas/Region"
           stargateEnabled:
             type: boolean
           createdAt:
@@ -1585,6 +1895,10 @@ components:
           updatedAt:
             type: string
             format: date-time
+          modules:
+            type: array
+            items:
+              $ref: "#/components/schemas/Module"
 
     UserData:
       allOf:
@@ -1948,6 +2262,7 @@ components:
       properties:
         role:
           $ref: "#/components/schemas/Role"
+
     GetRegionVersionsResponse:
       type: object
       properties:
@@ -1957,3 +2272,131 @@ components:
             $ref: "#/components/schemas/Version"
       required:
       - data
+
+    AuthenticationProviderData:
+      type: object
+      oneOf:
+      - $ref: '#/components/schemas/GoogleIDPConfig'
+      - $ref: '#/components/schemas/MicrosoftIDPConfig'
+      - $ref: '#/components/schemas/GithubIDPConfig'
+      - $ref: '#/components/schemas/OIDCConfig'
+
+    BaseProviderConfig:
+      type: object
+      required:
+      - type
+      - name
+      - clientID
+      - clientSecret
+      properties:
+        type:
+          type: string
+          enum:
+          - oidc
+          - google
+          - github
+          - microsoft
+          description: Type of the authentication provider
+        name:
+          type: string
+          description: Name of the authentication provider
+        clientID:
+          type: string
+          description: Client ID for the authentication provider
+        clientSecret:
+          type: string
+          description: Client secret for the authentication provider
+
+    AuthenticationProvider:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/AuthenticationProviderData'
+      - type: object
+        properties:
+          organizationId:
+            type: string
+            description: Unique identifier for the authentication provider
+          createdAt:
+            type: string
+            format: date-time
+            description: Creation date of the authentication provider
+          updatedAt:
+            type: string
+            format: date-time
+            description: Last update date of the authentication provider
+        required:
+        - organizationId
+        - createdAt
+        - updatedAt
+
+    GoogleIDPConfig:
+      allOf:
+      - $ref: '#/components/schemas/BaseProviderConfig'
+      - type: object
+        required:
+        - config
+        properties:
+          config:
+            type: object
+            additionalProperties: false
+
+    MicrosoftIDPConfig:
+      allOf:
+      - $ref: '#/components/schemas/BaseProviderConfig'
+      - type: object
+        required:
+        - config
+        properties:
+          config:
+            type: object
+            properties:
+              tenant:
+                type: string
+                description: Tenant ID for Microsoft authentication
+                default: 'common'
+
+    GithubIDPConfig:
+      allOf:
+      - $ref: '#/components/schemas/BaseProviderConfig'
+      - type: object
+        required:
+        - config
+        properties:
+          config:
+            type: object
+            additionalProperties: false
+
+    OIDCConfig:
+      allOf:
+      - $ref: '#/components/schemas/BaseProviderConfig'
+      - type: object
+        required:
+        - config
+        properties:
+          config:
+            type: object
+            required:
+            - issuer
+            properties:
+              issuer:
+                type: string
+                description: OIDC issuer URL
+              discoveryPath:
+                type: string
+                default: '/.well-known/openid-configuration'
+
+    UpsertAuthenticationProviderRequest:
+      $ref: "#/components/schemas/AuthenticationProviderData"
+
+    AuthenticationProviderResponse:
+      type: object
+      properties:
+        data:
+          allOf:
+          - $ref: "#/components/schemas/AuthenticationProvider"
+          - type: object
+            properties:
+              redirectURI:
+                type: string
+            required:
+            - redirectURI

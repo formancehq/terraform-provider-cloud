@@ -122,7 +122,7 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 	tp := p.tokenProviderFactory(p.transport, creds)
 	cli := p.sdkFactory(creds, pkg.NewTransport(p.transport, tp))
 
-	store := internal.NewStore(cli, data.ClientId.ValueString())
+	store := internal.NewStore(cli, tp)
 	resp.ResourceData = store
 	resp.DataSourceData = store
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.uber.org/mock/gomock"
 )
 
@@ -41,7 +42,13 @@ func TestOrganizationMember(t *testing.T) {
 				},
 			},
 			expectedCalls: func(mcs *pkg.MockCloudSDK, mtpi *pkg.MockTokenProviderImpl) {
-
+				organizationID := uuid.NewString()
+				res := oidc.IntrospectionResponse{
+					Claims: map[string]interface{}{
+						"organization_id": organizationID,
+					},
+				}
+				mtpi.EXPECT().IntrospectToken(gomock.Any()).Return(res, nil).AnyTimes()
 				invitation := &sdk.Invitation{
 					Id:        uuid.NewString(),
 					Role:      "",
@@ -49,13 +56,13 @@ func TestOrganizationMember(t *testing.T) {
 				}
 
 				mcs.EXPECT().
-					CreateInvitation(gomock.Any(), "client_id", "example@formance.com", sdk.InvitationClaim{}).
+					CreateInvitation(gomock.Any(), organizationID, "example@formance.com", sdk.InvitationClaim{}).
 					Return(&sdk.CreateInvitationResponse{
 						Data: invitation,
 					}, nil, nil)
 
 				invitation.Status = "PENDING"
-				mcs.EXPECT().ListOrganizationInvitations(gomock.Any(), "client_id").Return(
+				mcs.EXPECT().ListOrganizationInvitations(gomock.Any(), organizationID).Return(
 					&sdk.ListInvitationsResponse{
 						Data: []sdk.Invitation{
 							*invitation,
@@ -64,7 +71,7 @@ func TestOrganizationMember(t *testing.T) {
 					nil, nil,
 				).AnyTimes()
 
-				mcs.EXPECT().DeleteInvitation(gomock.Any(), "client_id", invitation.Id).Return(
+				mcs.EXPECT().DeleteInvitation(gomock.Any(), organizationID, invitation.Id).Return(
 					nil, nil,
 				)
 			},
@@ -82,7 +89,13 @@ func TestOrganizationMember(t *testing.T) {
 				},
 			},
 			expectedCalls: func(mcs *pkg.MockCloudSDK, mtpi *pkg.MockTokenProviderImpl) {
-
+				organizationID := uuid.NewString()
+				res := oidc.IntrospectionResponse{
+					Claims: map[string]interface{}{
+						"organization_id": organizationID,
+					},
+				}
+				mtpi.EXPECT().IntrospectToken(gomock.Any()).Return(res, nil).AnyTimes()
 				invitation := &sdk.Invitation{
 					Id:        uuid.NewString(),
 					Role:      "",
@@ -90,14 +103,14 @@ func TestOrganizationMember(t *testing.T) {
 				}
 
 				mcs.EXPECT().
-					CreateInvitation(gomock.Any(), "client_id", "example@formance.com", sdk.InvitationClaim{}).
+					CreateInvitation(gomock.Any(), organizationID, "example@formance.com", sdk.InvitationClaim{}).
 					Return(&sdk.CreateInvitationResponse{
 						Data: invitation,
 					}, nil, nil)
 
 				invitation.Status = "ACCEPTED"
 				invitation.UserId = pointer.For(uuid.NewString())
-				mcs.EXPECT().ListOrganizationInvitations(gomock.Any(), "client_id").Return(
+				mcs.EXPECT().ListOrganizationInvitations(gomock.Any(), organizationID).Return(
 					&sdk.ListInvitationsResponse{
 						Data: []sdk.Invitation{
 							*invitation,
@@ -106,7 +119,7 @@ func TestOrganizationMember(t *testing.T) {
 					nil, nil,
 				).AnyTimes()
 
-				mcs.EXPECT().ReadUserOfOrganization(gomock.Any(), "client_id", *invitation.UserId).Return(
+				mcs.EXPECT().ReadUserOfOrganization(gomock.Any(), organizationID, *invitation.UserId).Return(
 					&sdk.ReadOrganizationUserResponse{
 						Data: &sdk.OrganizationUser{
 							Role:  "GUEST",
@@ -116,7 +129,7 @@ func TestOrganizationMember(t *testing.T) {
 					}, nil, nil,
 				)
 
-				mcs.EXPECT().DeleteUserOfOrganization(gomock.Any(), "client_id", *invitation.UserId).Return(
+				mcs.EXPECT().DeleteUserOfOrganization(gomock.Any(), organizationID, *invitation.UserId).Return(
 					nil, nil,
 				)
 			},

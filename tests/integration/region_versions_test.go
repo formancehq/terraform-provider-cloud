@@ -9,10 +9,12 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.uber.org/mock/gomock"
 )
 
@@ -35,17 +37,49 @@ func TestRegionVersions(t *testing.T) {
 					}
 				`,
 			},
+			expectedCalls: func(cloudSdk *pkg.MockCloudSDK, tokenProvider *pkg.MockTokenProviderImpl) {
+				organizationID := uuid.NewString()
+				tokenProvider.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
+					Claims: map[string]interface{}{
+						"organization_id": organizationID,
+					},
+				}, nil).AnyTimes()
+				cloudSdk.EXPECT().GetRegionVersions(gomock.All(), organizationID, "another-region-id").Return(&sdk.GetRegionVersionsResponse{
+					Data: []sdk.Version{
+						{
+							Name: "v1.0.0",
+							Versions: map[string]string{
+								"ledger":   "v1.0.0",
+								"payments": "v1.0.0",
+							},
+						},
+						{
+							Name: "v2.0.0",
+							Versions: map[string]string{
+								"ledger":   "v2.0.12",
+								"payments": "v2.2.1",
+							},
+						},
+					},
+				}, nil, nil).AnyTimes()
+			},
 		},
 		{
 			step: resource.TestStep{
 				Config: `
 				provider "cloud" {}
-				
-				data "cloud_region_versions" "default" {}				
+
+				data "cloud_region_versions" "default" {}
 				`,
 			},
 			expectedCalls: func(cloudSdk *pkg.MockCloudSDK, tokenProvider *pkg.MockTokenProviderImpl) {
-				cloudSdk.EXPECT().ListRegions(gomock.Any(), "client_id").Return(&sdk.ListRegionsResponse{
+				organizationID := uuid.NewString()
+				tokenProvider.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
+					Claims: map[string]interface{}{
+						"organization_id": organizationID,
+					},
+				}, nil).AnyTimes()
+				cloudSdk.EXPECT().ListRegions(gomock.Any(), organizationID).Return(&sdk.ListRegionsResponse{
 					Data: []sdk.AnyRegion{
 						{
 							Id:   "some-region-id",
@@ -54,6 +88,25 @@ func TestRegionVersions(t *testing.T) {
 						{ // <- This region will be sorted in first position
 							Id:   "another-region-id",
 							Name: "Another Region",
+						},
+					},
+				}, nil, nil).AnyTimes()
+
+				cloudSdk.EXPECT().GetRegionVersions(gomock.All(), organizationID, "another-region-id").Return(&sdk.GetRegionVersionsResponse{
+					Data: []sdk.Version{
+						{
+							Name: "v1.0.0",
+							Versions: map[string]string{
+								"ledger":   "v1.0.0",
+								"payments": "v1.0.0",
+							},
+						},
+						{
+							Name: "v2.0.0",
+							Versions: map[string]string{
+								"ledger":   "v2.0.12",
+								"payments": "v2.2.1",
+							},
 						},
 					},
 				}, nil, nil).AnyTimes()
@@ -82,24 +135,6 @@ func TestRegionVersions(t *testing.T) {
 			if tc.expectedCalls != nil {
 				tc.expectedCalls(cloudSdk, tokenProvider)
 			}
-			cloudSdk.EXPECT().GetRegionVersions(gomock.All(), "client_id", "another-region-id").Return(&sdk.GetRegionVersionsResponse{
-				Data: []sdk.Version{
-					{
-						Name: "v1.0.0",
-						Versions: map[string]string{
-							"ledger":   "v1.0.0",
-							"payments": "v1.0.0",
-						},
-					},
-					{
-						Name: "v2.0.0",
-						Versions: map[string]string{
-							"ledger":   "v2.0.12",
-							"payments": "v2.2.1",
-						},
-					},
-				},
-			}, nil, nil).AnyTimes()
 
 			resource.Test(t, resource.TestCase{
 				ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){

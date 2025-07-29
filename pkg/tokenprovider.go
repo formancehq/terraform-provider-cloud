@@ -15,7 +15,6 @@ import (
 	"github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
-	gomock "go.uber.org/mock/gomock"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -24,6 +23,7 @@ import (
 type TokenProviderImpl interface {
 	AccessToken(ctx context.Context) (*TokenInfo, error)
 	RefreshToken(ctx context.Context) (*TokenInfo, error)
+	IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error)
 }
 
 type TokenInfo struct {
@@ -106,12 +106,11 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	logging.FromContext(ctx).Debugf("Getting refresh token for %s", p.creds.Endpoint())
 
-	p.cloud.Lock()
 	if p.cloud.AccessToken == "" {
-		p.cloud.Unlock()
 		return p.AccessToken(ctx)
 	}
 
+	p.cloud.Lock()
 	defer p.cloud.Unlock()
 	if time.Now().Before(p.cloud.Expiry) {
 		return &TokenInfo{
@@ -171,17 +170,55 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 
 }
 
-type Mock struct {
-	Creds
-	*MockTokenProviderImpl
-}
+func (p TokenProvider) IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error) {
+	logging.FromContext(ctx).Debugf("Introspecting token for %s", p.creds.Endpoint())
 
-func NewMockTokenProvider(ctrl *gomock.Controller) (TokenProviderFactory, *Mock) {
-	mock := &Mock{
-		MockTokenProviderImpl: NewMockTokenProviderImpl(ctrl),
+	if p.cloud.AccessToken == "" {
+		var err error
+		_, err = p.AccessToken(ctx)
+		if err != nil {
+			return oidc.IntrospectionResponse{}, err
+		}
 	}
-	return func(transport http.RoundTripper, creds Creds) TokenProviderImpl {
-		mock.Creds = creds
-		return mock
-	}, mock
+
+	p.cloud.Lock()
+	defer p.cloud.Unlock()
+
+	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
+	if err != nil {
+		return oidc.IntrospectionResponse{}, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, discoveryConfiguration.IntrospectionEndpoint,
+		bytes.NewBufferString("token="+p.cloud.AccessToken))
+	if err != nil {
+		return oidc.IntrospectionResponse{}, err
+	}
+	req.SetBasicAuth(p.creds.ClientId(), p.creds.ClientSecret())
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	ret, err := p.client.Do(req)
+	if err != nil {
+		return oidc.IntrospectionResponse{}, err
+	}
+	defer func() {
+		if err := ret.Body.Close(); err != nil {
+			logging.FromContext(ctx).Errorf("Failed to close response body: %s", err.Error())
+		}
+	}()
+
+	if ret.StatusCode != http.StatusOK {
+		data, err := io.ReadAll(ret.Body)
+		if err != nil {
+			return oidc.IntrospectionResponse{}, err
+		}
+		return oidc.IntrospectionResponse{}, errors.New(string(data))
+	}
+
+	var introspectionResponse oidc.IntrospectionResponse
+	if err := json.NewDecoder(ret.Body).Decode(&introspectionResponse); err != nil {
+		return oidc.IntrospectionResponse{}, err
+	}
+
+	return introspectionResponse, nil
 }

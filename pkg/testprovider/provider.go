@@ -7,6 +7,7 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"go.uber.org/mock/gomock"
 )
 
 func NewCloudProvider(logger logging.Logger, endpoint string, clientId string, clientSecret string, transport http.RoundTripper, sdkFactory pkg.CloudFactory, tokenFactory pkg.TokenProviderFactory) func() provider.Provider {
@@ -19,4 +20,19 @@ func NewCloudProvider(logger logging.Logger, endpoint string, clientId string, c
 		sdkFactory,
 		tokenFactory,
 	)
+}
+
+type Mock struct {
+	pkg.Creds
+	*pkg.MockTokenProviderImpl
+}
+
+func NewMockTokenProvider(ctrl *gomock.Controller) (pkg.TokenProviderFactory, *Mock) {
+	mock := &Mock{
+		MockTokenProviderImpl: pkg.NewMockTokenProviderImpl(ctrl),
+	}
+	return func(transport http.RoundTripper, creds pkg.Creds) pkg.TokenProviderImpl {
+		mock.Creds = creds
+		return mock
+	}, mock
 }

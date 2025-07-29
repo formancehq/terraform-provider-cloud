@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/datasources"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
@@ -16,23 +16,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/require"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.uber.org/mock/gomock"
 )
 
 func TestStacksConfigure(t *testing.T) {
 	type testCase struct {
-		providerData any
+		providerData func(sdkClient pkg.CloudSDK, tp pkg.TokenProviderImpl) any
 		expectedErr  error
 	}
 
 	for _, tc := range []testCase{
-		{},
 		{
-			providerData: "something",
-			expectedErr:  resources.ErrProviderDataNotSet,
+			providerData: func(sdkClient pkg.CloudSDK, tp pkg.TokenProviderImpl) any {
+				return nil
+			},
 		},
 		{
-			providerData: internal.NewStore(pkg.NewMockCloudSDK(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
+			providerData: func(sdkClient pkg.CloudSDK, tp pkg.TokenProviderImpl) any {
+				return "something"
+			},
+			expectedErr: resources.ErrProviderDataNotSet,
+		},
+		{
+			providerData: func(sdkClient pkg.CloudSDK, tp pkg.TokenProviderImpl) any {
+				return internal.NewStore(sdkClient, tp)
+			},
 		},
 	} {
 		ctx := logging.TestingContext()
@@ -41,9 +50,20 @@ func TestStacksConfigure(t *testing.T) {
 		res := datasource.ConfigureResponse{
 			Diagnostics: []diag.Diagnostic{},
 		}
+		ctrl := gomock.NewController(t)
+		tp := pkg.NewMockTokenProviderImpl(ctrl)
+		apiMock := pkg.NewMockCloudSDK(ctrl)
+		data := tc.providerData(apiMock, tp)
 
+		if tc.expectedErr == nil && data != nil {
+			tp.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
+				Claims: map[string]interface{}{
+					"organization_id": "test-org-id",
+				},
+			}, nil).AnyTimes()
+		}
 		og.Configure(ctx, datasource.ConfigureRequest{
-			ProviderData: tc.providerData,
+			ProviderData: data,
 		}, &res)
 
 		if tc.expectedErr != nil {

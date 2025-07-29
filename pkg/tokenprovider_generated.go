@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	oidc "github.com/zitadel/oidc/v3/pkg/oidc"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -53,6 +54,21 @@ func (m *MockTokenProviderImpl) AccessToken(ctx context.Context) (*TokenInfo, er
 func (mr *MockTokenProviderImplMockRecorder) AccessToken(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccessToken", reflect.TypeOf((*MockTokenProviderImpl)(nil).AccessToken), ctx)
+}
+
+// IntrospectToken mocks base method.
+func (m *MockTokenProviderImpl) IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IntrospectToken", ctx)
+	ret0, _ := ret[0].(oidc.IntrospectionResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IntrospectToken indicates an expected call of IntrospectToken.
+func (mr *MockTokenProviderImplMockRecorder) IntrospectToken(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntrospectToken", reflect.TypeOf((*MockTokenProviderImpl)(nil).IntrospectToken), ctx)
 }
 
 // RefreshToken mocks base method.
