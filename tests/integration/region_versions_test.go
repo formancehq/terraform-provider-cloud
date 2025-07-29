@@ -114,7 +114,6 @@ func TestRegionVersions(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("test_%d", i), func(t *testing.T) {
-			t.Parallel()
 			ctrl := gomock.NewController(t)
 			cloudSdk := pkg.NewMockCloudSDK(ctrl)
 			tokenProvider := pkg.NewMockTokenProviderImpl(ctrl)
@@ -136,7 +135,7 @@ func TestRegionVersions(t *testing.T) {
 				tc.expectedCalls(cloudSdk, tokenProvider)
 			}
 
-			resource.Test(t, resource.TestCase{
+			resource.ParallelTest(t, resource.TestCase{
 				ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 					"cloud": providerserver.NewProtocol6WithError(cloudProvider()),
 				},
