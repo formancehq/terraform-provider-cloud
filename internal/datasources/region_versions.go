@@ -91,6 +91,8 @@ func (r *RegionVersions) Schema(ctx context.Context, req datasource.SchemaReques
 }
 
 func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx = logging.ContextWithLogger(ctx, r.logger.WithField("func", "region_versions_read"))
+	r.logger.Debug("Reading region versions")
 	var data RegionVersionsModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

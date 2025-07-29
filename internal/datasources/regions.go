@@ -92,6 +92,8 @@ func (r *Region) Schema(ctx context.Context, req datasource.SchemaRequest, resp 
 }
 
 func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx = logging.ContextWithLogger(ctx, r.logger.WithField("func", "region_read"))
+	r.logger.Debug("Reading region")
 	var data RegionModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

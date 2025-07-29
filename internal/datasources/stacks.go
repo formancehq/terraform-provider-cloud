@@ -108,6 +108,8 @@ func (s *Stack) Schema(ctx context.Context, req datasource.SchemaRequest, resp *
 }
 
 func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_read"))
+	s.logger.Debug("Reading stack")
 	var data StackModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
