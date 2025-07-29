@@ -99,18 +99,25 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
+	organizationId, err := r.store.GetOrganizationID(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
 	var obj sdk.AnyRegion
 	switch {
 	case !data.ID.IsNull():
-		objs, res, err := r.store.GetSDK().GetRegion(ctx, r.store.GetOrganizationID(ctx), data.ID.ValueString())
+		objs, res, err := r.store.GetSDK().GetRegion(ctx, organizationId, data.ID.ValueString())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
 		}
 		obj = objs.Data
 	case !data.Name.IsNull():
-		objs, res, err := r.store.GetSDK().ListRegions(ctx, r.store.GetOrganizationID(ctx))
+		objs, res, err := r.store.GetSDK().ListRegions(ctx, organizationId)
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
@@ -121,7 +128,7 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		if obj.Id == "" {
 			resp.Diagnostics.AddError(
 				"Region not found",
-				fmt.Sprintf("No region found with name '%s' in organization '%s'", data.Name.ValueString(), r.store.GetOrganizationID(ctx)),
+				fmt.Sprintf("No region found with name '%s' in organization '%s'", data.Name.ValueString(), organizationId),
 			)
 			return
 		}

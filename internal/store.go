@@ -34,15 +34,15 @@ var (
 )
 
 // GetOrganizationID returns the current organization ID
-func (s *Store) GetOrganizationID(ctx context.Context) string {
+func (s *Store) GetOrganizationID(ctx context.Context) (string, error) {
 	s.Lock()
 	defer s.Unlock()
 	if s.organizationID == "" {
 		introspection, err := s.tp.IntrospectToken(ctx)
 		if err != nil {
-			panic(err)
+			return "", err
 		}
 		s.organizationID = introspection.Claims[claimOrganizationID].(string)
 	}
-	return s.organizationID
+	return s.organizationID, nil
 }

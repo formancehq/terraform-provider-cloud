@@ -106,8 +106,15 @@ func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, re
 	if res.Diagnostics.HasError() {
 		return
 	}
-
-	resp, err := s.store.GetSDK().EnableModule(ctx, s.store.GetOrganizationID(ctx), plan.StackId.ValueString(), plan.Name.ValueString())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	resp, err := s.store.GetSDK().EnableModule(ctx, organizationId, plan.StackId.ValueString(), plan.Name.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -125,8 +132,15 @@ func (s *StackModule) Delete(ctx context.Context, req resource.DeleteRequest, re
 	if res.Diagnostics.HasError() {
 		return
 	}
-
-	resp, err := s.store.GetSDK().DisableModule(ctx, s.store.GetOrganizationID(ctx), state.StackId.ValueString(), state.Name.ValueString())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	resp, err := s.store.GetSDK().DisableModule(ctx, organizationId, state.StackId.ValueString(), state.Name.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -147,8 +161,15 @@ func (s *StackModule) Read(ctx context.Context, req resource.ReadRequest, res *r
 	if res.Diagnostics.HasError() {
 		return
 	}
-
-	modules, resp, err := s.store.GetSDK().ListModules(ctx, s.store.GetOrganizationID(ctx), state.StackId.ValueString())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	modules, resp, err := s.store.GetSDK().ListModules(ctx, organizationId, state.StackId.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
