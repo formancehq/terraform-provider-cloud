@@ -2,7 +2,6 @@ package resources_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/require"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.uber.org/mock/gomock"
 )
 
@@ -24,18 +24,26 @@ func TestStackConfigure(t *testing.T) {
 	test(t, func(ctx context.Context) {
 
 		type testCase struct {
-			providerData any
+			providerData func(sdkClient pkg.CloudSDK, tp pkg.TokenProviderImpl) any
 			expectedErr  error
 		}
 
 		for _, tc := range []testCase{
-			{},
 			{
-				providerData: "something",
-				expectedErr:  resources.ErrProviderDataNotSet,
+				providerData: func(sdkClient pkg.CloudSDK, tp pkg.TokenProviderImpl) any {
+					return any(nil)
+				},
 			},
 			{
-				providerData: internal.NewStore(pkg.NewMockCloudSDK(gomock.NewController(t)), fmt.Sprintf("organization_%s", uuid.NewString())),
+				providerData: func(sdkClient pkg.CloudSDK, tp pkg.TokenProviderImpl) any {
+					return "something"
+				},
+				expectedErr: resources.ErrProviderDataNotSet,
+			},
+			{
+				providerData: func(sdkClient pkg.CloudSDK, tp pkg.TokenProviderImpl) any {
+					return internal.NewStore(sdkClient, tp)
+				},
 			},
 		} {
 
@@ -44,9 +52,20 @@ func TestStackConfigure(t *testing.T) {
 			res := resource.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},
 			}
+			ctrl := gomock.NewController(t)
+			tp := pkg.NewMockTokenProviderImpl(ctrl)
+			apiMock := pkg.NewMockCloudSDK(ctrl)
+
+			if tc.expectedErr == nil {
+				tp.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
+					Claims: map[string]interface{}{
+						"organization_id": "organization_" + uuid.NewString()[:8],
+					},
+				}, nil).AnyTimes()
+			}
 
 			og.Configure(ctx, resource.ConfigureRequest{
-				ProviderData: tc.providerData,
+				ProviderData: tc.providerData(apiMock, tp),
 			}, &res)
 
 			if tc.expectedErr != nil {
@@ -95,8 +114,16 @@ func TestStackCreate(t *testing.T) {
 					Diagnostics: []diag.Diagnostic{},
 				}
 				ctrl := gomock.NewController(t)
+				tp := pkg.NewMockTokenProviderImpl(ctrl)
 				apiMock := pkg.NewMockCloudSDK(ctrl)
-				store := internal.NewStore(apiMock, fmt.Sprintf("organization_%s", organizationId))
+				store := internal.NewStore(apiMock, tp)
+
+				tp.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
+					Claims: map[string]interface{}{
+						"organization_id": organizationId,
+					},
+				}, nil).AnyTimes()
+
 				r.Configure(ctx, resource.ConfigureRequest{
 					ProviderData: store,
 				}, &configureRes)

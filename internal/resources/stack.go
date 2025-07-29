@@ -143,7 +143,14 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
 	createStackRequest := sdk.CreateStackRequest{
 		Metadata: pointer.For(map[string]string{
 			"github.com/formancehq/terraform-provider-cloud/protected": "true",
@@ -153,7 +160,7 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 		Version:  pointer.For(plan.Version.ValueString()),
 	}
 
-	obj, res, err := s.store.GetSDK().CreateStack(ctx, s.store.GetOrganizationID(), createStackRequest)
+	obj, res, err := s.store.GetSDK().CreateStack(ctx, organizationId, createStackRequest)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
@@ -181,8 +188,15 @@ func (s *Stack) Delete(ctx context.Context, req resource.DeleteRequest, resp *re
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	res, err := s.store.GetSDK().DeleteStack(ctx, s.store.GetOrganizationID(), plan.GetID(), plan.ForceDestroy.ValueBool())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	res, err := s.store.GetSDK().DeleteStack(ctx, organizationId, plan.GetID(), plan.ForceDestroy.ValueBool())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
@@ -206,7 +220,15 @@ func (s *Stack) Read(ctx context.Context, req resource.ReadRequest, resp *resour
 		return
 	}
 
-	obj, res, err := s.store.GetSDK().ReadStack(ctx, s.store.GetOrganizationID(), plan.GetID())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	obj, res, err := s.store.GetSDK().ReadStack(ctx, organizationId, plan.GetID())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
@@ -244,6 +266,14 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 	}
 	plan.ID = state.ID
 	plan.RegionID = state.RegionID
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
 	if plan.Name.ValueString() != state.Name.ValueString() {
 		updateRequest := sdk.UpdateStackRequest{
 			Name: plan.Name.ValueString(),
@@ -251,7 +281,8 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 				"github.com/formancehq/terraform-provider-cloud/protected": "true",
 			}),
 		}
-		obj, resp, err := s.store.GetSDK().UpdateStack(ctx, s.store.GetOrganizationID(), plan.GetID(), updateRequest)
+
+		obj, resp, err := s.store.GetSDK().UpdateStack(ctx, organizationId, plan.GetID(), updateRequest)
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 			return
@@ -263,7 +294,7 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 	if state.Version.ValueString() != plan.Version.ValueString() {
 		if !semver.IsValid(plan.Version.ValueString()) ||
 			(semver.IsValid(plan.Version.ValueString()) && semver.Compare(state.Version.ValueString(), plan.Version.ValueString()) >= 0) {
-			resp, err := s.store.GetSDK().UpgradeStack(ctx, s.store.GetOrganizationID(), plan.GetID(), plan.Version.ValueString())
+			resp, err := s.store.GetSDK().UpgradeStack(ctx, organizationId, plan.GetID(), plan.Version.ValueString())
 			if err != nil {
 				pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 				return

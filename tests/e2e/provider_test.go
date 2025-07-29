@@ -10,8 +10,7 @@ import (
 )
 
 func TestProvider(t *testing.T) {
-	t.Parallel()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"cloud": providerserver.NewProtocol6WithError(Provider()),

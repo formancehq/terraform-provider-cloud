@@ -83,12 +83,15 @@ Class | Method | HTTP request | Description
 *DefaultAPI* | [**AddFeatures**](docs/DefaultAPI.md#addfeatures) | **Post** /organizations/{organizationId}/features | Add Features
 *DefaultAPI* | [**CreateInvitation**](docs/DefaultAPI.md#createinvitation) | **Post** /organizations/{organizationId}/invitations | Create invitation
 *DefaultAPI* | [**CreateOrganization**](docs/DefaultAPI.md#createorganization) | **Post** /organizations | Create organization
+*DefaultAPI* | [**CreateOrganizationClient**](docs/DefaultAPI.md#createorganizationclient) | **Put** /organizations/{organizationId}/client | Create organization client (DEPRECATED) (until 12/31/2025)
 *DefaultAPI* | [**CreatePrivateRegion**](docs/DefaultAPI.md#createprivateregion) | **Post** /organizations/{organizationId}/regions | Create a private region
 *DefaultAPI* | [**CreateStack**](docs/DefaultAPI.md#createstack) | **Post** /organizations/{organizationId}/stacks | Create stack
 *DefaultAPI* | [**DeclineInvitation**](docs/DefaultAPI.md#declineinvitation) | **Post** /me/invitations/{invitationId}/reject | Decline invitation
+*DefaultAPI* | [**DeleteAuthenticationProvider**](docs/DefaultAPI.md#deleteauthenticationprovider) | **Delete** /organizations/{organizationId}/authentication-provider | Delete authentication provider
 *DefaultAPI* | [**DeleteFeature**](docs/DefaultAPI.md#deletefeature) | **Delete** /organizations/{organizationId}/features/{name} | Delete feature
 *DefaultAPI* | [**DeleteInvitation**](docs/DefaultAPI.md#deleteinvitation) | **Delete** /organizations/{organizationId}/invitations/{invitationId} | Delete invitation
 *DefaultAPI* | [**DeleteOrganization**](docs/DefaultAPI.md#deleteorganization) | **Delete** /organizations/{organizationId} | Delete organization
+*DefaultAPI* | [**DeleteOrganizationClient**](docs/DefaultAPI.md#deleteorganizationclient) | **Delete** /organizations/{organizationId}/client | Delete organization client (DEPRECATED) (until 12/31/2025)
 *DefaultAPI* | [**DeleteRegion**](docs/DefaultAPI.md#deleteregion) | **Delete** /organizations/{organizationId}/regions/{regionID} | Delete region
 *DefaultAPI* | [**DeleteStack**](docs/DefaultAPI.md#deletestack) | **Delete** /organizations/{organizationId}/stacks/{stackId} | Delete stack
 *DefaultAPI* | [**DeleteStackUserAccess**](docs/DefaultAPI.md#deletestackuseraccess) | **Delete** /organizations/{organizationId}/stacks/{stackId}/users/{userId} | Delete stack user access role within an organization
@@ -114,14 +117,21 @@ Class | Method | HTTP request | Description
 *DefaultAPI* | [**ListStackUsersAccesses**](docs/DefaultAPI.md#liststackusersaccesses) | **Get** /organizations/{organizationId}/stacks/{stackId}/users | List stack users accesses within an organization
 *DefaultAPI* | [**ListStacks**](docs/DefaultAPI.md#liststacks) | **Get** /organizations/{organizationId}/stacks | List stacks
 *DefaultAPI* | [**ListUsersOfOrganization**](docs/DefaultAPI.md#listusersoforganization) | **Get** /organizations/{organizationId}/users | List users of organization
+*DefaultAPI* | [**OrganizationClientCreate**](docs/DefaultAPI.md#organizationclientcreate) | **Post** /organizations/{organizationId}/clients | Create organization client
+*DefaultAPI* | [**OrganizationClientDelete**](docs/DefaultAPI.md#organizationclientdelete) | **Delete** /organizations/{organizationId}/clients/{clientId} | Delete organization client
+*DefaultAPI* | [**OrganizationClientRead**](docs/DefaultAPI.md#organizationclientread) | **Get** /organizations/{organizationId}/clients/{clientId} | Read organization client
+*DefaultAPI* | [**OrganizationClientsRead**](docs/DefaultAPI.md#organizationclientsread) | **Get** /organizations/{organizationId}/clients | Read organization clients
+*DefaultAPI* | [**ReadAuthenticationProvider**](docs/DefaultAPI.md#readauthenticationprovider) | **Get** /organizations/{organizationId}/authentication-provider | Read authentication provider
 *DefaultAPI* | [**ReadConnectedUser**](docs/DefaultAPI.md#readconnecteduser) | **Get** /me | Read user
 *DefaultAPI* | [**ReadOrganization**](docs/DefaultAPI.md#readorganization) | **Get** /organizations/{organizationId} | Read organization
+*DefaultAPI* | [**ReadOrganizationClient**](docs/DefaultAPI.md#readorganizationclient) | **Get** /organizations/{organizationId}/client | Read organization client (DEPRECATED) (until 12/31/2025)
 *DefaultAPI* | [**ReadStackUserAccess**](docs/DefaultAPI.md#readstackuseraccess) | **Get** /organizations/{organizationId}/stacks/{stackId}/users/{userId} | Read stack user access role within an organization
 *DefaultAPI* | [**ReadUserOfOrganization**](docs/DefaultAPI.md#readuseroforganization) | **Get** /organizations/{organizationId}/users/{userId} | Read user of organization
 *DefaultAPI* | [**RestoreStack**](docs/DefaultAPI.md#restorestack) | **Put** /organizations/{organizationId}/stacks/{stackId}/restore | Restore stack
 *DefaultAPI* | [**UpdateOrganization**](docs/DefaultAPI.md#updateorganization) | **Put** /organizations/{organizationId} | Update organization
 *DefaultAPI* | [**UpdateStack**](docs/DefaultAPI.md#updatestack) | **Put** /organizations/{organizationId}/stacks/{stackId} | Update stack
 *DefaultAPI* | [**UpgradeStack**](docs/DefaultAPI.md#upgradestack) | **Put** /organizations/{organizationId}/stacks/{stackId}/upgrade | Upgrade stack
+*DefaultAPI* | [**UpsertAuthenticationProvider**](docs/DefaultAPI.md#upsertauthenticationprovider) | **Put** /organizations/{organizationId}/authentication-provider | Upsert an authentication provider
 *DefaultAPI* | [**UpsertOrganizationUser**](docs/DefaultAPI.md#upsertorganizationuser) | **Put** /organizations/{organizationId}/users/{userId} | Update user within an organization
 *DefaultAPI* | [**UpsertStackUserAccess**](docs/DefaultAPI.md#upsertstackuseraccess) | **Put** /organizations/{organizationId}/stacks/{stackId}/users/{userId} | Update stack user access role within an organization
 
@@ -131,8 +141,15 @@ Class | Method | HTTP request | Description
  - [Action](docs/Action.md)
  - [AddFeaturesRequest](docs/AddFeaturesRequest.md)
  - [AnyRegion](docs/AnyRegion.md)
+ - [AuthenticationProvider](docs/AuthenticationProvider.md)
+ - [AuthenticationProviderData](docs/AuthenticationProviderData.md)
+ - [AuthenticationProviderResponse](docs/AuthenticationProviderResponse.md)
+ - [AuthenticationProviderResponseData](docs/AuthenticationProviderResponseData.md)
+ - [BaseProviderConfig](docs/BaseProviderConfig.md)
  - [Capability](docs/Capability.md)
  - [CreateInvitationResponse](docs/CreateInvitationResponse.md)
+ - [CreateOrganizationClientRequest](docs/CreateOrganizationClientRequest.md)
+ - [CreateOrganizationClientResponse](docs/CreateOrganizationClientResponse.md)
  - [CreateOrganizationResponse](docs/CreateOrganizationResponse.md)
  - [CreatePrivateRegionRequest](docs/CreatePrivateRegionRequest.md)
  - [CreateStackRequest](docs/CreateStackRequest.md)
@@ -142,6 +159,8 @@ Class | Method | HTTP request | Description
  - [Error](docs/Error.md)
  - [GetRegionResponse](docs/GetRegionResponse.md)
  - [GetRegionVersionsResponse](docs/GetRegionVersionsResponse.md)
+ - [GithubIDPConfig](docs/GithubIDPConfig.md)
+ - [GoogleIDPConfig](docs/GoogleIDPConfig.md)
  - [Invitation](docs/Invitation.md)
  - [InvitationClaim](docs/InvitationClaim.md)
  - [ListFeatures200Response](docs/ListFeatures200Response.md)
@@ -155,8 +174,14 @@ Class | Method | HTTP request | Description
  - [Log](docs/Log.md)
  - [LogCursor](docs/LogCursor.md)
  - [LogCursorData](docs/LogCursorData.md)
+ - [MicrosoftIDPConfig](docs/MicrosoftIDPConfig.md)
+ - [MicrosoftIDPConfigAllOfConfig](docs/MicrosoftIDPConfigAllOfConfig.md)
  - [Module](docs/Module.md)
+ - [OIDCConfig](docs/OIDCConfig.md)
+ - [OIDCConfigAllOfConfig](docs/OIDCConfigAllOfConfig.md)
  - [Organization](docs/Organization.md)
+ - [OrganizationClient](docs/OrganizationClient.md)
+ - [OrganizationClientSecret](docs/OrganizationClientSecret.md)
  - [OrganizationData](docs/OrganizationData.md)
  - [OrganizationExpanded](docs/OrganizationExpanded.md)
  - [OrganizationFeature](docs/OrganizationFeature.md)
@@ -164,6 +189,9 @@ Class | Method | HTTP request | Description
  - [PrivateRegion](docs/PrivateRegion.md)
  - [PrivateRegionSecret](docs/PrivateRegionSecret.md)
  - [PublicRegion](docs/PublicRegion.md)
+ - [ReadOrganizationClientResponse](docs/ReadOrganizationClientResponse.md)
+ - [ReadOrganizationClientsResponse](docs/ReadOrganizationClientsResponse.md)
+ - [ReadOrganizationClientsResponseData](docs/ReadOrganizationClientsResponseData.md)
  - [ReadOrganizationResponse](docs/ReadOrganizationResponse.md)
  - [ReadOrganizationUserResponse](docs/ReadOrganizationUserResponse.md)
  - [ReadStackUserAccess](docs/ReadStackUserAccess.md)

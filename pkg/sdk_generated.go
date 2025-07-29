@@ -144,6 +144,36 @@ func (mr *MockDefaultAPIMockRecorder) CreateOrganization(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrganization", reflect.TypeOf((*MockDefaultAPI)(nil).CreateOrganization), ctx)
 }
 
+// CreateOrganizationClient mocks base method.
+func (m *MockDefaultAPI) CreateOrganizationClient(ctx context.Context, organizationId string) sdk.ApiCreateOrganizationClientRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrganizationClient", ctx, organizationId)
+	ret0, _ := ret[0].(sdk.ApiCreateOrganizationClientRequest)
+	return ret0
+}
+
+// CreateOrganizationClient indicates an expected call of CreateOrganizationClient.
+func (mr *MockDefaultAPIMockRecorder) CreateOrganizationClient(ctx, organizationId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrganizationClient", reflect.TypeOf((*MockDefaultAPI)(nil).CreateOrganizationClient), ctx, organizationId)
+}
+
+// CreateOrganizationClientExecute mocks base method.
+func (m *MockDefaultAPI) CreateOrganizationClientExecute(r sdk.ApiCreateOrganizationClientRequest) (*sdk.CreateOrganizationClientResponse, *http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrganizationClientExecute", r)
+	ret0, _ := ret[0].(*sdk.CreateOrganizationClientResponse)
+	ret1, _ := ret[1].(*http.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// CreateOrganizationClientExecute indicates an expected call of CreateOrganizationClientExecute.
+func (mr *MockDefaultAPIMockRecorder) CreateOrganizationClientExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrganizationClientExecute", reflect.TypeOf((*MockDefaultAPI)(nil).CreateOrganizationClientExecute), r)
+}
+
 // CreateOrganizationExecute mocks base method.
 func (m *MockDefaultAPI) CreateOrganizationExecute(r sdk.ApiCreateOrganizationRequest) (*sdk.CreateOrganizationResponse, *http.Response, error) {
 	m.ctrl.T.Helper()
@@ -249,6 +279,35 @@ func (mr *MockDefaultAPIMockRecorder) DeclineInvitationExecute(r any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeclineInvitationExecute", reflect.TypeOf((*MockDefaultAPI)(nil).DeclineInvitationExecute), r)
 }
 
+// DeleteAuthenticationProvider mocks base method.
+func (m *MockDefaultAPI) DeleteAuthenticationProvider(ctx context.Context, organizationId string) sdk.ApiDeleteAuthenticationProviderRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAuthenticationProvider", ctx, organizationId)
+	ret0, _ := ret[0].(sdk.ApiDeleteAuthenticationProviderRequest)
+	return ret0
+}
+
+// DeleteAuthenticationProvider indicates an expected call of DeleteAuthenticationProvider.
+func (mr *MockDefaultAPIMockRecorder) DeleteAuthenticationProvider(ctx, organizationId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAuthenticationProvider", reflect.TypeOf((*MockDefaultAPI)(nil).DeleteAuthenticationProvider), ctx, organizationId)
+}
+
+// DeleteAuthenticationProviderExecute mocks base method.
+func (m *MockDefaultAPI) DeleteAuthenticationProviderExecute(r sdk.ApiDeleteAuthenticationProviderRequest) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAuthenticationProviderExecute", r)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteAuthenticationProviderExecute indicates an expected call of DeleteAuthenticationProviderExecute.
+func (mr *MockDefaultAPIMockRecorder) DeleteAuthenticationProviderExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAuthenticationProviderExecute", reflect.TypeOf((*MockDefaultAPI)(nil).DeleteAuthenticationProviderExecute), r)
+}
+
 // DeleteFeature mocks base method.
 func (m *MockDefaultAPI) DeleteFeature(ctx context.Context, organizationId, name string) sdk.ApiDeleteFeatureRequest {
 	m.ctrl.T.Helper()
@@ -319,6 +378,35 @@ func (m *MockDefaultAPI) DeleteOrganization(ctx context.Context, organizationId 
 func (mr *MockDefaultAPIMockRecorder) DeleteOrganization(ctx, organizationId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOrganization", reflect.TypeOf((*MockDefaultAPI)(nil).DeleteOrganization), ctx, organizationId)
+}
+
+// DeleteOrganizationClient mocks base method.
+func (m *MockDefaultAPI) DeleteOrganizationClient(ctx context.Context, organizationId string) sdk.ApiDeleteOrganizationClientRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteOrganizationClient", ctx, organizationId)
+	ret0, _ := ret[0].(sdk.ApiDeleteOrganizationClientRequest)
+	return ret0
+}
+
+// DeleteOrganizationClient indicates an expected call of DeleteOrganizationClient.
+func (mr *MockDefaultAPIMockRecorder) DeleteOrganizationClient(ctx, organizationId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOrganizationClient", reflect.TypeOf((*MockDefaultAPI)(nil).DeleteOrganizationClient), ctx, organizationId)
+}
+
+// DeleteOrganizationClientExecute mocks base method.
+func (m *MockDefaultAPI) DeleteOrganizationClientExecute(r sdk.ApiDeleteOrganizationClientRequest) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteOrganizationClientExecute", r)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteOrganizationClientExecute indicates an expected call of DeleteOrganizationClientExecute.
+func (mr *MockDefaultAPIMockRecorder) DeleteOrganizationClientExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOrganizationClientExecute", reflect.TypeOf((*MockDefaultAPI)(nil).DeleteOrganizationClientExecute), r)
 }
 
 // DeleteOrganizationExecute mocks base method.
@@ -1076,6 +1164,155 @@ func (mr *MockDefaultAPIMockRecorder) ListUsersOfOrganizationExecute(r any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsersOfOrganizationExecute", reflect.TypeOf((*MockDefaultAPI)(nil).ListUsersOfOrganizationExecute), r)
 }
 
+// OrganizationClientCreate mocks base method.
+func (m *MockDefaultAPI) OrganizationClientCreate(ctx context.Context, organizationId string) sdk.ApiOrganizationClientCreateRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrganizationClientCreate", ctx, organizationId)
+	ret0, _ := ret[0].(sdk.ApiOrganizationClientCreateRequest)
+	return ret0
+}
+
+// OrganizationClientCreate indicates an expected call of OrganizationClientCreate.
+func (mr *MockDefaultAPIMockRecorder) OrganizationClientCreate(ctx, organizationId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrganizationClientCreate", reflect.TypeOf((*MockDefaultAPI)(nil).OrganizationClientCreate), ctx, organizationId)
+}
+
+// OrganizationClientCreateExecute mocks base method.
+func (m *MockDefaultAPI) OrganizationClientCreateExecute(r sdk.ApiOrganizationClientCreateRequest) (*sdk.CreateOrganizationClientResponse, *http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrganizationClientCreateExecute", r)
+	ret0, _ := ret[0].(*sdk.CreateOrganizationClientResponse)
+	ret1, _ := ret[1].(*http.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// OrganizationClientCreateExecute indicates an expected call of OrganizationClientCreateExecute.
+func (mr *MockDefaultAPIMockRecorder) OrganizationClientCreateExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrganizationClientCreateExecute", reflect.TypeOf((*MockDefaultAPI)(nil).OrganizationClientCreateExecute), r)
+}
+
+// OrganizationClientDelete mocks base method.
+func (m *MockDefaultAPI) OrganizationClientDelete(ctx context.Context, organizationId, clientId string) sdk.ApiOrganizationClientDeleteRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrganizationClientDelete", ctx, organizationId, clientId)
+	ret0, _ := ret[0].(sdk.ApiOrganizationClientDeleteRequest)
+	return ret0
+}
+
+// OrganizationClientDelete indicates an expected call of OrganizationClientDelete.
+func (mr *MockDefaultAPIMockRecorder) OrganizationClientDelete(ctx, organizationId, clientId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrganizationClientDelete", reflect.TypeOf((*MockDefaultAPI)(nil).OrganizationClientDelete), ctx, organizationId, clientId)
+}
+
+// OrganizationClientDeleteExecute mocks base method.
+func (m *MockDefaultAPI) OrganizationClientDeleteExecute(r sdk.ApiOrganizationClientDeleteRequest) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrganizationClientDeleteExecute", r)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// OrganizationClientDeleteExecute indicates an expected call of OrganizationClientDeleteExecute.
+func (mr *MockDefaultAPIMockRecorder) OrganizationClientDeleteExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrganizationClientDeleteExecute", reflect.TypeOf((*MockDefaultAPI)(nil).OrganizationClientDeleteExecute), r)
+}
+
+// OrganizationClientRead mocks base method.
+func (m *MockDefaultAPI) OrganizationClientRead(ctx context.Context, organizationId, clientId string) sdk.ApiOrganizationClientReadRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrganizationClientRead", ctx, organizationId, clientId)
+	ret0, _ := ret[0].(sdk.ApiOrganizationClientReadRequest)
+	return ret0
+}
+
+// OrganizationClientRead indicates an expected call of OrganizationClientRead.
+func (mr *MockDefaultAPIMockRecorder) OrganizationClientRead(ctx, organizationId, clientId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrganizationClientRead", reflect.TypeOf((*MockDefaultAPI)(nil).OrganizationClientRead), ctx, organizationId, clientId)
+}
+
+// OrganizationClientReadExecute mocks base method.
+func (m *MockDefaultAPI) OrganizationClientReadExecute(r sdk.ApiOrganizationClientReadRequest) (*sdk.ReadOrganizationClientResponse, *http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrganizationClientReadExecute", r)
+	ret0, _ := ret[0].(*sdk.ReadOrganizationClientResponse)
+	ret1, _ := ret[1].(*http.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// OrganizationClientReadExecute indicates an expected call of OrganizationClientReadExecute.
+func (mr *MockDefaultAPIMockRecorder) OrganizationClientReadExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrganizationClientReadExecute", reflect.TypeOf((*MockDefaultAPI)(nil).OrganizationClientReadExecute), r)
+}
+
+// OrganizationClientsRead mocks base method.
+func (m *MockDefaultAPI) OrganizationClientsRead(ctx context.Context, organizationId string) sdk.ApiOrganizationClientsReadRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrganizationClientsRead", ctx, organizationId)
+	ret0, _ := ret[0].(sdk.ApiOrganizationClientsReadRequest)
+	return ret0
+}
+
+// OrganizationClientsRead indicates an expected call of OrganizationClientsRead.
+func (mr *MockDefaultAPIMockRecorder) OrganizationClientsRead(ctx, organizationId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrganizationClientsRead", reflect.TypeOf((*MockDefaultAPI)(nil).OrganizationClientsRead), ctx, organizationId)
+}
+
+// OrganizationClientsReadExecute mocks base method.
+func (m *MockDefaultAPI) OrganizationClientsReadExecute(r sdk.ApiOrganizationClientsReadRequest) (*sdk.ReadOrganizationClientsResponse, *http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrganizationClientsReadExecute", r)
+	ret0, _ := ret[0].(*sdk.ReadOrganizationClientsResponse)
+	ret1, _ := ret[1].(*http.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// OrganizationClientsReadExecute indicates an expected call of OrganizationClientsReadExecute.
+func (mr *MockDefaultAPIMockRecorder) OrganizationClientsReadExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrganizationClientsReadExecute", reflect.TypeOf((*MockDefaultAPI)(nil).OrganizationClientsReadExecute), r)
+}
+
+// ReadAuthenticationProvider mocks base method.
+func (m *MockDefaultAPI) ReadAuthenticationProvider(ctx context.Context, organizationId string) sdk.ApiReadAuthenticationProviderRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadAuthenticationProvider", ctx, organizationId)
+	ret0, _ := ret[0].(sdk.ApiReadAuthenticationProviderRequest)
+	return ret0
+}
+
+// ReadAuthenticationProvider indicates an expected call of ReadAuthenticationProvider.
+func (mr *MockDefaultAPIMockRecorder) ReadAuthenticationProvider(ctx, organizationId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadAuthenticationProvider", reflect.TypeOf((*MockDefaultAPI)(nil).ReadAuthenticationProvider), ctx, organizationId)
+}
+
+// ReadAuthenticationProviderExecute mocks base method.
+func (m *MockDefaultAPI) ReadAuthenticationProviderExecute(r sdk.ApiReadAuthenticationProviderRequest) (*sdk.AuthenticationProviderResponse, *http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadAuthenticationProviderExecute", r)
+	ret0, _ := ret[0].(*sdk.AuthenticationProviderResponse)
+	ret1, _ := ret[1].(*http.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ReadAuthenticationProviderExecute indicates an expected call of ReadAuthenticationProviderExecute.
+func (mr *MockDefaultAPIMockRecorder) ReadAuthenticationProviderExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadAuthenticationProviderExecute", reflect.TypeOf((*MockDefaultAPI)(nil).ReadAuthenticationProviderExecute), r)
+}
+
 // ReadConnectedUser mocks base method.
 func (m *MockDefaultAPI) ReadConnectedUser(ctx context.Context) sdk.ApiReadConnectedUserRequest {
 	m.ctrl.T.Helper()
@@ -1118,6 +1355,36 @@ func (m *MockDefaultAPI) ReadOrganization(ctx context.Context, organizationId st
 func (mr *MockDefaultAPIMockRecorder) ReadOrganization(ctx, organizationId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOrganization", reflect.TypeOf((*MockDefaultAPI)(nil).ReadOrganization), ctx, organizationId)
+}
+
+// ReadOrganizationClient mocks base method.
+func (m *MockDefaultAPI) ReadOrganizationClient(ctx context.Context, organizationId string) sdk.ApiReadOrganizationClientRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadOrganizationClient", ctx, organizationId)
+	ret0, _ := ret[0].(sdk.ApiReadOrganizationClientRequest)
+	return ret0
+}
+
+// ReadOrganizationClient indicates an expected call of ReadOrganizationClient.
+func (mr *MockDefaultAPIMockRecorder) ReadOrganizationClient(ctx, organizationId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOrganizationClient", reflect.TypeOf((*MockDefaultAPI)(nil).ReadOrganizationClient), ctx, organizationId)
+}
+
+// ReadOrganizationClientExecute mocks base method.
+func (m *MockDefaultAPI) ReadOrganizationClientExecute(r sdk.ApiReadOrganizationClientRequest) (*sdk.CreateOrganizationClientResponse, *http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadOrganizationClientExecute", r)
+	ret0, _ := ret[0].(*sdk.CreateOrganizationClientResponse)
+	ret1, _ := ret[1].(*http.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ReadOrganizationClientExecute indicates an expected call of ReadOrganizationClientExecute.
+func (mr *MockDefaultAPIMockRecorder) ReadOrganizationClientExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOrganizationClientExecute", reflect.TypeOf((*MockDefaultAPI)(nil).ReadOrganizationClientExecute), r)
 }
 
 // ReadOrganizationExecute mocks base method.
@@ -1313,6 +1580,36 @@ func (m *MockDefaultAPI) UpgradeStackExecute(r sdk.ApiUpgradeStackRequest) (*htt
 func (mr *MockDefaultAPIMockRecorder) UpgradeStackExecute(r any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpgradeStackExecute", reflect.TypeOf((*MockDefaultAPI)(nil).UpgradeStackExecute), r)
+}
+
+// UpsertAuthenticationProvider mocks base method.
+func (m *MockDefaultAPI) UpsertAuthenticationProvider(ctx context.Context, organizationId string) sdk.ApiUpsertAuthenticationProviderRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertAuthenticationProvider", ctx, organizationId)
+	ret0, _ := ret[0].(sdk.ApiUpsertAuthenticationProviderRequest)
+	return ret0
+}
+
+// UpsertAuthenticationProvider indicates an expected call of UpsertAuthenticationProvider.
+func (mr *MockDefaultAPIMockRecorder) UpsertAuthenticationProvider(ctx, organizationId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertAuthenticationProvider", reflect.TypeOf((*MockDefaultAPI)(nil).UpsertAuthenticationProvider), ctx, organizationId)
+}
+
+// UpsertAuthenticationProviderExecute mocks base method.
+func (m *MockDefaultAPI) UpsertAuthenticationProviderExecute(r sdk.ApiUpsertAuthenticationProviderRequest) (*sdk.AuthenticationProviderResponse, *http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertAuthenticationProviderExecute", r)
+	ret0, _ := ret[0].(*sdk.AuthenticationProviderResponse)
+	ret1, _ := ret[1].(*http.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// UpsertAuthenticationProviderExecute indicates an expected call of UpsertAuthenticationProviderExecute.
+func (mr *MockDefaultAPIMockRecorder) UpsertAuthenticationProviderExecute(r any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertAuthenticationProviderExecute", reflect.TypeOf((*MockDefaultAPI)(nil).UpsertAuthenticationProviderExecute), r)
 }
 
 // UpsertOrganizationUser mocks base method.

@@ -89,8 +89,15 @@ func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, re
 	body := sdk.UpdateStackUserRequest{
 		Role: sdk.Role(plan.Role.ValueString()),
 	}
-
-	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.UserId.ValueString(), body)
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, organizationId, plan.StackId.ValueString(), plan.UserId.ValueString(), body)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -111,8 +118,15 @@ func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, re
 	if res.Diagnostics.HasError() {
 		return
 	}
-
-	resp, err := s.store.GetSDK().DeleteStackUserAccess(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.UserId.ValueString())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	resp, err := s.store.GetSDK().DeleteStackUserAccess(ctx, organizationId, state.StackId.ValueString(), state.UserId.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -136,7 +150,17 @@ func (s *StackMember) Update(ctx context.Context, req resource.UpdateRequest, re
 	if r := plan.Role.ValueString(); r != "" {
 		body.Role = sdk.Role(r)
 	}
-	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.UserId.ValueString(), body)
+
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+
+	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, organizationId, plan.StackId.ValueString(), plan.UserId.ValueString(), body)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -162,8 +186,15 @@ func (s *StackMember) Read(ctx context.Context, req resource.ReadRequest, res *r
 	if res.Diagnostics.HasError() {
 		return
 	}
-
-	userAccess, resp, err := s.store.GetSDK().ReadStackUserAccess(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.UserId.ValueString())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	userAccess, resp, err := s.store.GetSDK().ReadStackUserAccess(ctx, organizationId, state.StackId.ValueString(), state.UserId.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return

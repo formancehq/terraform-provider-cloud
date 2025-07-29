@@ -90,8 +90,15 @@ func (c *CurrentOrganization) Read(ctx context.Context, req datasource.ReadReque
 	var data CurrentOrganizationModel
 	ctx = logging.ContextWithLogger(ctx, c.logger.WithField("func", "current_organization_read"))
 	logging.FromContext(ctx).Debugf("Reading current organization")
-
-	orgID := c.store.GetOrganizationID()
+	organizationId, err := c.store.GetOrganizationID(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	orgID := organizationId
 	org, res, err := c.store.GetSDK().ReadOrganization(ctx, orgID)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)

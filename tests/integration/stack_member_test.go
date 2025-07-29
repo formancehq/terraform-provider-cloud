@@ -10,10 +10,12 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.uber.org/mock/gomock"
 )
 
@@ -49,10 +51,17 @@ func TestStackMember(t *testing.T) {
 				},
 			},
 			expectedCalls: func(cloudSdk *pkg.MockCloudSDK, tokenProvider *pkg.MockTokenProviderImpl) {
-				cloudSdk.EXPECT().UpsertStackUserAccess(gomock.Any(), "client_id", "stack-id-456", "user-id-123", sdk.UpdateStackUserRequest{
+				organizationID := uuid.NewString()
+				tokenProvider.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
+					Claims: map[string]interface{}{
+						"organization_id": organizationID,
+					},
+				}, nil).AnyTimes()
+
+				cloudSdk.EXPECT().UpsertStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123", sdk.UpdateStackUserRequest{
 					Role: sdk.GUEST,
 				}).Return(nil, nil)
-				cloudSdk.EXPECT().ReadStackUserAccess(gomock.Any(), "client_id", "stack-id-456", "user-id-123").
+				cloudSdk.EXPECT().ReadStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123").
 					Return(&sdk.ReadStackUserAccess{
 						Data: &sdk.StackUserAccess{
 							StackId: "stack-id-456",
@@ -61,10 +70,10 @@ func TestStackMember(t *testing.T) {
 							Role:    sdk.GUEST,
 						},
 					}, nil, nil).Times(2)
-				cloudSdk.EXPECT().UpsertStackUserAccess(gomock.Any(), "client_id", "stack-id-456", "user-id-123", sdk.UpdateStackUserRequest{
+				cloudSdk.EXPECT().UpsertStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123", sdk.UpdateStackUserRequest{
 					Role: sdk.ADMIN,
 				}).Return(nil, nil)
-				cloudSdk.EXPECT().ReadStackUserAccess(gomock.Any(), "client_id", "stack-id-456", "user-id-123").
+				cloudSdk.EXPECT().ReadStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123").
 					Return(&sdk.ReadStackUserAccess{
 						Data: &sdk.StackUserAccess{
 							StackId: "stack-id-456",
@@ -73,7 +82,7 @@ func TestStackMember(t *testing.T) {
 							Role:    sdk.ADMIN,
 						},
 					}, nil, nil)
-				cloudSdk.EXPECT().DeleteStackUserAccess(gomock.Any(), "client_id", "stack-id-456", "user-id-123").Return(nil, nil)
+				cloudSdk.EXPECT().DeleteStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123").Return(nil, nil)
 			},
 		},
 		{
@@ -93,8 +102,6 @@ func TestStackMember(t *testing.T) {
 	} {
 
 		t.Run(fmt.Sprintf("test_%d", i), func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 			cloudSdk := pkg.NewMockCloudSDK(ctrl)
 			tokenProvider := pkg.NewMockTokenProviderImpl(ctrl)
@@ -116,7 +123,7 @@ func TestStackMember(t *testing.T) {
 				tc.expectedCalls(cloudSdk, tokenProvider)
 			}
 
-			resource.Test(t, resource.TestCase{
+			resource.ParallelTest(t, resource.TestCase{
 				ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 					"cloud": providerserver.NewProtocol6WithError(cloudProvider()),
 				},

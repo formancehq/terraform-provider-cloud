@@ -108,16 +108,25 @@ func (s *Stack) Schema(ctx context.Context, req datasource.SchemaRequest, resp *
 }
 
 func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_read"))
+	s.logger.Debug("Reading stack")
 	var data StackModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
 	var stack sdk.Stack
 	switch {
 	case data.ID.ValueString() != "":
-		obj, res, err := s.store.GetSDK().ReadStack(ctx, s.store.GetOrganizationID(), data.ID.ValueString())
+		obj, res, err := s.store.GetSDK().ReadStack(ctx, organizationId, data.ID.ValueString())
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
@@ -125,7 +134,7 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 
 		stack = *obj.Data
 	case data.Name.ValueString() != "":
-		listResp, res, err := s.store.GetSDK().ListStacks(ctx, s.store.GetOrganizationID())
+		listResp, res, err := s.store.GetSDK().ListStacks(ctx, organizationId)
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
@@ -134,7 +143,7 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 		if len(listResp.Data) == 0 {
 			resp.Diagnostics.AddError(
 				"No stacks found",
-				fmt.Sprintf("No stacks found in organization '%s'", s.store.GetOrganizationID()),
+				fmt.Sprintf("No stacks found in organization '%s'", organizationId),
 			)
 			return
 		}

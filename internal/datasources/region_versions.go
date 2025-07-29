@@ -91,18 +91,27 @@ func (r *RegionVersions) Schema(ctx context.Context, req datasource.SchemaReques
 }
 
 func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx = logging.ContextWithLogger(ctx, r.logger.WithField("func", "region_versions_read"))
+	r.logger.Debug("Reading region versions")
 	var data RegionVersionsModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
+	organizationId, err := r.store.GetOrganizationID(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
 	var regionID string
 
 	if !data.ID.IsNull() {
 		regionID = data.ID.ValueString()
 	} else {
-		regions, res, err := r.store.GetSDK().ListRegions(ctx, r.store.GetOrganizationID())
+		regions, res, err := r.store.GetSDK().ListRegions(ctx, organizationId)
 		if err != nil {
 			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 			return
@@ -111,7 +120,7 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 		if len(regions.Data) == 0 {
 			resp.Diagnostics.AddError(
 				"No regions found",
-				fmt.Sprintf("No regions found in organization '%s'", r.store.GetOrganizationID()),
+				fmt.Sprintf("No regions found in organization '%s'", organizationId),
 			)
 			return
 		}
@@ -124,7 +133,7 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 		data.ID = types.StringValue(regionID)
 	}
 
-	obj, res, err := r.store.GetSDK().GetRegionVersions(ctx, r.store.GetOrganizationID(), regionID)
+	obj, res, err := r.store.GetSDK().GetRegionVersions(ctx, organizationId, regionID)
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return

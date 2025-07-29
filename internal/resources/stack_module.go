@@ -98,13 +98,23 @@ func (s *StackModule) Configure(ctx context.Context, req resource.ConfigureReque
 
 // Create implements resource.Resource.
 func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, res *resource.CreateResponse) {
+	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_module_create"))
+	logging.FromContext(ctx).Debug("Creating stack module")
+
 	var plan StackModuleModel
 	res.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if res.Diagnostics.HasError() {
 		return
 	}
-
-	resp, err := s.store.GetSDK().EnableModule(ctx, s.store.GetOrganizationID(), plan.StackId.ValueString(), plan.Name.ValueString())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	resp, err := s.store.GetSDK().EnableModule(ctx, organizationId, plan.StackId.ValueString(), plan.Name.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -115,13 +125,22 @@ func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, re
 
 // Delete implements resource.Resource.
 func (s *StackModule) Delete(ctx context.Context, req resource.DeleteRequest, res *resource.DeleteResponse) {
+	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_module_delete"))
+	logging.FromContext(ctx).Debug("Deleting stack module")
 	var state StackModuleModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {
 		return
 	}
-
-	resp, err := s.store.GetSDK().DisableModule(ctx, s.store.GetOrganizationID(), state.StackId.ValueString(), state.Name.ValueString())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	resp, err := s.store.GetSDK().DisableModule(ctx, organizationId, state.StackId.ValueString(), state.Name.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return
@@ -136,13 +155,21 @@ func (s *StackModule) Metadata(_ context.Context, req resource.MetadataRequest, 
 // Read implements resource.Resource.
 func (s *StackModule) Read(ctx context.Context, req resource.ReadRequest, res *resource.ReadResponse) {
 	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "read"))
+	logging.FromContext(ctx).Debug("Reading stack module")
 	var state StackModuleModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {
 		return
 	}
-
-	modules, resp, err := s.store.GetSDK().ListModules(ctx, s.store.GetOrganizationID(), state.StackId.ValueString())
+	organizationId, err := s.store.GetOrganizationID(ctx)
+	if err != nil {
+		res.Diagnostics.AddError(
+			"Failed to get organization ID",
+			fmt.Sprintf("Error retrieving organization ID: %s", err),
+		)
+		return
+	}
+	modules, resp, err := s.store.GetSDK().ListModules(ctx, organizationId, state.StackId.ValueString())
 	if err != nil {
 		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
 		return

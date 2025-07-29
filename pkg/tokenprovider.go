@@ -15,7 +15,6 @@ import (
 	"github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
-	gomock "go.uber.org/mock/gomock"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -24,6 +23,7 @@ import (
 type TokenProviderImpl interface {
 	AccessToken(ctx context.Context) (*TokenInfo, error)
 	RefreshToken(ctx context.Context) (*TokenInfo, error)
+	IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error)
 }
 
 type TokenInfo struct {
@@ -68,6 +68,14 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	p.cloud.Lock()
 	defer p.cloud.Unlock()
 
+	if p.cloud.AccessToken != "" {
+		return &TokenInfo{
+			AccessToken:  p.cloud.AccessToken,
+			RefreshToken: p.cloud.RefreshToken,
+			Expiry:       p.cloud.Expiry,
+		}, nil
+	}
+
 	logger := logging.FromContext(ctx).WithField("func", "AccessToken")
 	logger.Debugf("Getting access token for %s", p.creds.Endpoint())
 	defer logger.Debugf("Getting access token done")
@@ -106,24 +114,22 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	logging.FromContext(ctx).Debugf("Getting refresh token for %s", p.creds.Endpoint())
 
-	p.cloud.Lock()
-	if p.cloud.AccessToken == "" {
-		p.cloud.Unlock()
-		return p.AccessToken(ctx)
+	tokenInfo, err := p.AccessToken(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	defer p.cloud.Unlock()
-	if time.Now().Before(p.cloud.Expiry) {
+	if time.Now().Before(tokenInfo.Expiry) {
 		return &TokenInfo{
-			AccessToken:  p.cloud.AccessToken,
-			RefreshToken: p.cloud.RefreshToken,
-			Expiry:       p.cloud.Expiry,
+			AccessToken:  tokenInfo.AccessToken,
+			RefreshToken: tokenInfo.RefreshToken,
+			Expiry:       tokenInfo.Expiry,
 		}, nil
 	}
 
 	form := url.Values{
 		"grant_type":    []string{string(oidc.GrantTypeRefreshToken)},
-		"refresh_token": []string{p.cloud.RefreshToken},
+		"refresh_token": []string{tokenInfo.RefreshToken},
 		"client_id":     []string{p.creds.ClientId()},
 		"client_secret": []string{p.creds.ClientSecret()},
 	}
@@ -159,6 +165,9 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 		return nil, err
 	}
 
+	p.cloud.Lock()
+	defer p.cloud.Unlock()
+
 	p.cloud.AccessToken = token.AccessToken
 	p.cloud.Expiry = token.Expiry
 	p.cloud.RefreshToken = token.RefreshToken
@@ -171,17 +180,49 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 
 }
 
-type Mock struct {
-	Creds
-	*MockTokenProviderImpl
-}
+func (p TokenProvider) IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error) {
+	logging.FromContext(ctx).Debugf("Introspecting token for %s", p.creds.Endpoint())
 
-func NewMockTokenProvider(ctrl *gomock.Controller) (TokenProviderFactory, *Mock) {
-	mock := &Mock{
-		MockTokenProviderImpl: NewMockTokenProviderImpl(ctrl),
+	tokenInfo, err := p.AccessToken(ctx)
+	if err != nil {
+		return oidc.IntrospectionResponse{}, err
 	}
-	return func(transport http.RoundTripper, creds Creds) TokenProviderImpl {
-		mock.Creds = creds
-		return mock
-	}, mock
+
+	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
+	if err != nil {
+		return oidc.IntrospectionResponse{}, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, discoveryConfiguration.IntrospectionEndpoint,
+		bytes.NewBufferString("token="+tokenInfo.AccessToken))
+	if err != nil {
+		return oidc.IntrospectionResponse{}, err
+	}
+	req.SetBasicAuth(p.creds.ClientId(), p.creds.ClientSecret())
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	ret, err := p.client.Do(req)
+	if err != nil {
+		return oidc.IntrospectionResponse{}, err
+	}
+	defer func() {
+		if err := ret.Body.Close(); err != nil {
+			logging.FromContext(ctx).Errorf("Failed to close response body: %s", err.Error())
+		}
+	}()
+
+	if ret.StatusCode != http.StatusOK {
+		data, err := io.ReadAll(ret.Body)
+		if err != nil {
+			return oidc.IntrospectionResponse{}, err
+		}
+		return oidc.IntrospectionResponse{}, errors.New(string(data))
+	}
+
+	var introspectionResponse oidc.IntrospectionResponse
+	if err := json.NewDecoder(ret.Body).Decode(&introspectionResponse); err != nil {
+		return oidc.IntrospectionResponse{}, err
+	}
+
+	return introspectionResponse, nil
 }

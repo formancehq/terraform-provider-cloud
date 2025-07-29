@@ -1,22 +1,26 @@
 package internal
 
 import (
-	"strings"
+	"context"
+	"sync"
 
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 )
 
 // Store provides a shared storage for provider-wide data
 type Store struct {
-	clientID string
-	sdk      pkg.CloudSDK
+	sync.Mutex
+	organizationID string
+
+	tp  pkg.TokenProviderImpl
+	sdk pkg.CloudSDK
 }
 
 // NewStore creates a new Store instance
-func NewStore(sdkClient pkg.CloudSDK, clientID string) *Store {
+func NewStore(sdkClient pkg.CloudSDK, tp pkg.TokenProviderImpl) *Store {
 	return &Store{
-		sdk:      sdkClient,
-		clientID: clientID,
+		sdk: sdkClient,
+		tp:  tp,
 	}
 }
 
@@ -25,7 +29,20 @@ func (s *Store) GetSDK() pkg.CloudSDK {
 	return s.sdk
 }
 
+var (
+	claimOrganizationID = "organization_id"
+)
+
 // GetOrganizationID returns the current organization ID
-func (s *Store) GetOrganizationID() string {
-	return strings.Split(s.clientID, "organization_")[1]
+func (s *Store) GetOrganizationID(ctx context.Context) (string, error) {
+	s.Lock()
+	defer s.Unlock()
+	if s.organizationID == "" {
+		introspection, err := s.tp.IntrospectToken(ctx)
+		if err != nil {
+			return "", err
+		}
+		s.organizationID = introspection.Claims[claimOrganizationID].(string)
+	}
+	return s.organizationID, nil
 }
