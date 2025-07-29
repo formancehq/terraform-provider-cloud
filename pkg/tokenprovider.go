@@ -68,6 +68,14 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	p.cloud.Lock()
 	defer p.cloud.Unlock()
 
+	if p.cloud.AccessToken != "" {
+		return &TokenInfo{
+			AccessToken:  p.cloud.AccessToken,
+			RefreshToken: p.cloud.RefreshToken,
+			Expiry:       p.cloud.Expiry,
+		}, nil
+	}
+
 	logger := logging.FromContext(ctx).WithField("func", "AccessToken")
 	logger.Debugf("Getting access token for %s", p.creds.Endpoint())
 	defer logger.Debugf("Getting access token done")
@@ -106,25 +114,22 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	logging.FromContext(ctx).Debugf("Getting refresh token for %s", p.creds.Endpoint())
 
-	p.cloud.Lock()
-	if p.cloud.AccessToken == "" {
-		p.cloud.Unlock()
-		return p.AccessToken(ctx)
-	} else {
-		defer p.cloud.Unlock()
+	tokenInfo, err := p.AccessToken(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	if time.Now().Before(p.cloud.Expiry) {
+	if time.Now().Before(tokenInfo.Expiry) {
 		return &TokenInfo{
-			AccessToken:  p.cloud.AccessToken,
-			RefreshToken: p.cloud.RefreshToken,
-			Expiry:       p.cloud.Expiry,
+			AccessToken:  tokenInfo.AccessToken,
+			RefreshToken: tokenInfo.RefreshToken,
+			Expiry:       tokenInfo.Expiry,
 		}, nil
 	}
 
 	form := url.Values{
 		"grant_type":    []string{string(oidc.GrantTypeRefreshToken)},
-		"refresh_token": []string{p.cloud.RefreshToken},
+		"refresh_token": []string{tokenInfo.RefreshToken},
 		"client_id":     []string{p.creds.ClientId()},
 		"client_secret": []string{p.creds.ClientSecret()},
 	}
@@ -160,6 +165,9 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 		return nil, err
 	}
 
+	p.cloud.Lock()
+	defer p.cloud.Unlock()
+
 	p.cloud.AccessToken = token.AccessToken
 	p.cloud.Expiry = token.Expiry
 	p.cloud.RefreshToken = token.RefreshToken
@@ -175,17 +183,10 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 func (p TokenProvider) IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error) {
 	logging.FromContext(ctx).Debugf("Introspecting token for %s", p.creds.Endpoint())
 
-	p.cloud.Lock()
-	if p.cloud.AccessToken == "" {
-		p.cloud.Unlock()
-		var err error
-		_, err = p.AccessToken(ctx)
-		if err != nil {
-			return oidc.IntrospectionResponse{}, err
-		}
-		p.cloud.Lock()
+	tokenInfo, err := p.AccessToken(ctx)
+	if err != nil {
+		return oidc.IntrospectionResponse{}, err
 	}
-	defer p.cloud.Unlock()
 
 	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
 	if err != nil {
@@ -193,7 +194,7 @@ func (p TokenProvider) IntrospectToken(ctx context.Context) (oidc.IntrospectionR
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, discoveryConfiguration.IntrospectionEndpoint,
-		bytes.NewBufferString("token="+p.cloud.AccessToken))
+		bytes.NewBufferString("token="+tokenInfo.AccessToken))
 	if err != nil {
 		return oidc.IntrospectionResponse{}, err
 	}
