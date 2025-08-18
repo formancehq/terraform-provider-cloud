@@ -11,7 +11,8 @@
 
 // Generate terraform providers schema
 //
-//go:generate rm -rf ./schema && mkdir -p ./schema && cd examples/latest && terraform init -upgrade && terraform providers schema -json > ../../schema/providers.json
+//go:generate cd examples/latest && terraform init -upgrade && terraform providers schema -json > ../../schema/providers.json
+
 package main
 
 import "github.com/formancehq/terraform-provider-cloud/cmd"
