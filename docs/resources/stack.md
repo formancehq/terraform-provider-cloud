@@ -22,6 +22,7 @@ Manages a Formance Cloud stack. A stack is an isolated environment where you can
 ### Optional
 
 - `force_destroy` (Boolean) When set to true, the stack will be forcefully deleted even if it contains data. Use with caution.
+- `metadata` (Map of String) A map of metadata key-value pairs to associate with the stack.
 - `name` (String) The name of the stack. Must be unique within the organization.
 - `version` (String) The version of Formance to deploy. If not specified, the latest version will be used.
 
