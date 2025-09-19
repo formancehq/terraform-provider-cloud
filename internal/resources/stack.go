@@ -126,7 +126,7 @@ func (s *Stack) ValidateConfig(ctx context.Context, req resource.ValidateConfigR
 	if res.Diagnostics.HasError() {
 		return
 	}
-	logging.FromContext(ctx).Debugf("Stack metadata: %v", config.Metadata)
+
 	if config.RegionID.IsNull() {
 		res.Diagnostics.AddError("Invalid Region ID", "Region ID cannot be null")
 	}
