@@ -9,9 +9,12 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"golang.org/x/mod/semver"
 )
@@ -52,6 +55,15 @@ var SchemaStack = schema.Schema{
 			Description: "The URI of the deployed stack.",
 			Computed:    true,
 		},
+		"metadata": schema.MapAttribute{
+			Description: "A map of metadata key-value pairs to associate with the stack.",
+			Optional:    true,
+			Computed:    true,
+			ElementType: types.StringType,
+			PlanModifiers: []planmodifier.Map{
+				mapplanmodifier.UseStateForUnknown(),
+			},
+		},
 	},
 }
 
@@ -62,6 +74,8 @@ type StackModel struct {
 	RegionID types.String `tfsdk:"region_id"`
 	Version  types.String `tfsdk:"version"`
 	URI      types.String `tfsdk:"uri"`
+
+	Metadata types.Map `tfsdk:"metadata"`
 
 	ForceDestroy types.Bool `tfsdk:"force_destroy"`
 }
@@ -103,12 +117,16 @@ func (s *Stack) ImportState(ctx context.Context, req resource.ImportStateRequest
 
 // ValidateConfig implements resource.ResourceWithValidateConfig.
 func (s *Stack) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, res *resource.ValidateConfigResponse) {
+	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_validate_config"))
+	logging.FromContext(ctx).Debugf("Validating stack config")
+	defer logging.FromContext(ctx).Debugf("Stack config validated")
+	// Retrieve the plan
 	var config StackModel
 	res.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if res.Diagnostics.HasError() {
 		return
 	}
-
+	logging.FromContext(ctx).Debugf("Stack metadata: %v", config.Metadata)
 	if config.RegionID.IsNull() {
 		res.Diagnostics.AddError("Invalid Region ID", "Region ID cannot be null")
 	}
@@ -151,14 +169,17 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 		)
 		return
 	}
+
 	createStackRequest := sdk.CreateStackRequest{
-		Metadata: pointer.For(map[string]string{
-			"github.com/formancehq/terraform-provider-cloud/protected": "true",
-		}),
+		Metadata: pointer.For(map[string]string{}),
 		RegionID: plan.GetRegionID(),
 		Name:     plan.GetName(),
 		Version:  pointer.For(plan.Version.ValueString()),
 	}
+	if !plan.Metadata.IsNull() {
+		plan.Metadata.ElementsAs(ctx, &createStackRequest.Metadata, false)
+	}
+	(*createStackRequest.Metadata)["github.com/formancehq/terraform-provider-cloud/protected"] = "true"
 
 	obj, res, err := s.store.GetSDK().CreateStack(ctx, organizationId, createStackRequest)
 	if err != nil {
@@ -173,6 +194,16 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 	plan.Version = types.StringNull()
 	if obj.Data.Version != nil {
 		plan.Version = types.StringValue(*obj.Data.Version)
+	}
+	plan.Metadata = types.MapNull(types.StringType)
+	if obj.Data.Metadata != nil {
+		md := make(map[string]attr.Value, len(*obj.Data.Metadata))
+		for k, v := range *obj.Data.Metadata {
+			md[k] = types.StringValue(v)
+		}
+		//FixMe(hack): Remove the protected metadata to match the config
+		delete(md, "github.com/formancehq/terraform-provider-cloud/protected")
+		plan.Metadata = types.MapValueMust(types.StringType, md)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -242,7 +273,16 @@ func (s *Stack) Read(ctx context.Context, req resource.ReadRequest, resp *resour
 	}
 	plan.RegionID = types.StringValue(obj.Data.RegionID)
 	plan.URI = types.StringValue(obj.Data.Uri)
-
+	plan.Metadata = types.MapNull(types.StringType)
+	if obj.Data.Metadata != nil {
+		md := make(map[string]attr.Value, len(*obj.Data.Metadata))
+		for k, v := range *obj.Data.Metadata {
+			md[k] = types.StringValue(v)
+		}
+		//FixMe(hack): Remove the protected metadata to match the config
+		delete(md, "github.com/formancehq/terraform-provider-cloud/protected")
+		plan.Metadata = types.MapValueMust(types.StringType, md)
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -253,8 +293,7 @@ func (s *Stack) Schema(ctx context.Context, req resource.SchemaRequest, resp *re
 
 // Update implements resource.Resource.
 func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *resource.UpdateResponse) {
-
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack.update"))
+	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_update"))
 	logging.FromContext(ctx).Debugf("Updating stack")
 
 	var plan StackModel
@@ -276,11 +315,14 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 	}
 	if plan.Name.ValueString() != state.Name.ValueString() {
 		updateRequest := sdk.UpdateStackRequest{
-			Name: plan.Name.ValueString(),
-			Metadata: pointer.For(map[string]string{
-				"github.com/formancehq/terraform-provider-cloud/protected": "true",
-			}),
+			Name:     plan.Name.ValueString(),
+			Metadata: pointer.For(map[string]string{}),
 		}
+
+		if !plan.Metadata.IsNull() {
+			plan.Metadata.ElementsAs(ctx, &updateRequest.Metadata, false)
+		}
+		(*updateRequest.Metadata)["github.com/formancehq/terraform-provider-cloud/protected"] = "true"
 
 		obj, resp, err := s.store.GetSDK().UpdateStack(ctx, organizationId, plan.GetID(), updateRequest)
 		if err != nil {
@@ -289,6 +331,16 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 		}
 		plan.Name = types.StringValue(obj.Data.Name)
 		plan.URI = types.StringValue(obj.Data.Uri)
+		plan.Metadata = types.MapNull(types.StringType)
+		if obj.Data.Metadata != nil {
+			md := make(map[string]attr.Value, len(*obj.Data.Metadata))
+			for k, v := range *obj.Data.Metadata {
+				md[k] = types.StringValue(v)
+			}
+			//FixMe(hack): Remove the protected metadata to match the config
+			delete(md, "github.com/formancehq/terraform-provider-cloud/protected")
+			plan.Metadata = types.MapValueMust(types.StringType, md)
+		}
 	}
 
 	if state.Version.ValueString() != plan.Version.ValueString() {
