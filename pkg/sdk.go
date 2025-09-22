@@ -51,7 +51,7 @@ func NewMockSDK(ctrl *gomock.Controller) (SDKFactory, *MockDefaultAPI) {
 
 type SDKFactory func(creds Creds, transport http.RoundTripper) sdk.DefaultAPI
 
-//go:generate mockgen -source=../sdk/api_default.go -destination=sdk_generated.go -package=pkg . DefaultAPI
+//go:generate mockgen -typed -source=../sdk/api_default.go -destination=sdk_generated.go -package=pkg . DefaultAPI
 type SDK struct {
 	*sdk.APIClient
 }
