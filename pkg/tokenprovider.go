@@ -19,7 +19,7 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
-//go:generate mockgen -destination=tokenprovider_generated.go -package=pkg . TokenProviderImpl
+//go:generate mockgen -typed -destination=tokenprovider_generated.go -package=pkg . TokenProviderImpl
 type TokenProviderImpl interface {
 	AccessToken(ctx context.Context) (*TokenInfo, error)
 	RefreshToken(ctx context.Context) (*TokenInfo, error)
