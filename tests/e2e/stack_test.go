@@ -37,7 +37,9 @@ func TestStack(t *testing.T) {
 					resource "cloud_stack" "test" {
 						name = "test"
 						region_id = data.cloud_regions.dev.id
-
+						metadata = {
+							"env" = "test"
+						}
 						force_destroy = true
 					}
 				`, RegionName),
@@ -48,6 +50,9 @@ func TestStack(t *testing.T) {
 					statecheck.ExpectKnownValue("cloud_stack.test", tfjsonpath.New("name"), knownvalue.StringExact("test")),
 					statecheck.ExpectKnownValue("cloud_stack.test", tfjsonpath.New("id"), knownvalue.StringRegexp(regexp.MustCompile(`.+`))),
 					statecheck.ExpectKnownValue("cloud_stack.test", tfjsonpath.New("force_destroy"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("cloud_stack.test", tfjsonpath.New("metadata"), knownvalue.MapPartial(map[string]knownvalue.Check{
+						"env": knownvalue.StringExact("test"),
+					})),
 				},
 			},
 			{

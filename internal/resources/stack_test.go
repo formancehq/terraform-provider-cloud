@@ -146,6 +146,7 @@ func TestStackCreate(t *testing.T) {
 						RegionID:       tc.regionID,
 						Version:        pointer.For(tc.version),
 						Uri:            "https://example.com",
+						Metadata:       &md,
 					},
 				}, nil, nil)
 
@@ -160,6 +161,9 @@ func TestStackCreate(t *testing.T) {
 							"version":       tftypes.NewValue(tftypes.String, tc.version),
 							"force_destroy": tftypes.NewValue(tftypes.Bool, nil),
 							"uri":           tftypes.NewValue(tftypes.String, "https://example.com"),
+							"metadata": tftypes.NewValue(tftypes.Map{
+								ElementType: tftypes.String,
+							}, nil),
 						}),
 						Schema: resources.SchemaStack,
 					},
@@ -214,6 +218,9 @@ func TestStackValidateConfig(t *testing.T) {
 							"id":            tftypes.NewValue(tftypes.String, nil),
 							"force_destroy": tftypes.NewValue(tftypes.Bool, nil),
 							"uri":           tftypes.NewValue(tftypes.String, nil),
+							"metadata": tftypes.NewValue(tftypes.Map{
+								ElementType: tftypes.String,
+							}, nil),
 						}),
 						Schema: resources.SchemaStack,
 					},
