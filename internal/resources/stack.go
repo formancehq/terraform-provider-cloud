@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
@@ -229,6 +230,14 @@ func (s *Stack) Delete(ctx context.Context, req resource.DeleteRequest, resp *re
 	}
 	res, err := s.store.GetSDK().DeleteStack(ctx, organizationId, plan.GetID(), plan.ForceDestroy.ValueBool())
 	if err != nil {
+		if res.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddWarning(
+				"Stack not found",
+				"The stack was not found. It may have already been deleted outside of Terraform.",
+			)
+			return
+		}
+
 		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
 		return
 	}
