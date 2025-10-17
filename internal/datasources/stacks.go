@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
@@ -25,8 +24,7 @@ var (
 )
 
 type Stack struct {
-	logger logging.Logger
-	store  *internal.Store
+	store *internal.Store
 }
 
 // ConfigValidators implements datasource.DataSourceWithConfigValidators.
@@ -91,11 +89,9 @@ type StackModel struct {
 	State    types.String `tfsdk:"state"`
 }
 
-func NewStacks(logger logging.Logger) func() datasource.DataSource {
+func NewStacks() func() datasource.DataSource {
 	return func() datasource.DataSource {
-		return &Stack{
-			logger: logger,
-		}
+		return &Stack{}
 	}
 }
 
@@ -108,8 +104,6 @@ func (s *Stack) Schema(ctx context.Context, req datasource.SchemaRequest, resp *
 }
 
 func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_read"))
-	s.logger.Debug("Reading stack")
 	var data StackModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

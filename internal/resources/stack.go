@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
@@ -93,15 +92,12 @@ func (m *StackModel) GetRegionID() string {
 }
 
 type Stack struct {
-	logger logging.Logger
-	store  *internal.Store
+	store *internal.Store
 }
 
-func NewStack(logger logging.Logger) func() resource.Resource {
+func NewStack() func() resource.Resource {
 	return func() resource.Resource {
-		return &Stack{
-			logger: logger,
-		}
+		return &Stack{}
 	}
 }
 
@@ -118,9 +114,6 @@ func (s *Stack) ImportState(ctx context.Context, req resource.ImportStateRequest
 
 // ValidateConfig implements resource.ResourceWithValidateConfig.
 func (s *Stack) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, res *resource.ValidateConfigResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_validate_config"))
-	logging.FromContext(ctx).Debugf("Validating stack config")
-	defer logging.FromContext(ctx).Debugf("Stack config validated")
 	// Retrieve the plan
 	var config StackModel
 	res.Diagnostics.Append(req.Config.Get(ctx, &config)...)
@@ -153,9 +146,6 @@ func (s *Stack) Configure(ctx context.Context, req resource.ConfigureRequest, re
 
 // Create implements resource.Resource.
 func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_create"))
-	logging.FromContext(ctx).Debugf("Creating stack")
-
 	var plan StackModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -212,8 +202,6 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 
 // Delete implements resource.Resource.
 func (s *Stack) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack.delete"))
-	logging.FromContext(ctx).Debugf("Deleting stack")
 	var plan StackModel
 	diags := req.State.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -250,9 +238,6 @@ func (s *Stack) Metadata(_ context.Context, req resource.MetadataRequest, resp *
 
 // Read implements resource.Resource.
 func (s *Stack) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_read"))
-	logging.FromContext(ctx).Debugf("Reading stack")
-
 	var plan StackModel
 	diags := req.State.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -302,9 +287,6 @@ func (s *Stack) Schema(ctx context.Context, req resource.SchemaRequest, resp *re
 
 // Update implements resource.Resource.
 func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *resource.UpdateResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_update"))
-	logging.FromContext(ctx).Debugf("Updating stack")
-
 	var plan StackModel
 	var state StackModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)

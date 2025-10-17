@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
+	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/mock/gomock"
 )
 
@@ -118,6 +119,8 @@ func TestRegionVersions(t *testing.T) {
 			cloudSdk := pkg.NewMockCloudSDK(ctrl)
 			tokenProvider := pkg.NewMockTokenProviderImpl(ctrl)
 			cloudProvider := server.NewProvider(
+				noop.NewTracerProvider(),
+
 				logging.Testing().WithField("test", fmt.Sprintf("region_versions_test_%d", i)),
 				server.FormanceCloudEndpoint("dummy-endpoint"),
 				server.FormanceCloudClientId("organization_client_id"),

@@ -45,7 +45,7 @@ func TestRegionsConfigure(t *testing.T) {
 		},
 	} {
 		ctx := logging.TestingContext()
-		og := datasources.NewRegions(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
+		og := datasources.NewRegions()().(datasource.DataSourceWithConfigure)
 
 		res := datasource.ConfigureResponse{
 			Diagnostics: []diag.Diagnostic{},
@@ -78,7 +78,7 @@ func TestRegionsConfigure(t *testing.T) {
 
 func TestRegionsMetadata(t *testing.T) {
 	ctx := logging.TestingContext()
-	og := datasources.NewRegions(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
+	og := datasources.NewRegions()().(datasource.DataSourceWithConfigure)
 
 	res := datasource.MetadataResponse{}
 
@@ -116,7 +116,7 @@ func TestRegionsConfigvalidator(t *testing.T) {
 			t.Parallel()
 			ctx := logging.TestingContext()
 
-			r := datasources.NewRegions(logging.FromContext(ctx))().(datasource.DataSourceWithConfigValidators)
+			r := datasources.NewRegions()().(datasource.DataSourceWithConfigValidators)
 			validators := r.ConfigValidators(ctx)
 
 			for _, validator := range validators {

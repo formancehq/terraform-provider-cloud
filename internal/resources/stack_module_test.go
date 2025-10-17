@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
@@ -46,7 +45,7 @@ func TestStackModuleConfigure(t *testing.T) {
 			},
 		} {
 
-			og := resources.NewStackModule(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
+			og := resources.NewStackModule()().(resource.ResourceWithConfigure)
 
 			res := resource.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},
@@ -80,7 +79,7 @@ func TestStackModuleConfigure(t *testing.T) {
 
 func TestStackModuleMetadata(t *testing.T) {
 	test(t, func(ctx context.Context) {
-		og := resources.NewStackModule(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
+		og := resources.NewStackModule()().(resource.ResourceWithConfigure)
 
 		res := resource.MetadataResponse{}
 
@@ -109,7 +108,7 @@ func TestStackModuleValidateConfig(t *testing.T) {
 	} {
 		t.Run(t.Name(), func(t *testing.T) {
 			test(t, func(ctx context.Context) {
-				og := resources.NewStackModule(logging.FromContext(ctx))().(resource.ResourceWithValidateConfig)
+				og := resources.NewStackModule()().(resource.ResourceWithValidateConfig)
 
 				res := resource.ValidateConfigResponse{
 					Diagnostics: []diag.Diagnostic{},

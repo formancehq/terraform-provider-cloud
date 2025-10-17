@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/mock/gomock"
 )
 
@@ -56,6 +57,7 @@ func TestProvider(t *testing.T) {
 			tokenProvider := pkg.NewMockTokenProviderImpl(ctrl)
 
 			cloudProvider := server.NewProvider(
+				noop.NewTracerProvider(),
 				logging.Testing().WithField("provider", "cloud_noop"),
 				server.FormanceCloudEndpoint(tc.endpoint),
 				server.FormanceCloudClientId(tc.clientId),

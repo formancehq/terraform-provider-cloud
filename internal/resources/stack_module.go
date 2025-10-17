@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
@@ -22,8 +21,7 @@ var (
 )
 
 type StackModule struct {
-	logger logging.Logger
-	store  *internal.Store
+	store *internal.Store
 }
 
 var SchemaStackModule = schema.Schema{
@@ -45,11 +43,9 @@ type StackModuleModel struct {
 	StackId types.String `tfsdk:"stack_id"`
 }
 
-func NewStackModule(logger logging.Logger) func() resource.Resource {
+func NewStackModule() func() resource.Resource {
 	return func() resource.Resource {
-		return &StackModule{
-			logger: logger,
-		}
+		return &StackModule{}
 	}
 }
 
@@ -98,9 +94,6 @@ func (s *StackModule) Configure(ctx context.Context, req resource.ConfigureReque
 
 // Create implements resource.Resource.
 func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, res *resource.CreateResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_module_create"))
-	logging.FromContext(ctx).Debug("Creating stack module")
-
 	var plan StackModuleModel
 	res.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if res.Diagnostics.HasError() {
@@ -125,8 +118,6 @@ func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, re
 
 // Delete implements resource.Resource.
 func (s *StackModule) Delete(ctx context.Context, req resource.DeleteRequest, res *resource.DeleteResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "stack_module_delete"))
-	logging.FromContext(ctx).Debug("Deleting stack module")
 	var state StackModuleModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {
@@ -154,8 +145,6 @@ func (s *StackModule) Metadata(_ context.Context, req resource.MetadataRequest, 
 
 // Read implements resource.Resource.
 func (s *StackModule) Read(ctx context.Context, req resource.ReadRequest, res *resource.ReadResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "read"))
-	logging.FromContext(ctx).Debug("Reading stack module")
 	var state StackModuleModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {
@@ -193,6 +182,5 @@ func (s *StackModule) Schema(ctx context.Context, req resource.SchemaRequest, re
 
 // Update implements resource.Resource.
 func (s *StackModule) Update(ctx context.Context, req resource.UpdateRequest, res *resource.UpdateResponse) {
-	s.logger.WithField("func", "stack_module.update").Debugf("Update operation is not supported for StackModule resource")
 	res.Diagnostics.AddError("Update Operation Not Implemented", "The update operation for StackModule is not supported.")
 }

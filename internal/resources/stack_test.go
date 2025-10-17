@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
@@ -47,7 +46,7 @@ func TestStackConfigure(t *testing.T) {
 			},
 		} {
 
-			og := resources.NewStack(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
+			og := resources.NewStack()().(resource.ResourceWithConfigure)
 
 			res := resource.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},
@@ -81,7 +80,7 @@ func TestStackConfigure(t *testing.T) {
 
 func TestStackMetadata(t *testing.T) {
 	test(t, func(ctx context.Context) {
-		og := resources.NewStack(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
+		og := resources.NewStack()().(resource.ResourceWithConfigure)
 
 		res := resource.MetadataResponse{}
 
@@ -108,7 +107,7 @@ func TestStackCreate(t *testing.T) {
 	} {
 		t.Run(t.Name(), func(t *testing.T) {
 			test(t, func(ctx context.Context) {
-				r := resources.NewStack(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
+				r := resources.NewStack()().(resource.ResourceWithConfigure)
 				organizationId := uuid.NewString()
 				configureRes := resource.ConfigureResponse{
 					Diagnostics: []diag.Diagnostic{},
@@ -201,7 +200,7 @@ func TestStackValidateConfig(t *testing.T) {
 	} {
 		t.Run(t.Name(), func(t *testing.T) {
 			test(t, func(ctx context.Context) {
-				r := resources.NewStack(logging.FromContext(ctx))().(resource.ResourceWithValidateConfig)
+				r := resources.NewStack()().(resource.ResourceWithValidateConfig)
 
 				res := resource.ValidateConfigResponse{
 					Diagnostics: []diag.Diagnostic{},

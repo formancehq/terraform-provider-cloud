@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/datasources"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -54,7 +56,9 @@ func (f *ProviderModelAdapter) UserAgent() string {
 }
 
 type FormanceCloudProvider struct {
-	logger               logging.Logger
+	tracer trace.Tracer
+	logger logging.Logger
+
 	transport            http.RoundTripper
 	sdkFactory           pkg.CloudFactory
 	tokenProviderFactory pkg.TokenProviderFactory
@@ -129,23 +133,31 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 
 // DataSources satisfies the provider.Provider interface for FormanceCloudProvider.
 func (p *FormanceCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		datasources.NewCurrentOrganization(p.logger.WithField("datasource", "current_organization")),
-		datasources.NewRegions(p.logger.WithField("datasource", "regions")),
-		datasources.NewStacks(p.logger.WithField("datasource", "stacks")),
-		datasources.NewRegionVersions(p.logger.WithField("datasource", "region_versions")),
+	d := []func() datasource.DataSource{
+		datasources.NewCurrentOrganization(),
+		datasources.NewRegions(),
+		datasources.NewStacks(),
+		datasources.NewRegionVersions(),
 	}
+	return collectionutils.Map(d, func(d func() datasource.DataSource) func() datasource.DataSource {
+		return func() datasource.DataSource {
+			return datasources.NewDatasourcesTracer(p.tracer, p.logger, d)
+		}
+	})
 }
 
 // Resources satisfies the provider.Provider interface for FormanceCloudProvider.
 func (p *FormanceCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		resources.NewStack(p.logger.WithField("resource", "stack")),
-		resources.NewStackModule(p.logger.WithField("resource", "stack_module")),
-		resources.NewStackMember(p.logger.WithField("resource", "stack_member")),
-		resources.NewOrganizationMember(p.logger.WithField("resource", "organization_member")),
-		resources.NewNoop(p.logger.WithField("resource", "noop")),
+	res := []func() resource.Resource{
+		resources.NewStack(),
+		resources.NewStackModule(),
+		resources.NewStackMember(),
+		resources.NewOrganizationMember(),
+		resources.NewNoop(),
 	}
+	return collectionutils.Map(res, func(r func() resource.Resource) func() resource.Resource {
+		return resources.NewResourceTracer(p.tracer, p.logger, r)
+	})
 }
 
 func (p FormanceCloudProvider) ConfigValidators(ctx context.Context) []provider.ConfigValidator {
@@ -228,6 +240,7 @@ func (p FormanceCloudProvider) ValidateConfig(ctx context.Context, req provider.
 }
 
 func New(
+	tracer trace.TracerProvider,
 	logger logging.Logger,
 	endpoint,
 	clientId,
@@ -238,6 +251,7 @@ func New(
 ) func() provider.Provider {
 	return func() provider.Provider {
 		return &FormanceCloudProvider{
+			tracer:               tracer.Tracer("github.com/formancehq/terraform-provider-cloud"),
 			logger:               logger.WithField("provider", providerType),
 			ClientId:             clientId,
 			ClientSecret:         clientSecret,
