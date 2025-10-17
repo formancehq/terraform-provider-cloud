@@ -13,11 +13,12 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 var (
-	Provider func() provider.Provider
-	RegionName string
+	Provider       func() provider.Provider
+	RegionName     string
 	OrganizationId string
 )
 
@@ -37,7 +38,15 @@ func TestMain(m *testing.M) {
 		transport = otlp.NewRoundTripper(http.DefaultTransport, false)
 	}
 
-	Provider = server.New(logging.Testing(), endpoint, clientID, clientSecret, transport, pkg.NewCloudSDK(), pkg.NewTokenProvider)
+	Provider = server.New(noop.NewTracerProvider(),
+		logging.Testing(),
+		endpoint,
+		clientID,
+		clientSecret,
+		transport,
+		pkg.NewCloudSDK(),
+		pkg.NewTokenProvider,
+	)
 
 	// Setup non destroyable resources
 	RegionName = os.Getenv("FORMANCE_CLOUD_REGION_NAME")
@@ -45,8 +54,8 @@ func TestMain(m *testing.M) {
 
 	// Check only required variables
 	requiredVars := map[string]string{
-		"FORMANCE_CLOUD_API_ENDPOINT": endpoint,
-		"FORMANCE_CLOUD_CLIENT_ID": clientID,
+		"FORMANCE_CLOUD_API_ENDPOINT":  endpoint,
+		"FORMANCE_CLOUD_CLIENT_ID":     clientID,
 		"FORMANCE_CLOUD_CLIENT_SECRET": clientSecret,
 	}
 

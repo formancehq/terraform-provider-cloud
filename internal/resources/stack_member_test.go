@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
@@ -44,7 +43,7 @@ func TestStackMemberConfigure(t *testing.T) {
 			},
 		} {
 
-			og := resources.NewStackMember(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
+			og := resources.NewStackMember()().(resource.ResourceWithConfigure)
 
 			res := resource.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},
@@ -80,7 +79,7 @@ func TestStackMemberConfigure(t *testing.T) {
 
 func TestStackMemberMetadata(t *testing.T) {
 	test(t, func(ctx context.Context) {
-		og := resources.NewStackMember(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
+		og := resources.NewStackMember()().(resource.ResourceWithConfigure)
 
 		res := resource.MetadataResponse{}
 
@@ -100,7 +99,7 @@ func TestStackMemberValidateConfig(t *testing.T) {
 	for _, tc := range []testCase{} {
 		t.Run(t.Name(), func(t *testing.T) {
 			test(t, func(ctx context.Context) {
-				og := resources.NewStackMember(logging.FromContext(ctx))().(resource.ResourceWithValidateConfig)
+				og := resources.NewStackMember()().(resource.ResourceWithValidateConfig)
 
 				res := resource.ValidateConfigResponse{
 					Diagnostics: []diag.Diagnostic{},

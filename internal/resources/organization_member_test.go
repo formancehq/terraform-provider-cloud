@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
@@ -42,7 +41,7 @@ func TestOrganizationMemberConfigure(t *testing.T) {
 			},
 		} {
 
-			og := resources.NewOrganizationMember(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
+			og := resources.NewOrganizationMember()().(resource.ResourceWithConfigure)
 
 			res := resource.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},
@@ -77,7 +76,7 @@ func TestOrganizationMemberConfigure(t *testing.T) {
 
 func TestOrganizationMemberMetadata(t *testing.T) {
 	test(t, func(ctx context.Context) {
-		og := resources.NewOrganizationMember(logging.FromContext(ctx))().(resource.ResourceWithConfigure)
+		og := resources.NewOrganizationMember()().(resource.ResourceWithConfigure)
 
 		res := resource.MetadataResponse{}
 

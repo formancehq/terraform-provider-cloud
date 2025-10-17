@@ -36,7 +36,7 @@ func TestCurrentOrganizationConfigure(t *testing.T) {
 		},
 	} {
 		ctx := logging.TestingContext()
-		co := datasources.NewCurrentOrganization(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
+		co := datasources.NewCurrentOrganization()().(datasource.DataSourceWithConfigure)
 
 		res := datasource.ConfigureResponse{
 			Diagnostics: []diag.Diagnostic{},
@@ -71,7 +71,7 @@ func TestCurrentOrganizationConfigure(t *testing.T) {
 
 func TestCurrentOrganizationMetadata(t *testing.T) {
 	ctx := logging.TestingContext()
-	co := datasources.NewCurrentOrganization(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
+	co := datasources.NewCurrentOrganization()().(datasource.DataSourceWithConfigure)
 
 	res := datasource.MetadataResponse{}
 

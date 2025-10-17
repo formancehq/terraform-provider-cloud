@@ -9,6 +9,7 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/pkg/testprovider"
+	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -22,7 +23,7 @@ import (
 func TestProviderMetadata(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	tokenFactory, _ := testprovider.NewMockTokenProvider(ctrl)
-	p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewCloudSDK(), tokenFactory)()
+	p := server.New(noop.NewTracerProvider(), logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewCloudSDK(), tokenFactory)()
 
 	res := provider.MetadataResponse{}
 	p.Metadata(logging.TestingContext(), provider.MetadataRequest{}, &res)
@@ -50,7 +51,7 @@ func TestProviderConfigure(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			tokenFactory, mockTp := testprovider.NewMockTokenProvider(ctrl)
-			p := server.New(logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewCloudSDK(), tokenFactory)()
+			p := server.New(noop.NewTracerProvider(), logging.Testing(), "https://app.formance.cloud/api", "client_id", "client_secret", http.DefaultTransport, pkg.NewCloudSDK(), tokenFactory)()
 
 			res := provider.ConfigureResponse{
 				Diagnostics: []diag.Diagnostic{},

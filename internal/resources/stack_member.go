@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/formancehq/terraform-provider-cloud/sdk"
@@ -37,8 +36,7 @@ var SchemaStackMember = schema.Schema{
 }
 
 type StackMember struct {
-	logger logging.Logger
-	store  *internal.Store
+	store *internal.Store
 }
 
 type StackMemberModel struct {
@@ -47,11 +45,9 @@ type StackMemberModel struct {
 	StackId types.String `tfsdk:"stack_id"`
 }
 
-func NewStackMember(logger logging.Logger) func() resource.Resource {
+func NewStackMember() func() resource.Resource {
 	return func() resource.Resource {
-		return &StackMember{
-			logger: logger,
-		}
+		return &StackMember{}
 	}
 }
 
@@ -75,11 +71,6 @@ func (s *StackMember) Configure(ctx context.Context, req resource.ConfigureReque
 
 // Create implements resource.Resource.
 func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, res *resource.CreateResponse) {
-	logger := s.logger.WithField("func", "Create")
-	logger.Debug("Creating stack member")
-	defer logger.Debug("Finished creating stack member")
-	ctx = logging.ContextWithLogger(ctx, logger)
-
 	var plan StackMemberModel
 	res.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if res.Diagnostics.HasError() {
@@ -108,11 +99,6 @@ func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, re
 
 // Delete implements resource.Resource.
 func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, res *resource.DeleteResponse) {
-	logger := s.logger.WithField("func", "Delete")
-	logger.Debug("Deleting stack member")
-	defer logger.Debug("Finished deleting stack member")
-	ctx = logging.ContextWithLogger(ctx, logger)
-
 	var state StackMemberModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {
@@ -135,11 +121,6 @@ func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 // Update implements resource.Resource.
 func (s *StackMember) Update(ctx context.Context, req resource.UpdateRequest, res *resource.UpdateResponse) {
-	logger := s.logger.WithField("func", "Update")
-	logger.Debug("Updating stack member")
-	defer logger.Debug("Finished updating stack member")
-	ctx = logging.ContextWithLogger(ctx, logger)
-
 	var plan StackMemberModel
 	res.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if res.Diagnostics.HasError() {
@@ -176,11 +157,6 @@ func (s *StackMember) Metadata(_ context.Context, req resource.MetadataRequest, 
 
 // Read implements resource.Resource.
 func (s *StackMember) Read(ctx context.Context, req resource.ReadRequest, res *resource.ReadResponse) {
-	logger := s.logger.WithField("func", "Read")
-	logger.Debug("Reading stack member")
-	defer logger.Debug("Finished reading stack member")
-	ctx = logging.ContextWithLogger(ctx, logger)
-
 	var state StackMemberModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {

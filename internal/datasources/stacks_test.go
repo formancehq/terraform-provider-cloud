@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/datasources"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
@@ -45,7 +45,7 @@ func TestStacksConfigure(t *testing.T) {
 		},
 	} {
 		ctx := logging.TestingContext()
-		og := datasources.NewStacks(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
+		og := datasources.NewStacks()().(datasource.DataSourceWithConfigure)
 
 		res := datasource.ConfigureResponse{
 			Diagnostics: []diag.Diagnostic{},
@@ -79,7 +79,7 @@ func TestStacksConfigure(t *testing.T) {
 
 func TestStacksMetadata(t *testing.T) {
 	ctx := logging.TestingContext()
-	og := datasources.NewStacks(logging.FromContext(ctx))().(datasource.DataSourceWithConfigure)
+	og := datasources.NewStacks()().(datasource.DataSourceWithConfigure)
 
 	res := datasource.MetadataResponse{}
 
@@ -117,7 +117,7 @@ func TestStacksConfigValidator(t *testing.T) {
 			t.Parallel()
 			ctx := logging.TestingContext()
 
-			og := datasources.NewStacks(logging.FromContext(ctx))().(datasource.DataSourceWithConfigValidators)
+			og := datasources.NewStacks()().(datasource.DataSourceWithConfigValidators)
 
 			schemaStackType := getSchemaTypes(datasources.SchemaStack)
 			validators := og.ConfigValidators(ctx)

@@ -9,6 +9,7 @@ import (
 	"github.com/formancehq/go-libs/v3/service"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/spf13/pflag"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
 )
 
@@ -28,7 +29,9 @@ type FormanceCloudEndpoint string
 type FormanceCloudClientSecret string
 type FormanceCloudClientId string
 
-func NewProvider(logger logging.Logger,
+func NewProvider(
+	tracer trace.TracerProvider,
+	logger logging.Logger,
 	endpoint FormanceCloudEndpoint,
 	clientId FormanceCloudClientId,
 	clientSecret FormanceCloudClientSecret,
@@ -37,6 +40,7 @@ func NewProvider(logger logging.Logger,
 	tokenFactory pkg.TokenProviderFactory,
 ) ProviderFactory {
 	return New(
+		tracer,
 		logger,
 		string(endpoint),
 		string(clientId),

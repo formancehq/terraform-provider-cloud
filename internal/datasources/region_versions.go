@@ -6,7 +6,6 @@ import (
 	"slices"
 	"sort"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
@@ -21,8 +20,7 @@ var (
 )
 
 type RegionVersions struct {
-	logger logging.Logger
-	store  *internal.Store
+	store *internal.Store
 }
 
 var SchemaRegionVersions = schema.Schema{
@@ -74,11 +72,9 @@ type Version struct {
 	Name types.String `tfsdk:"name"`
 }
 
-func NewRegionVersions(logger logging.Logger) func() datasource.DataSource {
+func NewRegionVersions() func() datasource.DataSource {
 	return func() datasource.DataSource {
-		return &RegionVersions{
-			logger: logger,
-		}
+		return &RegionVersions{}
 	}
 }
 
@@ -91,8 +87,6 @@ func (r *RegionVersions) Schema(ctx context.Context, req datasource.SchemaReques
 }
 
 func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	ctx = logging.ContextWithLogger(ctx, r.logger.WithField("func", "region_versions_read"))
-	r.logger.Debug("Reading region versions")
 	var data RegionVersionsModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
@@ -21,8 +20,7 @@ var (
 )
 
 type OrganizationMember struct {
-	logger logging.Logger
-	store  *internal.Store
+	store *internal.Store
 }
 
 type OrganizationMemberModel struct {
@@ -39,11 +37,9 @@ type Roles struct {
 	Stack        types.String `tfsdk:"stack"`
 }
 
-func NewOrganizationMember(logger logging.Logger) func() resource.Resource {
+func NewOrganizationMember() func() resource.Resource {
 	return func() resource.Resource {
-		return &OrganizationMember{
-			logger: logger,
-		}
+		return &OrganizationMember{}
 	}
 }
 
@@ -95,9 +91,6 @@ func (s *OrganizationMember) Configure(ctx context.Context, req resource.Configu
 
 // Create implements resource.Resource.
 func (s *OrganizationMember) Create(ctx context.Context, req resource.CreateRequest, res *resource.CreateResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "organization_member_create"))
-	s.logger.Debug("Creating organization member")
-
 	var plan OrganizationMemberModel
 	res.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if res.Diagnostics.HasError() {
@@ -135,9 +128,6 @@ func (s *OrganizationMember) Create(ctx context.Context, req resource.CreateRequ
 
 // Delete implements resource.Resource.
 func (s *OrganizationMember) Delete(ctx context.Context, req resource.DeleteRequest, res *resource.DeleteResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "organization_member_delete"))
-	s.logger.Debug("Deleting organization member")
-
 	var state OrganizationMemberModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {
@@ -185,9 +175,6 @@ func (s *OrganizationMember) Metadata(_ context.Context, req resource.MetadataRe
 
 // Read implements resource.Resource.
 func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest, res *resource.ReadResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "organization_member_read"))
-	s.logger.Debug("Reading organization member")
-
 	var state OrganizationMemberModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {
@@ -236,9 +223,6 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 
 // Update implements resource.Resource.
 func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequest, res *resource.UpdateResponse) {
-	ctx = logging.ContextWithLogger(ctx, s.logger.WithField("func", "organization_member_update"))
-	s.logger.Debug("Updating organization member")
-
 	var state OrganizationMemberModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if res.Diagnostics.HasError() {

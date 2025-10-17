@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/pkg/otlp"
 	"github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
@@ -65,6 +66,8 @@ func NewTokenProvider(transport http.RoundTripper, creds Creds) TokenProviderImp
 }
 
 func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
+	ctx, span := otlp.Tracer.Start(ctx, "AccessToken")
+	defer span.End()
 	p.cloud.Lock()
 	defer p.cloud.Unlock()
 
@@ -76,7 +79,7 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 		}, nil
 	}
 
-	logger := logging.FromContext(ctx).WithField("func", "AccessToken")
+	logger := logging.FromContext(ctx).WithField("operation", "accesstoken")
 	logger.Debugf("Getting access token for %s", p.creds.Endpoint())
 	defer logger.Debugf("Getting access token done")
 
@@ -112,6 +115,8 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 }
 
 func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
+	ctx, span := otlp.Tracer.Start(ctx, "RefreshToken")
+	defer span.End()
 	logging.FromContext(ctx).Debugf("Getting refresh token for %s", p.creds.Endpoint())
 
 	tokenInfo, err := p.AccessToken(ctx)

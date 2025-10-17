@@ -11,6 +11,7 @@ import (
 	"github.com/formancehq/go-libs/v3/service"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/fx"

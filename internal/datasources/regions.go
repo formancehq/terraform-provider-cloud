@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/formancehq/go-libs/v3/collectionutils"
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
@@ -24,8 +23,7 @@ var (
 )
 
 type Region struct {
-	logger logging.Logger
-	store  *internal.Store
+	store *internal.Store
 }
 
 var SchemaRegion = schema.Schema{
@@ -75,11 +73,9 @@ type RegionModel struct {
 	Name types.String `tfsdk:"name"`
 }
 
-func NewRegions(logger logging.Logger) func() datasource.DataSource {
+func NewRegions() func() datasource.DataSource {
 	return func() datasource.DataSource {
-		return &Region{
-			logger: logger,
-		}
+		return &Region{}
 	}
 }
 
@@ -92,8 +88,6 @@ func (r *Region) Schema(ctx context.Context, req datasource.SchemaRequest, resp 
 }
 
 func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	ctx = logging.ContextWithLogger(ctx, r.logger.WithField("func", "region_read"))
-	r.logger.Debug("Reading region")
 	var data RegionModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

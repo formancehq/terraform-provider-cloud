@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -16,17 +15,14 @@ var (
 )
 
 type Noop struct {
-	logger logging.Logger
-	store  *internal.Store
+	store *internal.Store
 }
 
 type NoopModel struct{}
 
-func NewNoop(logger logging.Logger) func() resource.Resource {
+func NewNoop() func() resource.Resource {
 	return func() resource.Resource {
-		return &Noop{
-			logger: logger,
-		}
+		return &Noop{}
 	}
 }
 

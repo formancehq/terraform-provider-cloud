@@ -7,11 +7,13 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/mock/gomock"
 )
 
-func NewCloudProvider(logger logging.Logger, endpoint string, clientId string, clientSecret string, transport http.RoundTripper, sdkFactory pkg.CloudFactory, tokenFactory pkg.TokenProviderFactory) func() provider.Provider {
+func NewCloudProvider(tracer trace.TracerProvider, logger logging.Logger, endpoint string, clientId string, clientSecret string, transport http.RoundTripper, sdkFactory pkg.CloudFactory, tokenFactory pkg.TokenProviderFactory) func() provider.Provider {
 	return server.New(
+		tracer,
 		logger,
 		endpoint,
 		clientId,

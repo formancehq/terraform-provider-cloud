@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
@@ -41,8 +40,7 @@ var SchemaCurrentOrganization = schema.Schema{
 }
 
 type CurrentOrganization struct {
-	logger logging.Logger
-	store  *internal.Store
+	store *internal.Store
 }
 
 // Configure implements datasource.DataSourceWithConfigure.
@@ -70,11 +68,9 @@ type CurrentOrganizationModel struct {
 	Domain  types.String `tfsdk:"domain"`
 }
 
-func NewCurrentOrganization(logger logging.Logger) func() datasource.DataSource {
+func NewCurrentOrganization() func() datasource.DataSource {
 	return func() datasource.DataSource {
-		return &CurrentOrganization{
-			logger: logger,
-		}
+		return &CurrentOrganization{}
 	}
 }
 
@@ -88,8 +84,6 @@ func (c *CurrentOrganization) Schema(ctx context.Context, req datasource.SchemaR
 
 func (c *CurrentOrganization) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data CurrentOrganizationModel
-	ctx = logging.ContextWithLogger(ctx, c.logger.WithField("func", "current_organization_read"))
-	logging.FromContext(ctx).Debugf("Reading current organization")
 	organizationId, err := c.store.GetOrganizationID(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError(
