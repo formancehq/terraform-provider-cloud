@@ -66,7 +66,7 @@ func (d *DatasourcesTracer) Configure(ctx context.Context, req datasource.Config
 		_ = tracing.TraceError(ctx, d.tracer, operation, func(ctx context.Context) error {
 			ctx = injectTraceContext(ctx, d.underlyingValue, operation)
 			logging.FromContext(ctx).Debug("call")
-			defer logging.FromContext(ctx).Debugf("completed")
+			defer logging.FromContext(ctx).Debug("completed")
 			v.Configure(ctx, req, res)
 			if res.Diagnostics.HasError() {
 				return ErrConfigure
@@ -84,7 +84,7 @@ func (d *DatasourcesTracer) ConfigValidators(ctx context.Context) []datasource.C
 		ret, _ := tracing.Trace(ctx, d.tracer, operation, func(ctx context.Context) ([]datasource.ConfigValidator, error) {
 			ctx = injectTraceContext(ctx, d.underlyingValue, operation)
 			logging.FromContext(ctx).Debug("call")
-			defer logging.FromContext(ctx).Debugf("completed")
+			defer logging.FromContext(ctx).Debug("completed")
 			return v.ConfigValidators(ctx), nil
 		})
 		return ret
@@ -100,7 +100,7 @@ func (d *DatasourcesTracer) Metadata(ctx context.Context, req datasource.Metadat
 		_ = tracing.TraceError(ctx, d.tracer, operation, func(ctx context.Context) error {
 			ctx = injectTraceContext(ctx, d.underlyingValue, operation)
 			logging.FromContext(ctx).Debug("call")
-			defer logging.FromContext(ctx).Debugf("completed")
+			defer logging.FromContext(ctx).Debug("completed")
 			v.Metadata(ctx, req, res)
 			return nil
 		})
@@ -115,7 +115,7 @@ func (d *DatasourcesTracer) Read(ctx context.Context, req datasource.ReadRequest
 		_ = tracing.TraceError(ctx, d.tracer, operation, func(ctx context.Context) error {
 			ctx = injectTraceContext(ctx, d.underlyingValue, operation)
 			logging.FromContext(ctx).Debug("call")
-			defer logging.FromContext(ctx).Debugf("completed")
+			defer logging.FromContext(ctx).Debug("completed")
 			v.Read(ctx, req, res)
 			if res.Diagnostics.HasError() {
 				return ErrRead
@@ -133,7 +133,7 @@ func (d *DatasourcesTracer) Schema(ctx context.Context, req datasource.SchemaReq
 		_ = tracing.TraceError(ctx, d.tracer, operation, func(ctx context.Context) error {
 			ctx = injectTraceContext(ctx, d.underlyingValue, operation)
 			logging.FromContext(ctx).Debug("call")
-			defer logging.FromContext(ctx).Debugf("completed")
+			defer logging.FromContext(ctx).Debug("completed")
 			v.Schema(ctx, req, res)
 			if res.Diagnostics.HasError() {
 				return ErrSchema
