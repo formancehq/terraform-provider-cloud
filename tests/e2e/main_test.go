@@ -54,9 +54,11 @@ func TestMain(m *testing.M) {
 
 	// Check only required variables
 	requiredVars := map[string]string{
-		"FORMANCE_CLOUD_API_ENDPOINT":  endpoint,
-		"FORMANCE_CLOUD_CLIENT_ID":     clientID,
-		"FORMANCE_CLOUD_CLIENT_SECRET": clientSecret,
+		"FORMANCE_CLOUD_API_ENDPOINT":    endpoint,
+		"FORMANCE_CLOUD_CLIENT_ID":       clientID,
+		"FORMANCE_CLOUD_CLIENT_SECRET":   clientSecret,
+		"FORMANCE_CLOUD_REGION_NAME":     RegionName,
+		"FORMANCE_CLOUD_ORGANIZATION_ID": OrganizationId,
 	}
 
 	var missingVars []string
