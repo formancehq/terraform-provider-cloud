@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/formancehq/go-libs/v3/pointer"
-	formancesdkcloudgo "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
 	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
 	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
 	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
@@ -47,7 +46,7 @@ type CloudSDK interface {
 var _ CloudSDK = &sdkImpl{}
 
 type sdkImpl struct {
-	sdk *formancesdkcloudgo.FormanceCloud
+	sdk *membershipclient.FormanceCloud
 }
 
 func (s *sdkImpl) ReadStack(ctx context.Context, organizationID string, stackID string) (*operations.GetStackResponse, error) {
@@ -157,15 +156,15 @@ func NewCloudSDK(opts ...membershipclient.SDKOption) CloudFactory {
 	}
 }
 
-func NewSDK(endpoint string, transport http.RoundTripper, tp TokenProviderImpl, opts ...membershipclient.SDKOption) *formancesdkcloudgo.FormanceCloud {
+func NewSDK(endpoint string, transport http.RoundTripper, tp TokenProviderImpl, opts ...membershipclient.SDKOption) *membershipclient.FormanceCloud {
 	client := &http.Client{
 		Transport: transport,
 	}
 
-	return formancesdkcloudgo.New(
-		append(opts, formancesdkcloudgo.WithServerURL(endpoint),
-			formancesdkcloudgo.WithClient(client),
-			formancesdkcloudgo.WithSecuritySource(func(ctx context.Context) (shared.Security, error) {
+	return membershipclient.New(
+		append(opts, membershipclient.WithServerURL(endpoint),
+			membershipclient.WithClient(client),
+			membershipclient.WithSecuritySource(func(ctx context.Context) (shared.Security, error) {
 				token, err := tp.RefreshToken(ctx)
 				if err != nil {
 					return shared.Security{}, err
