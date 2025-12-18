@@ -13,6 +13,9 @@ import (
 	"github.com/formancehq/go-libs/v3/otlp"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/retry"
+	speakeasyretry "github.com/formancehq/terraform-provider-cloud/pkg/speakeasy_retry"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -58,7 +61,18 @@ func TestMain(m *testing.M) {
 		clientID,
 		clientSecret,
 		transport,
-		pkg.NewCloudSDK,
+		pkg.NewCloudSDK(
+			membershipclient.WithRetryConfig(retry.Config{
+				Strategy: "backoff",
+				Backoff: &retry.BackoffStrategy{
+					InitialInterval: speakeasyretry.DefaultRetryInitialInterval,
+					MaxInterval:     speakeasyretry.DefaultRetryMaxInterval,
+					Exponent:        speakeasyretry.DefaultRetryExponent,
+					MaxElapsedTime:  speakeasyretry.DefaultRetryMaxElapsedTime,
+				},
+				RetryConnectionErrors: true,
+			}),
+		),
 		pkg.NewTokenProvider,
 	)
 

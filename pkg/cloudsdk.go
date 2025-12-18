@@ -6,6 +6,7 @@ import (
 
 	"github.com/formancehq/go-libs/v3/pointer"
 	formancesdkcloudgo "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
 	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
 	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 )
@@ -146,30 +147,32 @@ func (s *sdkImpl) UpsertUserOfOrganization(ctx context.Context, organizationID s
 
 type CloudFactory func(creds Creds, transport http.RoundTripper) CloudSDK
 
-func NewCloudSDK(creds Creds, transport http.RoundTripper) CloudSDK {
-	tp := NewTokenProvider(transport, creds)
-	sdk := NewSDK(creds.Endpoint(), transport, tp)
-	return &sdkImpl{
-		sdk: sdk,
+func NewCloudSDK(opts ...membershipclient.SDKOption) CloudFactory {
+	return func(creds Creds, transport http.RoundTripper) CloudSDK {
+		tp := NewTokenProvider(transport, creds)
+		sdk := NewSDK(creds.Endpoint(), transport, tp)
+		return &sdkImpl{
+			sdk: sdk,
+		}
 	}
 }
 
-func NewSDK(endpoint string, transport http.RoundTripper, tp TokenProviderImpl) *formancesdkcloudgo.FormanceCloud {
+func NewSDK(endpoint string, transport http.RoundTripper, tp TokenProviderImpl, opts ...membershipclient.SDKOption) *formancesdkcloudgo.FormanceCloud {
 	client := &http.Client{
 		Transport: transport,
 	}
 
 	return formancesdkcloudgo.New(
-		formancesdkcloudgo.WithServerURL(endpoint),
-		formancesdkcloudgo.WithClient(client),
-		formancesdkcloudgo.WithSecuritySource(func(ctx context.Context) (shared.Security, error) {
-			token, err := tp.RefreshToken(ctx)
-			if err != nil {
-				return shared.Security{}, err
-			}
-			return shared.Security{
-				Oauth2: token.AccessToken,
-			}, nil
-		}),
+		append(opts, formancesdkcloudgo.WithServerURL(endpoint),
+			formancesdkcloudgo.WithClient(client),
+			formancesdkcloudgo.WithSecuritySource(func(ctx context.Context) (shared.Security, error) {
+				token, err := tp.RefreshToken(ctx)
+				if err != nil {
+					return shared.Security{}, err
+				}
+				return shared.Security{
+					Oauth2: token.AccessToken,
+				}, nil
+			}))...,
 	)
 }
