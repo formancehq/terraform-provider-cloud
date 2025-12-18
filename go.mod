@@ -2,7 +2,7 @@ module github.com/formancehq/terraform-provider-cloud
 
 go 1.24.2
 
-replace github.com/formancehq/formance-sdk-cloud-go => ./pkg/membership_client
+replace github.com/formancehq/terraform-provider-cloud/pkg/membership_client => ./pkg/membership_client
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.4.4 // indirect
@@ -71,7 +71,7 @@ require (
 )
 
 require (
-	github.com/formancehq/formance-sdk-cloud-go v0.0.0-00010101000000-000000000000
+	github.com/formancehq/terraform-provider-cloud/pkg/membership_client v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.10.0
 	github.com/zitadel/oidc/v3 v3.38.1
 	go.uber.org/mock v0.5.2

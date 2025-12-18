@@ -13,8 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	operations "github.com/formancehq/formance-sdk-cloud-go/pkg/models/operations"
-	shared "github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
+	operations "github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
+	shared "github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	gomock "go.uber.org/mock/gomock"
 )
 

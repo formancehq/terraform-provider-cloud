@@ -4,8 +4,8 @@ package operations
 
 import (
 	"errors"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/retry"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/utils"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/retry"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/utils"
 	"time"
 )
 

@@ -26,7 +26,7 @@ generation:
     generateNewTests: true
     skipResponseBodyAssertions: false
 go:
-  version: 0.1.3
+  version: 0.1.5
   additionalDependencies: {}
   author: Formance
   baseErrorName: FormanceError
@@ -47,7 +47,7 @@ go:
   modulePath: ""
   nullableOptionalWrapper: true
   outputModelSuffix: output
-  packageName: github.com/formancehq/formance-sdk-cloud-go
+  packageName: github.com/formancehq/terraform-provider-cloud/pkg/membership_client
   respectRequiredFields: false
   responseFormat: envelope
   sdkPackageName: ""

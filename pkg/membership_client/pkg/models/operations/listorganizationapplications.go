@@ -3,8 +3,8 @@
 package operations
 
 import (
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/utils"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/utils"
 	"net/http"
 )
 

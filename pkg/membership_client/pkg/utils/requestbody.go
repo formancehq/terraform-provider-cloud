@@ -15,7 +15,7 @@ import (
 	"reflect"
 	"regexp"
 
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/optionalnullable"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/optionalnullable"
 )
 
 const (

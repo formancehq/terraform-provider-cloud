@@ -6,11 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/operations"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -72,9 +72,9 @@ func TestStackMember(t *testing.T) {
 						RawResponse: &http.Response{StatusCode: http.StatusOK},
 						ReadStackUserAccess: &shared.ReadStackUserAccess{
 							Data: &shared.ReadStackUserAccessData{
-								StackID: "stack-id-456",
-								UserID:  "user-id-123",
-								Email:   "example@formance.com",
+								StackID:  "stack-id-456",
+								UserID:   "user-id-123",
+								Email:    "example@formance.com",
 								PolicyID: 1,
 							},
 						},
@@ -91,9 +91,9 @@ func TestStackMember(t *testing.T) {
 						RawResponse: &http.Response{StatusCode: http.StatusOK},
 						ReadStackUserAccess: &shared.ReadStackUserAccess{
 							Data: &shared.ReadStackUserAccessData{
-								StackID: "stack-id-456",
-								UserID:  "user-id-123",
-								Email:   "example@formance.com",
+								StackID:  "stack-id-456",
+								UserID:   "user-id-123",
+								Email:    "example@formance.com",
 								PolicyID: 2,
 							},
 						},

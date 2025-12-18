@@ -14,7 +14,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/types"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/types"
 )
 
 func MarshalJSON(v interface{}, tag reflect.StructTag, topLevel bool) ([]byte, error) {

@@ -4,16 +4,16 @@ package main
 
 import (
 	"context"
-	formancesdkcloudgo "github.com/formancehq/formance-sdk-cloud-go"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"log"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := formancesdkcloudgo.New(
-		formancesdkcloudgo.WithSecurity(shared.Security{
+	s := membershipclient.New(
+		membershipclient.WithSecurity(shared.Security{
 			Oauth2: "<YOUR_OAUTH2_HERE>",
 		}),
 	)

@@ -4,7 +4,7 @@ package config
 
 import (
 	"context"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/retry"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/retry"
 	"net/http"
 	"time"
 )

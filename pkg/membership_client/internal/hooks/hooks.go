@@ -5,7 +5,7 @@ package hooks
 import (
 	"context"
 	"errors"
-	"github.com/formancehq/formance-sdk-cloud-go/internal/config"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/internal/config"
 	"net/http"
 )
 

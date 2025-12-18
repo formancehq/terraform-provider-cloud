@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/optionalnullable"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/optionalnullable"
 )
 
 func PopulateHeaders(_ context.Context, req *http.Request, headers interface{}, globals interface{}) {

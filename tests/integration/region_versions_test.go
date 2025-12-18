@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/operations"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"

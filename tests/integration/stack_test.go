@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/operations"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -61,16 +61,16 @@ func TestStack(t *testing.T) {
 				}
 				now := time.Now()
 				stackData := &shared.Stack{
-					ID:             stackID,
-					Name:           "test",
-					OrganizationID: organizationID,
-					RegionID:       "staging",
-					Version:        pointer.For("latest"),
-					URI:            "https://example.com",
-					Metadata:       md,
-					Status:         shared.StackStatusReady,
-					State:          shared.StackStateActive,
-					ExpectedStatus: shared.ExpectedStatusReady,
+					ID:                       stackID,
+					Name:                     "test",
+					OrganizationID:           organizationID,
+					RegionID:                 "staging",
+					Version:                  pointer.For("latest"),
+					URI:                      "https://example.com",
+					Metadata:                 md,
+					Status:                   shared.StackStatusReady,
+					State:                    shared.StackStateActive,
+					ExpectedStatus:           shared.ExpectedStatusReady,
 					LastStateUpdate:          now,
 					LastExpectedStatusUpdate: now,
 					LastStatusUpdate:         now,
@@ -178,16 +178,16 @@ func TestStackAlreadyDeleted(t *testing.T) {
 				}
 				now := time.Now()
 				stackData := &shared.Stack{
-					ID:             stackID,
-					Name:           "test",
-					OrganizationID: organizationID,
-					RegionID:       "staging",
-					Version:        pointer.For("latest"),
-					URI:            "https://example.com",
-					Metadata:       md,
-					Status:         shared.StackStatusReady,
-					State:          shared.StackStateActive,
-					ExpectedStatus: shared.ExpectedStatusReady,
+					ID:                       stackID,
+					Name:                     "test",
+					OrganizationID:           organizationID,
+					RegionID:                 "staging",
+					Version:                  pointer.For("latest"),
+					URI:                      "https://example.com",
+					Metadata:                 md,
+					Status:                   shared.StackStatusReady,
+					State:                    shared.StackStateActive,
+					ExpectedStatus:           shared.ExpectedStatusReady,
 					LastStateUpdate:          now,
 					LastExpectedStatusUpdate: now,
 					LastStatusUpdate:         now,

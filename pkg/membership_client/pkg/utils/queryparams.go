@@ -12,8 +12,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/optionalnullable"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/types"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/optionalnullable"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/types"
 )
 
 func PopulateQueryParams(_ context.Context, req *http.Request, queryParams interface{}, globals interface{}) error {

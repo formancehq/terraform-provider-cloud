@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/optionalnullable"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/types"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/optionalnullable"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/types"
 )
 
 func populateForm(paramName string, explode bool, objType reflect.Type, objValue reflect.Value, delimiter string, defaultValue *string, getFieldName func(reflect.StructField) string) url.Values {

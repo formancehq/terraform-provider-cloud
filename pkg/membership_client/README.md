@@ -52,7 +52,7 @@ Developer-friendly & type-safe Go SDK specifically catered to leverage *undefine
 
 To add the SDK as a dependency to your project:
 ```bash
-go get github.com/formancehq/formance-sdk-cloud-go
+go get github.com/formancehq/terraform-provider-cloud/pkg/membership_client
 ```
 <!-- End SDK Installation [installation] -->
 
@@ -66,16 +66,16 @@ package main
 
 import (
 	"context"
-	formancesdkcloudgo "github.com/formancehq/formance-sdk-cloud-go"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"log"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := formancesdkcloudgo.New(
-		formancesdkcloudgo.WithSecurity(shared.Security{
+	s := membershipclient.New(
+		membershipclient.WithSecurity(shared.Security{
 			Oauth2: "<YOUR_OAUTH2_HERE>",
 		}),
 	)
@@ -109,16 +109,16 @@ package main
 
 import (
 	"context"
-	formancesdkcloudgo "github.com/formancehq/formance-sdk-cloud-go"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"log"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := formancesdkcloudgo.New(
-		formancesdkcloudgo.WithSecurity(shared.Security{
+	s := membershipclient.New(
+		membershipclient.WithSecurity(shared.Security{
 			Oauth2: "<YOUR_OAUTH2_HERE>",
 		}),
 	)
@@ -233,9 +233,9 @@ package main
 
 import (
 	"context"
-	formancesdkcloudgo "github.com/formancehq/formance-sdk-cloud-go"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/retry"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/retry"
 	"log"
 	"pkg/models/operations"
 )
@@ -243,8 +243,8 @@ import (
 func main() {
 	ctx := context.Background()
 
-	s := formancesdkcloudgo.New(
-		formancesdkcloudgo.WithSecurity(shared.Security{
+	s := membershipclient.New(
+		membershipclient.WithSecurity(shared.Security{
 			Oauth2: "<YOUR_OAUTH2_HERE>",
 		}),
 	)
@@ -276,17 +276,17 @@ package main
 
 import (
 	"context"
-	formancesdkcloudgo "github.com/formancehq/formance-sdk-cloud-go"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/retry"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/retry"
 	"log"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := formancesdkcloudgo.New(
-		formancesdkcloudgo.WithRetryConfig(
+	s := membershipclient.New(
+		membershipclient.WithRetryConfig(
 			retry.Config{
 				Strategy: "backoff",
 				Backoff: &retry.BackoffStrategy{
@@ -297,7 +297,7 @@ func main() {
 				},
 				RetryConnectionErrors: false,
 			}),
-		formancesdkcloudgo.WithSecurity(shared.Security{
+		membershipclient.WithSecurity(shared.Security{
 			Oauth2: "<YOUR_OAUTH2_HERE>",
 		}),
 	)
@@ -337,17 +337,17 @@ package main
 import (
 	"context"
 	"errors"
-	formancesdkcloudgo "github.com/formancehq/formance-sdk-cloud-go"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/sdkerrors"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/sdkerrors"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"log"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := formancesdkcloudgo.New(
-		formancesdkcloudgo.WithSecurity(shared.Security{
+	s := membershipclient.New(
+		membershipclient.WithSecurity(shared.Security{
 			Oauth2: "<YOUR_OAUTH2_HERE>",
 		}),
 	)
@@ -389,17 +389,17 @@ package main
 
 import (
 	"context"
-	formancesdkcloudgo "github.com/formancehq/formance-sdk-cloud-go"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"log"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := formancesdkcloudgo.New(
-		formancesdkcloudgo.WithServerURL("http://localhost:8080"),
-		formancesdkcloudgo.WithSecurity(shared.Security{
+	s := membershipclient.New(
+		membershipclient.WithServerURL("http://localhost:8080"),
+		membershipclient.WithSecurity(shared.Security{
 			Oauth2: "<YOUR_OAUTH2_HERE>",
 		}),
 	)
@@ -434,12 +434,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/formancehq/formance-sdk-cloud-go"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
 )
 
 var (
 	httpClient = &http.Client{Timeout: 30 * time.Second}
-	sdkClient  = formancesdkcloudgo.New(formancesdkcloudgo.WithClient(httpClient))
+	sdkClient  = membershipclient.New(membershipclient.WithClient(httpClient))
 )
 ```
 

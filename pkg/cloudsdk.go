@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	formancesdkcloudgo "github.com/formancehq/formance-sdk-cloud-go"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/operations"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/go-libs/v3/pointer"
+	formancesdkcloudgo "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 )
 
 //go:generate mockgen -typed -destination=cloud_generated.go -package=pkg . CloudSDK

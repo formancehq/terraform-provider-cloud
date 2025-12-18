@@ -6,7 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/retry"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/retry"
 	"io"
 	"math"
 	"math/rand"

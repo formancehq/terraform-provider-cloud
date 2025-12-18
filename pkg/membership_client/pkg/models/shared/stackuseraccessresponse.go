@@ -3,7 +3,7 @@
 package shared
 
 import (
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/optionalnullable"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/optionalnullable"
 )
 
 type StackUserAccessResponseData struct {

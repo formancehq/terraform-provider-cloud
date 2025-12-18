@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/sdkerrors"
 	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/sdkerrors"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"go.opentelemetry.io/otel/trace"
 )

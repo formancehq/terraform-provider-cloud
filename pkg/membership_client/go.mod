@@ -1,5 +1,5 @@
 
-module github.com/formancehq/formance-sdk-cloud-go
+module github.com/formancehq/terraform-provider-cloud/pkg/membership_client
 
 go 1.22
 
