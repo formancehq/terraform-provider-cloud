@@ -9,6 +9,10 @@ pc: pre-commit
 pre-commit: tidy generate lint
 
 [group('qa')]
+build:
+  @go build -o ./build/terraform-provider-cloud ./main.go
+
+[group('qa')]
 lint:
   golangci-lint run --fix --build-tags it --timeout 5m
 
@@ -23,9 +27,9 @@ tests: tests-unit tests-e2e tests-integration coverage
 coverage:
   @rm -rf coverage/coverage_merged.txt
   @head -n 1 coverage/coverage_unit.txt > coverage/coverage_merged.txt
-  @tail -n +2 coverage/coverage_unit.txt | grep -Ev "generated|/sdk|tests/" >> coverage/coverage_merged.txt
-  @tail -n +2 coverage/coverage_e2e.txt | grep -Ev "generated|/sdk|tests/" >> coverage/coverage_merged.txt
-  @tail -n +2 coverage/coverage_integration.txt | grep -Ev "generated|/sdk|tests/" >> coverage/coverage_merged.txt
+  @tail -n +2 coverage/coverage_unit.txt | grep -Ev "generated|/pkg|tests/" >> coverage/coverage_merged.txt
+  @tail -n +2 coverage/coverage_e2e.txt | grep -Ev "generated|/pkg|tests/" >> coverage/coverage_merged.txt
+  @tail -n +2 coverage/coverage_integration.txt | grep -Ev "generated|/pkg|tests/" >> coverage/coverage_merged.txt
   @go tool cover -func=coverage/coverage_merged.txt
 
 [group('test')]
@@ -79,3 +83,10 @@ release: pc
 [group('deployment')]
 connect-dev:
   vcluster connect $USER --server=https://kube.$USER.formance.dev
+
+generate-client:
+  #!/usr/bin/env bash
+  mkdir -p ./openapi
+  rm -rf ./openapi/membership.yaml
+  curl -o ./openapi/membership.yaml https://raw.githubusercontent.com/formancehq/membership-api/refs/heads/main/openapi.yaml -H "Authorization: Bearer $GITHUB_TOKEN"
+  speakeasy generate sdk -s openapi/membership.yaml -o ./pkg/membership_client -l go

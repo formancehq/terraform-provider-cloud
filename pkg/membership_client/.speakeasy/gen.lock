@@ -1,0 +1,1195 @@
+lockVersion: 2.0.0
+id: 0fc97464-8fd2-42bd-bbd2-aac41b90c348
+management:
+  docChecksum: 153b4fc0f89ae025d316b3f375d04a63
+  docVersion: 0.1.0
+  speakeasyVersion: 1.637.0
+  generationVersion: 2.727.4
+  releaseVersion: 0.1.5
+  configChecksum: f3868f02fa1a20bc5d8c1797a37c8c4f
+features:
+  go:
+    additionalDependencies: 0.1.0
+    constsAndDefaults: 0.1.12
+    core: 3.12.0
+    defaultEnabledRetries: 0.2.0
+    deprecations: 2.81.3
+    envVarSecurityUsage: 0.3.2
+    flattening: 2.81.1
+    globalSecurity: 2.82.12
+    globalSecurityCallbacks: 0.1.0
+    globalServerURLs: 2.82.3
+    intellisenseMarkdownSupport: 0.1.0
+    nullables: 0.2.1
+    responseFormat: 0.1.2
+    retries: 2.84.2
+    sdkHooks: 0.2.0
+    unions: 2.86.0
+generatedFiles:
+  - .gitattributes
+  - /pkg/models/operations/acceptinvitation.go
+  - /pkg/models/operations/addfeatures.go
+  - /pkg/models/operations/addscopetopolicy.go
+  - /pkg/models/operations/createapplication.go
+  - /pkg/models/operations/createapplicationscope.go
+  - /pkg/models/operations/createinvitation.go
+  - /pkg/models/operations/createorganization.go
+  - /pkg/models/operations/createorganizationclient.go
+  - /pkg/models/operations/createpolicy.go
+  - /pkg/models/operations/createprivateregion.go
+  - /pkg/models/operations/createstack.go
+  - /pkg/models/operations/createuser.go
+  - /pkg/models/operations/declineinvitation.go
+  - /pkg/models/operations/deleteapplication.go
+  - /pkg/models/operations/deleteapplicationscope.go
+  - /pkg/models/operations/deleteauthenticationprovider.go
+  - /pkg/models/operations/deletefeature.go
+  - /pkg/models/operations/deleteinvitation.go
+  - /pkg/models/operations/deleteorganization.go
+  - /pkg/models/operations/deleteorganizationclient.go
+  - /pkg/models/operations/deletepolicy.go
+  - /pkg/models/operations/deleteregion.go
+  - /pkg/models/operations/deletestack.go
+  - /pkg/models/operations/deletestackuseraccess.go
+  - /pkg/models/operations/deleteuserfromorganization.go
+  - /pkg/models/operations/disableapplicationfororganization.go
+  - /pkg/models/operations/disablemodule.go
+  - /pkg/models/operations/disablestack.go
+  - /pkg/models/operations/disablestargate.go
+  - /pkg/models/operations/enableapplicationfororganization.go
+  - /pkg/models/operations/enablemodule.go
+  - /pkg/models/operations/enablestack.go
+  - /pkg/models/operations/enablestargate.go
+  - /pkg/models/operations/getapplication.go
+  - /pkg/models/operations/getorganizationapplication.go
+  - /pkg/models/operations/getregion.go
+  - /pkg/models/operations/getregionversions.go
+  - /pkg/models/operations/getserverinfo.go
+  - /pkg/models/operations/getstack.go
+  - /pkg/models/operations/listapplications.go
+  - /pkg/models/operations/listfeatures.go
+  - /pkg/models/operations/listinvitations.go
+  - /pkg/models/operations/listlogs.go
+  - /pkg/models/operations/listmodules.go
+  - /pkg/models/operations/listorganizationapplications.go
+  - /pkg/models/operations/listorganizationinvitations.go
+  - /pkg/models/operations/listorganizations.go
+  - /pkg/models/operations/listorganizationsexpanded.go
+  - /pkg/models/operations/listpolicies.go
+  - /pkg/models/operations/listregions.go
+  - /pkg/models/operations/liststacks.go
+  - /pkg/models/operations/liststackusersaccesses.go
+  - /pkg/models/operations/listusersoforganization.go
+  - /pkg/models/operations/organizationclientcreate.go
+  - /pkg/models/operations/organizationclientdelete.go
+  - /pkg/models/operations/organizationclientread.go
+  - /pkg/models/operations/organizationclientsread.go
+  - /pkg/models/operations/organizationclientupdate.go
+  - /pkg/models/operations/readauthenticationprovider.go
+  - /pkg/models/operations/readconnecteduser.go
+  - /pkg/models/operations/readorganization.go
+  - /pkg/models/operations/readorganizationclient.go
+  - /pkg/models/operations/readpolicy.go
+  - /pkg/models/operations/readstackuseraccess.go
+  - /pkg/models/operations/readuseroforganization.go
+  - /pkg/models/operations/removescopefrompolicy.go
+  - /pkg/models/operations/restorestack.go
+  - /pkg/models/operations/updateapplication.go
+  - /pkg/models/operations/updateorganization.go
+  - /pkg/models/operations/updatepolicy.go
+  - /pkg/models/operations/updatestack.go
+  - /pkg/models/operations/upgradestack.go
+  - /pkg/models/operations/upsertauthenticationprovider.go
+  - /pkg/models/operations/upsertorganizationuser.go
+  - /pkg/models/operations/upsertstackuseraccess.go
+  - /pkg/models/sdkerrors/error.go
+  - /pkg/models/shared/action.go
+  - /pkg/models/shared/anyregion.go
+  - /pkg/models/shared/application.go
+  - /pkg/models/shared/applicationdata.go
+  - /pkg/models/shared/applicationwithscope.go
+  - /pkg/models/shared/authenticationproviderdata.go
+  - /pkg/models/shared/authenticationproviderresponse.go
+  - /pkg/models/shared/capability.go
+  - /pkg/models/shared/createapplicationresponse.go
+  - /pkg/models/shared/createapplicationscoperequest.go
+  - /pkg/models/shared/createapplicationscoperesponse.go
+  - /pkg/models/shared/createclientresponseresponse.go
+  - /pkg/models/shared/createdprivateregionresponse.go
+  - /pkg/models/shared/createinvitationresponse.go
+  - /pkg/models/shared/createorganizationclientrequest.go
+  - /pkg/models/shared/createorganizationclientresponse.go
+  - /pkg/models/shared/createorganizationrequest.go
+  - /pkg/models/shared/createorganizationresponse.go
+  - /pkg/models/shared/createpolicyresponse.go
+  - /pkg/models/shared/createprivateregionrequest.go
+  - /pkg/models/shared/createstackrequest.go
+  - /pkg/models/shared/createstackresponse.go
+  - /pkg/models/shared/createuserrequest.go
+  - /pkg/models/shared/createuserresponse.go
+  - /pkg/models/shared/enableapplicationfororganizationresponse.go
+  - /pkg/models/shared/error.go
+  - /pkg/models/shared/getapplicationresponse.go
+  - /pkg/models/shared/getregionresponse.go
+  - /pkg/models/shared/getregionversionsresponse.go
+  - /pkg/models/shared/invitation.go
+  - /pkg/models/shared/listapplicationsresponse.go
+  - /pkg/models/shared/listinvitationsresponse.go
+  - /pkg/models/shared/listmodulesresponse.go
+  - /pkg/models/shared/listorganizationexpandedresponse.go
+  - /pkg/models/shared/listpoliciesresponse.go
+  - /pkg/models/shared/listregionsresponse.go
+  - /pkg/models/shared/liststacksresponse.go
+  - /pkg/models/shared/listusersresponse.go
+  - /pkg/models/shared/log.go
+  - /pkg/models/shared/logcursor.go
+  - /pkg/models/shared/module.go
+  - /pkg/models/shared/organizationapplication.go
+  - /pkg/models/shared/organizationclient.go
+  - /pkg/models/shared/organizationdata.go
+  - /pkg/models/shared/organizationexpanded.go
+  - /pkg/models/shared/organizationfeature.go
+  - /pkg/models/shared/policy.go
+  - /pkg/models/shared/policydata.go
+  - /pkg/models/shared/privateregion.go
+  - /pkg/models/shared/privateregionsecret.go
+  - /pkg/models/shared/readorganizationclientresponse.go
+  - /pkg/models/shared/readorganizationclientsresponse.go
+  - /pkg/models/shared/readorganizationresponse.go
+  - /pkg/models/shared/readorganizationuserresponse.go
+  - /pkg/models/shared/readpolicyresponse.go
+  - /pkg/models/shared/readstackuseraccess.go
+  - /pkg/models/shared/readuserresponse.go
+  - /pkg/models/shared/region.go
+  - /pkg/models/shared/regioncapability.go
+  - /pkg/models/shared/scope.go
+  - /pkg/models/shared/security.go
+  - /pkg/models/shared/serverinfo.go
+  - /pkg/models/shared/stack.go
+  - /pkg/models/shared/stackdata.go
+  - /pkg/models/shared/stackuseraccessresponse.go
+  - /pkg/models/shared/stackversion.go
+  - /pkg/models/shared/systemrole.go
+  - /pkg/models/shared/updateapplicationresponse.go
+  - /pkg/models/shared/updateorganizationclientrequest.go
+  - /pkg/models/shared/updateorganizationuserrequest.go
+  - /pkg/models/shared/updatepolicyresponse.go
+  - /pkg/models/shared/updatestackuserrequest.go
+  - /pkg/models/shared/user.go
+  - /pkg/models/shared/version.go
+  - USAGE.md
+  - docs/pkg/models/operations/acceptinvitationrequest.md
+  - docs/pkg/models/operations/acceptinvitationresponse.md
+  - docs/pkg/models/operations/addfeaturesrequest.md
+  - docs/pkg/models/operations/addfeaturesrequestbody.md
+  - docs/pkg/models/operations/addfeaturesresponse.md
+  - docs/pkg/models/operations/addscopetopolicyrequest.md
+  - docs/pkg/models/operations/addscopetopolicyresponse.md
+  - docs/pkg/models/operations/createapplicationresponse.md
+  - docs/pkg/models/operations/createapplicationscoperequest.md
+  - docs/pkg/models/operations/createapplicationscoperesponse.md
+  - docs/pkg/models/operations/createinvitationrequest.md
+  - docs/pkg/models/operations/createinvitationresponse.md
+  - docs/pkg/models/operations/createorganizationclientrequest.md
+  - docs/pkg/models/operations/createorganizationclientresponse.md
+  - docs/pkg/models/operations/createorganizationresponse.md
+  - docs/pkg/models/operations/createpolicyrequest.md
+  - docs/pkg/models/operations/createpolicyresponse.md
+  - docs/pkg/models/operations/createprivateregionrequest.md
+  - docs/pkg/models/operations/createprivateregionresponse.md
+  - docs/pkg/models/operations/createstackrequest.md
+  - docs/pkg/models/operations/createstackresponse.md
+  - docs/pkg/models/operations/createuserresponse.md
+  - docs/pkg/models/operations/declineinvitationrequest.md
+  - docs/pkg/models/operations/declineinvitationresponse.md
+  - docs/pkg/models/operations/deleteapplicationrequest.md
+  - docs/pkg/models/operations/deleteapplicationresponse.md
+  - docs/pkg/models/operations/deleteapplicationscoperequest.md
+  - docs/pkg/models/operations/deleteapplicationscoperesponse.md
+  - docs/pkg/models/operations/deleteauthenticationproviderrequest.md
+  - docs/pkg/models/operations/deleteauthenticationproviderresponse.md
+  - docs/pkg/models/operations/deletefeaturerequest.md
+  - docs/pkg/models/operations/deletefeatureresponse.md
+  - docs/pkg/models/operations/deleteinvitationrequest.md
+  - docs/pkg/models/operations/deleteinvitationresponse.md
+  - docs/pkg/models/operations/deleteorganizationclientrequest.md
+  - docs/pkg/models/operations/deleteorganizationclientresponse.md
+  - docs/pkg/models/operations/deleteorganizationrequest.md
+  - docs/pkg/models/operations/deleteorganizationresponse.md
+  - docs/pkg/models/operations/deletepolicyrequest.md
+  - docs/pkg/models/operations/deletepolicyresponse.md
+  - docs/pkg/models/operations/deleteregionrequest.md
+  - docs/pkg/models/operations/deleteregionresponse.md
+  - docs/pkg/models/operations/deletestackrequest.md
+  - docs/pkg/models/operations/deletestackresponse.md
+  - docs/pkg/models/operations/deletestackuseraccessrequest.md
+  - docs/pkg/models/operations/deletestackuseraccessresponse.md
+  - docs/pkg/models/operations/deleteuserfromorganizationrequest.md
+  - docs/pkg/models/operations/deleteuserfromorganizationresponse.md
+  - docs/pkg/models/operations/disableapplicationfororganizationrequest.md
+  - docs/pkg/models/operations/disableapplicationfororganizationresponse.md
+  - docs/pkg/models/operations/disablemodulerequest.md
+  - docs/pkg/models/operations/disablemoduleresponse.md
+  - docs/pkg/models/operations/disablestackrequest.md
+  - docs/pkg/models/operations/disablestackresponse.md
+  - docs/pkg/models/operations/disablestargaterequest.md
+  - docs/pkg/models/operations/disablestargateresponse.md
+  - docs/pkg/models/operations/enableapplicationfororganizationrequest.md
+  - docs/pkg/models/operations/enableapplicationfororganizationresponse.md
+  - docs/pkg/models/operations/enablemodulerequest.md
+  - docs/pkg/models/operations/enablemoduleresponse.md
+  - docs/pkg/models/operations/enablestackrequest.md
+  - docs/pkg/models/operations/enablestackresponse.md
+  - docs/pkg/models/operations/enablestargaterequest.md
+  - docs/pkg/models/operations/enablestargateresponse.md
+  - docs/pkg/models/operations/getapplicationrequest.md
+  - docs/pkg/models/operations/getapplicationresponse.md
+  - docs/pkg/models/operations/getorganizationapplicationrequest.md
+  - docs/pkg/models/operations/getorganizationapplicationresponse.md
+  - docs/pkg/models/operations/getregionrequest.md
+  - docs/pkg/models/operations/getregionresponse.md
+  - docs/pkg/models/operations/getregionversionsrequest.md
+  - docs/pkg/models/operations/getregionversionsresponse.md
+  - docs/pkg/models/operations/getserverinforesponse.md
+  - docs/pkg/models/operations/getstackrequest.md
+  - docs/pkg/models/operations/getstackresponse.md
+  - docs/pkg/models/operations/listapplicationsresponse.md
+  - docs/pkg/models/operations/listfeaturesrequest.md
+  - docs/pkg/models/operations/listfeaturesresponse.md
+  - docs/pkg/models/operations/listfeaturesresponsebody.md
+  - docs/pkg/models/operations/listinvitationsrequest.md
+  - docs/pkg/models/operations/listinvitationsresponse.md
+  - docs/pkg/models/operations/listlogsrequest.md
+  - docs/pkg/models/operations/listlogsresponse.md
+  - docs/pkg/models/operations/listmodulesrequest.md
+  - docs/pkg/models/operations/listmodulesresponse.md
+  - docs/pkg/models/operations/listorganizationapplicationsrequest.md
+  - docs/pkg/models/operations/listorganizationapplicationsresponse.md
+  - docs/pkg/models/operations/listorganizationinvitationsrequest.md
+  - docs/pkg/models/operations/listorganizationinvitationsresponse.md
+  - docs/pkg/models/operations/listorganizationsexpandedresponse.md
+  - docs/pkg/models/operations/listorganizationsrequest.md
+  - docs/pkg/models/operations/listorganizationsresponse.md
+  - docs/pkg/models/operations/listpoliciesrequest.md
+  - docs/pkg/models/operations/listpoliciesresponse.md
+  - docs/pkg/models/operations/listregionsrequest.md
+  - docs/pkg/models/operations/listregionsresponse.md
+  - docs/pkg/models/operations/liststacksrequest.md
+  - docs/pkg/models/operations/liststacksresponse.md
+  - docs/pkg/models/operations/liststackusersaccessesrequest.md
+  - docs/pkg/models/operations/liststackusersaccessesresponse.md
+  - docs/pkg/models/operations/listusersoforganizationrequest.md
+  - docs/pkg/models/operations/listusersoforganizationresponse.md
+  - docs/pkg/models/operations/option.md
+  - docs/pkg/models/operations/organizationclientcreaterequest.md
+  - docs/pkg/models/operations/organizationclientcreateresponse.md
+  - docs/pkg/models/operations/organizationclientdeleterequest.md
+  - docs/pkg/models/operations/organizationclientdeleteresponse.md
+  - docs/pkg/models/operations/organizationclientreadrequest.md
+  - docs/pkg/models/operations/organizationclientreadresponse.md
+  - docs/pkg/models/operations/organizationclientsreadrequest.md
+  - docs/pkg/models/operations/organizationclientsreadresponse.md
+  - docs/pkg/models/operations/organizationclientupdaterequest.md
+  - docs/pkg/models/operations/organizationclientupdateresponse.md
+  - docs/pkg/models/operations/readauthenticationproviderrequest.md
+  - docs/pkg/models/operations/readauthenticationproviderresponse.md
+  - docs/pkg/models/operations/readconnecteduserresponse.md
+  - docs/pkg/models/operations/readorganizationclientrequest.md
+  - docs/pkg/models/operations/readorganizationclientresponse.md
+  - docs/pkg/models/operations/readorganizationrequest.md
+  - docs/pkg/models/operations/readorganizationresponse.md
+  - docs/pkg/models/operations/readpolicyrequest.md
+  - docs/pkg/models/operations/readpolicyresponse.md
+  - docs/pkg/models/operations/readstackuseraccessrequest.md
+  - docs/pkg/models/operations/readstackuseraccessresponse.md
+  - docs/pkg/models/operations/readuseroforganizationrequest.md
+  - docs/pkg/models/operations/readuseroforganizationresponse.md
+  - docs/pkg/models/operations/removescopefrompolicyrequest.md
+  - docs/pkg/models/operations/removescopefrompolicyresponse.md
+  - docs/pkg/models/operations/restorestackrequest.md
+  - docs/pkg/models/operations/restorestackresponse.md
+  - docs/pkg/models/operations/updateapplicationrequest.md
+  - docs/pkg/models/operations/updateapplicationresponse.md
+  - docs/pkg/models/operations/updateorganizationrequest.md
+  - docs/pkg/models/operations/updateorganizationresponse.md
+  - docs/pkg/models/operations/updatepolicyrequest.md
+  - docs/pkg/models/operations/updatepolicyresponse.md
+  - docs/pkg/models/operations/updatestackrequest.md
+  - docs/pkg/models/operations/updatestackresponse.md
+  - docs/pkg/models/operations/upgradestackrequest.md
+  - docs/pkg/models/operations/upgradestackresponse.md
+  - docs/pkg/models/operations/upsertauthenticationproviderrequest.md
+  - docs/pkg/models/operations/upsertauthenticationproviderresponse.md
+  - docs/pkg/models/operations/upsertorganizationuserrequest.md
+  - docs/pkg/models/operations/upsertorganizationuserresponse.md
+  - docs/pkg/models/operations/upsertstackuseraccessrequest.md
+  - docs/pkg/models/operations/upsertstackuseraccessresponse.md
+  - docs/pkg/models/sdkerrors/error.md
+  - docs/pkg/models/shared/action.md
+  - docs/pkg/models/shared/anyregion.md
+  - docs/pkg/models/shared/application.md
+  - docs/pkg/models/shared/applicationdata.md
+  - docs/pkg/models/shared/applicationwithscope.md
+  - docs/pkg/models/shared/authenticationproviderdata.md
+  - docs/pkg/models/shared/authenticationproviderdatagithubidpconfig.md
+  - docs/pkg/models/shared/authenticationproviderdatagithubidpconfigconfig.md
+  - docs/pkg/models/shared/authenticationproviderdatagithubidpconfigtype.md
+  - docs/pkg/models/shared/authenticationproviderdatagoogleidpconfig.md
+  - docs/pkg/models/shared/authenticationproviderdatagoogleidpconfigconfig.md
+  - docs/pkg/models/shared/authenticationproviderdatagoogleidpconfigtype.md
+  - docs/pkg/models/shared/authenticationproviderdatamicrosoftidpconfig.md
+  - docs/pkg/models/shared/authenticationproviderdatamicrosoftidpconfigconfig.md
+  - docs/pkg/models/shared/authenticationproviderdatamicrosoftidpconfigtype.md
+  - docs/pkg/models/shared/authenticationproviderdataoidcconfig.md
+  - docs/pkg/models/shared/authenticationproviderdataoidcconfigconfig.md
+  - docs/pkg/models/shared/authenticationproviderdataoidcconfigtype.md
+  - docs/pkg/models/shared/authenticationproviderresponse.md
+  - docs/pkg/models/shared/authenticationproviderresponsegithubidpconfig.md
+  - docs/pkg/models/shared/authenticationproviderresponsegithubidpconfigconfig.md
+  - docs/pkg/models/shared/authenticationproviderresponsegithubidpconfigtype.md
+  - docs/pkg/models/shared/authenticationproviderresponsegoogleidpconfig.md
+  - docs/pkg/models/shared/authenticationproviderresponsegoogleidpconfigconfig.md
+  - docs/pkg/models/shared/authenticationproviderresponsegoogleidpconfigtype.md
+  - docs/pkg/models/shared/authenticationproviderresponsemicrosoftidpconfig.md
+  - docs/pkg/models/shared/authenticationproviderresponsemicrosoftidpconfigconfig.md
+  - docs/pkg/models/shared/authenticationproviderresponsemicrosoftidpconfigtype.md
+  - docs/pkg/models/shared/authenticationproviderresponseoidcconfig.md
+  - docs/pkg/models/shared/authenticationproviderresponseoidcconfigconfig.md
+  - docs/pkg/models/shared/authenticationproviderresponseoidcconfigtype.md
+  - docs/pkg/models/shared/capability.md
+  - docs/pkg/models/shared/clusterstatus.md
+  - docs/pkg/models/shared/createapplicationresponse.md
+  - docs/pkg/models/shared/createapplicationscoperequest.md
+  - docs/pkg/models/shared/createapplicationscoperesponse.md
+  - docs/pkg/models/shared/createclientresponseresponse.md
+  - docs/pkg/models/shared/createclientresponseresponsedata.md
+  - docs/pkg/models/shared/createclientresponseresponsesecret.md
+  - docs/pkg/models/shared/createdprivateregionresponse.md
+  - docs/pkg/models/shared/createinvitationresponse.md
+  - docs/pkg/models/shared/createorganizationclientrequest.md
+  - docs/pkg/models/shared/createorganizationclientresponse.md
+  - docs/pkg/models/shared/createorganizationrequest.md
+  - docs/pkg/models/shared/createorganizationresponse.md
+  - docs/pkg/models/shared/createpolicyresponse.md
+  - docs/pkg/models/shared/createprivateregionrequest.md
+  - docs/pkg/models/shared/createstackrequest.md
+  - docs/pkg/models/shared/createstackresponse.md
+  - docs/pkg/models/shared/createuserrequest.md
+  - docs/pkg/models/shared/createuserresponse.md
+  - docs/pkg/models/shared/cursor.md
+  - docs/pkg/models/shared/data.md
+  - docs/pkg/models/shared/enableapplicationfororganizationresponse.md
+  - docs/pkg/models/shared/error.md
+  - docs/pkg/models/shared/expectedstatus.md
+  - docs/pkg/models/shared/getapplicationresponse.md
+  - docs/pkg/models/shared/getregionresponse.md
+  - docs/pkg/models/shared/getregionversionsresponse.md
+  - docs/pkg/models/shared/invitation.md
+  - docs/pkg/models/shared/invitationstatus.md
+  - docs/pkg/models/shared/listapplicationsresponse.md
+  - docs/pkg/models/shared/listinvitationsresponse.md
+  - docs/pkg/models/shared/listmodulesresponse.md
+  - docs/pkg/models/shared/listorganizationexpandedresponse.md
+  - docs/pkg/models/shared/listpoliciesresponse.md
+  - docs/pkg/models/shared/listregionsresponse.md
+  - docs/pkg/models/shared/liststacksresponse.md
+  - docs/pkg/models/shared/listusersresponse.md
+  - docs/pkg/models/shared/log.md
+  - docs/pkg/models/shared/logcursor.md
+  - docs/pkg/models/shared/logcursordata.md
+  - docs/pkg/models/shared/logdata.md
+  - docs/pkg/models/shared/module.md
+  - docs/pkg/models/shared/modulestate.md
+  - docs/pkg/models/shared/modulestatus.md
+  - docs/pkg/models/shared/organizationaccess.md
+  - docs/pkg/models/shared/organizationapplication.md
+  - docs/pkg/models/shared/organizationclient.md
+  - docs/pkg/models/shared/organizationclientsecret.md
+  - docs/pkg/models/shared/organizationdata.md
+  - docs/pkg/models/shared/organizationexpanded.md
+  - docs/pkg/models/shared/organizationfeature.md
+  - docs/pkg/models/shared/organizationuser.md
+  - docs/pkg/models/shared/policy.md
+  - docs/pkg/models/shared/policydata.md
+  - docs/pkg/models/shared/privateregion.md
+  - docs/pkg/models/shared/privateregionsecret.md
+  - docs/pkg/models/shared/readorganizationclientresponse.md
+  - docs/pkg/models/shared/readorganizationclientsresponse.md
+  - docs/pkg/models/shared/readorganizationclientsresponsedata.md
+  - docs/pkg/models/shared/readorganizationresponse.md
+  - docs/pkg/models/shared/readorganizationuserresponse.md
+  - docs/pkg/models/shared/readorganizationuserresponsedata.md
+  - docs/pkg/models/shared/readpolicyresponse.md
+  - docs/pkg/models/shared/readstackuseraccess.md
+  - docs/pkg/models/shared/readstackuseraccessdata.md
+  - docs/pkg/models/shared/readuserresponse.md
+  - docs/pkg/models/shared/region.md
+  - docs/pkg/models/shared/regioncapability.md
+  - docs/pkg/models/shared/scope.md
+  - docs/pkg/models/shared/security.md
+  - docs/pkg/models/shared/serverinfo.md
+  - docs/pkg/models/shared/stack.md
+  - docs/pkg/models/shared/stackdata.md
+  - docs/pkg/models/shared/stackstate.md
+  - docs/pkg/models/shared/stackstatus.md
+  - docs/pkg/models/shared/stackuseraccessresponse.md
+  - docs/pkg/models/shared/stackuseraccessresponsedata.md
+  - docs/pkg/models/shared/stackversion.md
+  - docs/pkg/models/shared/systemrole.md
+  - docs/pkg/models/shared/updateapplicationresponse.md
+  - docs/pkg/models/shared/updateorganizationclientrequest.md
+  - docs/pkg/models/shared/updateorganizationuserrequest.md
+  - docs/pkg/models/shared/updatepolicyresponse.md
+  - docs/pkg/models/shared/updatestackuserrequest.md
+  - docs/pkg/models/shared/user.md
+  - docs/pkg/models/shared/version.md
+  - docs/sdks/formancecloud/README.md
+  - formancecloud.go
+  - go.mod
+  - internal/config/sdkconfiguration.go
+  - internal/hooks/hooks.go
+  - pkg/models/operations/options.go
+  - pkg/models/sdkerrors/sdkerror.go
+  - pkg/optionalnullable/optionalnullable.go
+  - pkg/optionalnullable/optionalnullable_test.go
+  - pkg/retry/config.go
+  - pkg/types/bigint.go
+  - pkg/types/date.go
+  - pkg/types/datetime.go
+  - pkg/types/pointers.go
+  - pkg/utils/contenttype.go
+  - pkg/utils/env.go
+  - pkg/utils/form.go
+  - pkg/utils/headers.go
+  - pkg/utils/json.go
+  - pkg/utils/pathparams.go
+  - pkg/utils/queryparams.go
+  - pkg/utils/requestbody.go
+  - pkg/utils/retries.go
+  - pkg/utils/security.go
+  - pkg/utils/utils.go
+examples:
+  getServerInfo:
+    speakeasy-default-get-server-info:
+      responses:
+        "200":
+          application/json: {"version": "<value>"}
+        default:
+          application/json: {"errorCode": "<value>"}
+  listOrganizations:
+    speakeasy-default-list-organizations:
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  createOrganization:
+    speakeasy-default-create-organization:
+      responses:
+        "201":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  listOrganizationsExpanded:
+    speakeasy-default-list-organizations-expanded:
+      responses:
+        "200":
+          application/json: {}
+  readOrganization:
+    speakeasy-default-read-organization:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  updateOrganization:
+    speakeasy-default-update-organization:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteOrganization:
+    speakeasy-default-delete-organization:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  readAuthenticationProvider:
+    speakeasy-default-read-authentication-provider:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  upsertAuthenticationProvider:
+    speakeasy-default-upsert-authentication-provider:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteAuthenticationProvider:
+    speakeasy-default-delete-authentication-provider:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  listFeatures:
+    speakeasy-default-list-features:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {"data": [{"organizationID": "<id>", "name": "<value>", "createdAt": "2025-11-09T12:05:56.871Z"}]}
+        default:
+          application/json: {"errorCode": "<value>"}
+  addFeatures:
+    speakeasy-default-add-features:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteFeature:
+    speakeasy-default-delete-feature:
+      parameters:
+        path:
+          organizationId: "<id>"
+          name: "<value>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  readOrganizationClient:
+    speakeasy-default-read-organization-client:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  createOrganizationClient:
+    speakeasy-default-create-organization-client:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "201":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteOrganizationClient:
+    speakeasy-default-delete-organization-client:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  organizationClientsRead:
+    speakeasy-default-organization-clients-read:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {"data": {"pageSize": 15, "hasMore": false, "previous": "YXVsdCBhbmQgYSBtYXhpbXVtIG1heF9yZXN1bHRzLol=", "next": "", "data": [{"id": "<id>", "secret": {"lastDigits": "<value>"}, "name": "<value>", "description": "even furthermore sarcastic at tinderbox resort guacamole incandescence redound than", "createdAt": "2024-10-01T11:29:19.916Z", "updatedAt": "2024-12-23T20:03:23.769Z"}]}}
+        default:
+          application/json: {"errorCode": "<value>"}
+  organizationClientCreate:
+    speakeasy-default-organization-client-create:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "201":
+          application/json: {"data": {"id": "<id>", "secret": {"lastDigits": "<value>"}, "name": "<value>", "description": "reclassify rapid likewise separate carp pish upsell quintuple", "createdAt": "2024-01-13T09:33:21.504Z", "updatedAt": "2023-08-27T21:07:22.984Z"}}
+        default:
+          application/json: {"errorCode": "<value>"}
+  organizationClientRead:
+    speakeasy-default-organization-client-read:
+      parameters:
+        path:
+          organizationId: "<id>"
+          clientId: "<id>"
+      responses:
+        "200":
+          application/json: {"data": {"id": "<id>", "secret": {"lastDigits": "<value>"}, "name": "<value>", "description": "oh solution gosh amid nor orient narrate within gah fooey", "createdAt": "2025-05-24T11:12:14.293Z", "updatedAt": "2024-11-19T21:20:10.690Z"}}
+        default:
+          application/json: {"errorCode": "<value>"}
+  organizationClientDelete:
+    speakeasy-default-organization-client-delete:
+      parameters:
+        path:
+          organizationId: "<id>"
+          clientId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  organizationClientUpdate:
+    speakeasy-default-organization-client-update:
+      parameters:
+        path:
+          organizationId: "<id>"
+          clientId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  listLogs:
+    speakeasy-default-list-logs:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {"data": {"pageSize": 15, "hasMore": false, "previous": "YXVsdCBhbmQgYSBtYXhpbXVtIG1heF9yZXN1bHRzLol=", "next": "", "data": [{"seq": "1e6f8b6e-1b6b-4b3b-8b3b-1b6b4b3b8b3b", "organizationId": "<id>", "userId": "<id>", "action": "<value>", "date": "2024-08-30T19:05:54.946Z", "data": {}}]}}
+        default:
+          application/json: {"errorCode": "<value>"}
+  listUsersOfOrganization:
+    speakeasy-default-list-users-of-organization:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  readUserOfOrganization:
+    speakeasy-default-read-user-of-organization:
+      parameters:
+        path:
+          organizationId: "<id>"
+          userId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  upsertOrganizationUser:
+    speakeasy-default-upsert-organization-user:
+      parameters:
+        path:
+          organizationId: "<id>"
+          userId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteUserFromOrganization:
+    speakeasy-default-delete-user-from-organization:
+      parameters:
+        path:
+          organizationId: "<id>"
+          userId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  listPolicies:
+    speakeasy-default-list-policies:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  createPolicy:
+    speakeasy-default-create-policy:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "201":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  readPolicy:
+    speakeasy-default-read-policy:
+      parameters:
+        path:
+          organizationId: "<id>"
+          policyId: 831591
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  updatePolicy:
+    speakeasy-default-update-policy:
+      parameters:
+        path:
+          organizationId: "<id>"
+          policyId: 127460
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deletePolicy:
+    speakeasy-default-delete-policy:
+      parameters:
+        path:
+          organizationId: "<id>"
+          policyId: 114294
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  addScopeToPolicy:
+    speakeasy-default-add-scope-to-policy:
+      parameters:
+        path:
+          organizationId: "<id>"
+          policyId: 328027
+          scopeId: 675877
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  removeScopeFromPolicy:
+    speakeasy-default-remove-scope-from-policy:
+      parameters:
+        path:
+          organizationId: "<id>"
+          policyId: 995736
+          scopeId: 485996
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  listStacks:
+    speakeasy-default-list-stacks:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  createStack:
+    speakeasy-default-create-stack:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "202":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  listModules:
+    speakeasy-default-list-modules:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        "200":
+          application/json: {"data": []}
+        default:
+          application/json: {"errorCode": "<value>"}
+  enableModule:
+    speakeasy-default-enable-module:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+        query:
+          name: "<value>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  disableModule:
+    speakeasy-default-disable-module:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+        query:
+          name: "<value>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  upgradeStack:
+    speakeasy-default-upgrade-stack:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  getStack:
+    speakeasy-default-get-stack:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  updateStack:
+    speakeasy-default-update-stack:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteStack:
+    speakeasy-default-delete-stack:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  listStackUsersAccesses:
+    speakeasy-default-list-stack-users-accesses:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  readStackUserAccess:
+    speakeasy-default-read-stack-user-access:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+          userId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteStackUserAccess:
+    speakeasy-default-delete-stack-user-access:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+          userId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  upsertStackUserAccess:
+    speakeasy-default-upsert-stack-user-access:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+          userId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  disableStack:
+    speakeasy-default-disable-stack:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  enableStack:
+    speakeasy-default-enable-stack:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  restoreStack:
+    speakeasy-default-restore-stack:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        "202":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  enableStargate:
+    speakeasy-default-enable-stargate:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  disableStargate:
+    speakeasy-default-disable-stargate:
+      parameters:
+        path:
+          organizationId: "<id>"
+          stackId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  listInvitations:
+    speakeasy-default-list-invitations:
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  acceptInvitation:
+    speakeasy-default-accept-invitation:
+      parameters:
+        path:
+          invitationId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  declineInvitation:
+    speakeasy-default-decline-invitation:
+      parameters:
+        path:
+          invitationId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  listOrganizationInvitations:
+    speakeasy-default-list-organization-invitations:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  createInvitation:
+    speakeasy-default-create-invitation:
+      parameters:
+        path:
+          organizationId: "<id>"
+        query:
+          email: "Manley_Hoeger@hotmail.com"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteInvitation:
+    speakeasy-default-delete-invitation:
+      parameters:
+        path:
+          organizationId: "<id>"
+          invitationId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  listRegions:
+    speakeasy-default-list-regions:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {"data": []}
+        default:
+          application/json: {"errorCode": "<value>"}
+  createPrivateRegion:
+    speakeasy-default-create-private-region:
+      parameters:
+        path:
+          organizationId: "<id>"
+      responses:
+        "200":
+          application/json: {"data": {"id": "<id>", "baseUrl": "https://wide-eyed-kinase.org", "createdAt": "2024-12-31T09:20:38.935Z", "active": true, "name": "<value>", "capabilities": {}, "agentID": "<id>", "outdated": true, "organizationID": "<id>", "creatorID": "<value>"}}
+        default:
+          application/json: {"errorCode": "<value>"}
+  getRegion:
+    speakeasy-default-get-region:
+      parameters:
+        path:
+          organizationId: "<id>"
+          regionID: "<id>"
+      responses:
+        "200":
+          application/json: {"data": {"id": "<id>", "baseUrl": "https://critical-pine.info/", "createdAt": "2024-12-31T04:45:57.185Z", "active": false, "name": "<value>", "capabilities": {}, "agentID": "<id>", "outdated": false, "public": true}}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteRegion:
+    speakeasy-default-delete-region:
+      parameters:
+        path:
+          organizationId: "<id>"
+          regionID: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  getRegionVersions:
+    speakeasy-default-get-region-versions:
+      parameters:
+        path:
+          organizationId: "<id>"
+          regionID: "<id>"
+      responses:
+        "200":
+          application/json: {"data": []}
+        default:
+          application/json: {"errorCode": "<value>"}
+  listOrganizationApplications:
+    speakeasy-default-list-organization-applications:
+      parameters:
+        path:
+          organizationId: "<id>"
+        query:
+          pageSize: 15
+          page: 0
+      responses:
+        "200":
+          application/json: {"cursor": {"pageSize": 15, "hasMore": false, "previous": "YXVsdCBhbmQgYSBtYXhpbXVtIG1heF9yZXN1bHRzLol=", "next": "", "data": []}}
+        default:
+          application/json: {"errorCode": "<value>"}
+  getOrganizationApplication:
+    speakeasy-default-get-organization-application:
+      parameters:
+        path:
+          organizationId: "<id>"
+          applicationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  enableApplicationForOrganization:
+    speakeasy-default-enable-application-for-organization:
+      parameters:
+        path:
+          organizationId: "<id>"
+          applicationId: "<id>"
+      responses:
+        "201":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  disableApplicationForOrganization:
+    speakeasy-default-disable-application-for-organization:
+      parameters:
+        path:
+          organizationId: "<id>"
+          applicationId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  listApplications:
+    speakeasy-default-list-applications:
+      responses:
+        "200":
+          application/json: {"cursor": {"pageSize": 15, "hasMore": false, "previous": "YXVsdCBhbmQgYSBtYXhpbXVtIG1heF9yZXN1bHRzLol=", "next": "", "data": []}}
+        default:
+          application/json: {"errorCode": "<value>"}
+  createApplication:
+    speakeasy-default-create-application:
+      responses:
+        "201":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  getApplication:
+    speakeasy-default-get-application:
+      parameters:
+        path:
+          applicationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  updateApplication:
+    speakeasy-default-update-application:
+      parameters:
+        path:
+          applicationId: "<id>"
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteApplication:
+    speakeasy-default-delete-application:
+      parameters:
+        path:
+          applicationId: "<id>"
+      responses:
+        default:
+          application/json: {"errorCode": "<value>"}
+  createApplicationScope:
+    speakeasy-default-create-application-scope:
+      parameters:
+        path:
+          applicationId: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        "201":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+  deleteApplicationScope:
+    speakeasy-default-delete-application-scope:
+      parameters:
+        path:
+          applicationId: "550e8400-e29b-41d4-a716-446655440000"
+          scopeID: 115177
+      responses:
+        "400":
+          application/json: {"errorCode": "<value>"}
+        "500":
+          application/json: {"errorCode": "<value>"}
+        default:
+          application/json: {"errorCode": "<value>"}
+  createUser:
+    speakeasy-default-create-user:
+      requestBody:
+        application/json: {"email": "user@example.com"}
+      responses:
+        "201":
+          application/json: {}
+        "400":
+          application/json: {"errorCode": "<value>"}
+        "500":
+          application/json: {"errorCode": "<value>"}
+        default:
+          application/json: {"errorCode": "<value>"}
+  readConnectedUser:
+    speakeasy-default-read-connected-user:
+      responses:
+        "200":
+          application/json: {}
+        default:
+          application/json: {"errorCode": "<value>"}
+examplesVersion: 1.0.2

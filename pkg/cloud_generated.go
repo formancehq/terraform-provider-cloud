@@ -11,10 +11,10 @@ package pkg
 
 import (
 	context "context"
-	http "net/http"
 	reflect "reflect"
 
-	sdk "github.com/formancehq/terraform-provider-cloud/sdk"
+	operations "github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
+	shared "github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -43,19 +43,18 @@ func (m *MockCloudSDK) EXPECT() *MockCloudSDKMockRecorder {
 }
 
 // CreateInvitation mocks base method.
-func (m *MockCloudSDK) CreateInvitation(ctx context.Context, organizationID, email string, invitationClaim sdk.InvitationClaim) (*sdk.CreateInvitationResponse, *http.Response, error) {
+func (m *MockCloudSDK) CreateInvitation(ctx context.Context, organizationID, email string) (*operations.CreateInvitationResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateInvitation", ctx, organizationID, email, invitationClaim)
-	ret0, _ := ret[0].(*sdk.CreateInvitationResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret := m.ctrl.Call(m, "CreateInvitation", ctx, organizationID, email)
+	ret0, _ := ret[0].(*operations.CreateInvitationResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateInvitation indicates an expected call of CreateInvitation.
-func (mr *MockCloudSDKMockRecorder) CreateInvitation(ctx, organizationID, email, invitationClaim any) *MockCloudSDKCreateInvitationCall {
+func (mr *MockCloudSDKMockRecorder) CreateInvitation(ctx, organizationID, email any) *MockCloudSDKCreateInvitationCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateInvitation", reflect.TypeOf((*MockCloudSDK)(nil).CreateInvitation), ctx, organizationID, email, invitationClaim)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateInvitation", reflect.TypeOf((*MockCloudSDK)(nil).CreateInvitation), ctx, organizationID, email)
 	return &MockCloudSDKCreateInvitationCall{Call: call}
 }
 
@@ -65,31 +64,30 @@ type MockCloudSDKCreateInvitationCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKCreateInvitationCall) Return(arg0 *sdk.CreateInvitationResponse, arg1 *http.Response, arg2 error) *MockCloudSDKCreateInvitationCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKCreateInvitationCall) Return(arg0 *operations.CreateInvitationResponse, arg1 error) *MockCloudSDKCreateInvitationCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKCreateInvitationCall) Do(f func(context.Context, string, string, sdk.InvitationClaim) (*sdk.CreateInvitationResponse, *http.Response, error)) *MockCloudSDKCreateInvitationCall {
+func (c *MockCloudSDKCreateInvitationCall) Do(f func(context.Context, string, string) (*operations.CreateInvitationResponse, error)) *MockCloudSDKCreateInvitationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKCreateInvitationCall) DoAndReturn(f func(context.Context, string, string, sdk.InvitationClaim) (*sdk.CreateInvitationResponse, *http.Response, error)) *MockCloudSDKCreateInvitationCall {
+func (c *MockCloudSDKCreateInvitationCall) DoAndReturn(f func(context.Context, string, string) (*operations.CreateInvitationResponse, error)) *MockCloudSDKCreateInvitationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateStack mocks base method.
-func (m *MockCloudSDK) CreateStack(ctx context.Context, organizationID string, body sdk.CreateStackRequest) (*sdk.CreateStackResponse, *http.Response, error) {
+func (m *MockCloudSDK) CreateStack(ctx context.Context, organizationID string, body *shared.CreateStackRequest) (*operations.CreateStackResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateStack", ctx, organizationID, body)
-	ret0, _ := ret[0].(*sdk.CreateStackResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.CreateStackResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateStack indicates an expected call of CreateStack.
@@ -105,28 +103,28 @@ type MockCloudSDKCreateStackCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKCreateStackCall) Return(arg0 *sdk.CreateStackResponse, arg1 *http.Response, arg2 error) *MockCloudSDKCreateStackCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKCreateStackCall) Return(arg0 *operations.CreateStackResponse, arg1 error) *MockCloudSDKCreateStackCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKCreateStackCall) Do(f func(context.Context, string, sdk.CreateStackRequest) (*sdk.CreateStackResponse, *http.Response, error)) *MockCloudSDKCreateStackCall {
+func (c *MockCloudSDKCreateStackCall) Do(f func(context.Context, string, *shared.CreateStackRequest) (*operations.CreateStackResponse, error)) *MockCloudSDKCreateStackCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKCreateStackCall) DoAndReturn(f func(context.Context, string, sdk.CreateStackRequest) (*sdk.CreateStackResponse, *http.Response, error)) *MockCloudSDKCreateStackCall {
+func (c *MockCloudSDKCreateStackCall) DoAndReturn(f func(context.Context, string, *shared.CreateStackRequest) (*operations.CreateStackResponse, error)) *MockCloudSDKCreateStackCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // DeleteInvitation mocks base method.
-func (m *MockCloudSDK) DeleteInvitation(ctx context.Context, organizationID, invitationID string) (*http.Response, error) {
+func (m *MockCloudSDK) DeleteInvitation(ctx context.Context, organizationID, invitationID string) (*operations.DeleteInvitationResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteInvitation", ctx, organizationID, invitationID)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*operations.DeleteInvitationResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -144,28 +142,28 @@ type MockCloudSDKDeleteInvitationCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKDeleteInvitationCall) Return(arg0 *http.Response, arg1 error) *MockCloudSDKDeleteInvitationCall {
+func (c *MockCloudSDKDeleteInvitationCall) Return(arg0 *operations.DeleteInvitationResponse, arg1 error) *MockCloudSDKDeleteInvitationCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKDeleteInvitationCall) Do(f func(context.Context, string, string) (*http.Response, error)) *MockCloudSDKDeleteInvitationCall {
+func (c *MockCloudSDKDeleteInvitationCall) Do(f func(context.Context, string, string) (*operations.DeleteInvitationResponse, error)) *MockCloudSDKDeleteInvitationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKDeleteInvitationCall) DoAndReturn(f func(context.Context, string, string) (*http.Response, error)) *MockCloudSDKDeleteInvitationCall {
+func (c *MockCloudSDKDeleteInvitationCall) DoAndReturn(f func(context.Context, string, string) (*operations.DeleteInvitationResponse, error)) *MockCloudSDKDeleteInvitationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // DeleteStack mocks base method.
-func (m *MockCloudSDK) DeleteStack(ctx context.Context, organizationID, stackID string, force bool) (*http.Response, error) {
+func (m *MockCloudSDK) DeleteStack(ctx context.Context, organizationID, stackID string, force bool) (*operations.DeleteStackResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteStack", ctx, organizationID, stackID, force)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*operations.DeleteStackResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -183,28 +181,28 @@ type MockCloudSDKDeleteStackCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKDeleteStackCall) Return(arg0 *http.Response, arg1 error) *MockCloudSDKDeleteStackCall {
+func (c *MockCloudSDKDeleteStackCall) Return(arg0 *operations.DeleteStackResponse, arg1 error) *MockCloudSDKDeleteStackCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKDeleteStackCall) Do(f func(context.Context, string, string, bool) (*http.Response, error)) *MockCloudSDKDeleteStackCall {
+func (c *MockCloudSDKDeleteStackCall) Do(f func(context.Context, string, string, bool) (*operations.DeleteStackResponse, error)) *MockCloudSDKDeleteStackCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKDeleteStackCall) DoAndReturn(f func(context.Context, string, string, bool) (*http.Response, error)) *MockCloudSDKDeleteStackCall {
+func (c *MockCloudSDKDeleteStackCall) DoAndReturn(f func(context.Context, string, string, bool) (*operations.DeleteStackResponse, error)) *MockCloudSDKDeleteStackCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // DeleteStackUserAccess mocks base method.
-func (m *MockCloudSDK) DeleteStackUserAccess(ctx context.Context, organizationID, stackID, userId string) (*http.Response, error) {
+func (m *MockCloudSDK) DeleteStackUserAccess(ctx context.Context, organizationID, stackID, userId string) (*operations.DeleteStackUserAccessResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteStackUserAccess", ctx, organizationID, stackID, userId)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*operations.DeleteStackUserAccessResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -222,28 +220,28 @@ type MockCloudSDKDeleteStackUserAccessCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKDeleteStackUserAccessCall) Return(arg0 *http.Response, arg1 error) *MockCloudSDKDeleteStackUserAccessCall {
+func (c *MockCloudSDKDeleteStackUserAccessCall) Return(arg0 *operations.DeleteStackUserAccessResponse, arg1 error) *MockCloudSDKDeleteStackUserAccessCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKDeleteStackUserAccessCall) Do(f func(context.Context, string, string, string) (*http.Response, error)) *MockCloudSDKDeleteStackUserAccessCall {
+func (c *MockCloudSDKDeleteStackUserAccessCall) Do(f func(context.Context, string, string, string) (*operations.DeleteStackUserAccessResponse, error)) *MockCloudSDKDeleteStackUserAccessCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKDeleteStackUserAccessCall) DoAndReturn(f func(context.Context, string, string, string) (*http.Response, error)) *MockCloudSDKDeleteStackUserAccessCall {
+func (c *MockCloudSDKDeleteStackUserAccessCall) DoAndReturn(f func(context.Context, string, string, string) (*operations.DeleteStackUserAccessResponse, error)) *MockCloudSDKDeleteStackUserAccessCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // DeleteUserOfOrganization mocks base method.
-func (m *MockCloudSDK) DeleteUserOfOrganization(ctx context.Context, organizationID, userID string) (*http.Response, error) {
+func (m *MockCloudSDK) DeleteUserOfOrganization(ctx context.Context, organizationID, userID string) (*operations.DeleteUserFromOrganizationResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteUserOfOrganization", ctx, organizationID, userID)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*operations.DeleteUserFromOrganizationResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -261,28 +259,28 @@ type MockCloudSDKDeleteUserOfOrganizationCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKDeleteUserOfOrganizationCall) Return(arg0 *http.Response, arg1 error) *MockCloudSDKDeleteUserOfOrganizationCall {
+func (c *MockCloudSDKDeleteUserOfOrganizationCall) Return(arg0 *operations.DeleteUserFromOrganizationResponse, arg1 error) *MockCloudSDKDeleteUserOfOrganizationCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKDeleteUserOfOrganizationCall) Do(f func(context.Context, string, string) (*http.Response, error)) *MockCloudSDKDeleteUserOfOrganizationCall {
+func (c *MockCloudSDKDeleteUserOfOrganizationCall) Do(f func(context.Context, string, string) (*operations.DeleteUserFromOrganizationResponse, error)) *MockCloudSDKDeleteUserOfOrganizationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKDeleteUserOfOrganizationCall) DoAndReturn(f func(context.Context, string, string) (*http.Response, error)) *MockCloudSDKDeleteUserOfOrganizationCall {
+func (c *MockCloudSDKDeleteUserOfOrganizationCall) DoAndReturn(f func(context.Context, string, string) (*operations.DeleteUserFromOrganizationResponse, error)) *MockCloudSDKDeleteUserOfOrganizationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // DisableModule mocks base method.
-func (m *MockCloudSDK) DisableModule(ctx context.Context, organizationID, stackID, moduleName string) (*http.Response, error) {
+func (m *MockCloudSDK) DisableModule(ctx context.Context, organizationID, stackID, moduleName string) (*operations.DisableModuleResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DisableModule", ctx, organizationID, stackID, moduleName)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*operations.DisableModuleResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -300,28 +298,28 @@ type MockCloudSDKDisableModuleCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKDisableModuleCall) Return(arg0 *http.Response, arg1 error) *MockCloudSDKDisableModuleCall {
+func (c *MockCloudSDKDisableModuleCall) Return(arg0 *operations.DisableModuleResponse, arg1 error) *MockCloudSDKDisableModuleCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKDisableModuleCall) Do(f func(context.Context, string, string, string) (*http.Response, error)) *MockCloudSDKDisableModuleCall {
+func (c *MockCloudSDKDisableModuleCall) Do(f func(context.Context, string, string, string) (*operations.DisableModuleResponse, error)) *MockCloudSDKDisableModuleCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKDisableModuleCall) DoAndReturn(f func(context.Context, string, string, string) (*http.Response, error)) *MockCloudSDKDisableModuleCall {
+func (c *MockCloudSDKDisableModuleCall) DoAndReturn(f func(context.Context, string, string, string) (*operations.DisableModuleResponse, error)) *MockCloudSDKDisableModuleCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // EnableModule mocks base method.
-func (m *MockCloudSDK) EnableModule(ctx context.Context, organizationID, stackID, moduleName string) (*http.Response, error) {
+func (m *MockCloudSDK) EnableModule(ctx context.Context, organizationID, stackID, moduleName string) (*operations.EnableModuleResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EnableModule", ctx, organizationID, stackID, moduleName)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*operations.EnableModuleResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -339,31 +337,30 @@ type MockCloudSDKEnableModuleCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKEnableModuleCall) Return(arg0 *http.Response, arg1 error) *MockCloudSDKEnableModuleCall {
+func (c *MockCloudSDKEnableModuleCall) Return(arg0 *operations.EnableModuleResponse, arg1 error) *MockCloudSDKEnableModuleCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKEnableModuleCall) Do(f func(context.Context, string, string, string) (*http.Response, error)) *MockCloudSDKEnableModuleCall {
+func (c *MockCloudSDKEnableModuleCall) Do(f func(context.Context, string, string, string) (*operations.EnableModuleResponse, error)) *MockCloudSDKEnableModuleCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKEnableModuleCall) DoAndReturn(f func(context.Context, string, string, string) (*http.Response, error)) *MockCloudSDKEnableModuleCall {
+func (c *MockCloudSDKEnableModuleCall) DoAndReturn(f func(context.Context, string, string, string) (*operations.EnableModuleResponse, error)) *MockCloudSDKEnableModuleCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetRegion mocks base method.
-func (m *MockCloudSDK) GetRegion(ctx context.Context, organizationID, regionID string) (*sdk.GetRegionResponse, *http.Response, error) {
+func (m *MockCloudSDK) GetRegion(ctx context.Context, organizationID, regionID string) (*operations.GetRegionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRegion", ctx, organizationID, regionID)
-	ret0, _ := ret[0].(*sdk.GetRegionResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.GetRegionResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetRegion indicates an expected call of GetRegion.
@@ -379,31 +376,30 @@ type MockCloudSDKGetRegionCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKGetRegionCall) Return(arg0 *sdk.GetRegionResponse, arg1 *http.Response, arg2 error) *MockCloudSDKGetRegionCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKGetRegionCall) Return(arg0 *operations.GetRegionResponse, arg1 error) *MockCloudSDKGetRegionCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKGetRegionCall) Do(f func(context.Context, string, string) (*sdk.GetRegionResponse, *http.Response, error)) *MockCloudSDKGetRegionCall {
+func (c *MockCloudSDKGetRegionCall) Do(f func(context.Context, string, string) (*operations.GetRegionResponse, error)) *MockCloudSDKGetRegionCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKGetRegionCall) DoAndReturn(f func(context.Context, string, string) (*sdk.GetRegionResponse, *http.Response, error)) *MockCloudSDKGetRegionCall {
+func (c *MockCloudSDKGetRegionCall) DoAndReturn(f func(context.Context, string, string) (*operations.GetRegionResponse, error)) *MockCloudSDKGetRegionCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetRegionVersions mocks base method.
-func (m *MockCloudSDK) GetRegionVersions(ctx context.Context, organizationID, regionID string) (*sdk.GetRegionVersionsResponse, *http.Response, error) {
+func (m *MockCloudSDK) GetRegionVersions(ctx context.Context, organizationID, regionID string) (*operations.GetRegionVersionsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRegionVersions", ctx, organizationID, regionID)
-	ret0, _ := ret[0].(*sdk.GetRegionVersionsResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.GetRegionVersionsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetRegionVersions indicates an expected call of GetRegionVersions.
@@ -419,31 +415,30 @@ type MockCloudSDKGetRegionVersionsCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKGetRegionVersionsCall) Return(arg0 *sdk.GetRegionVersionsResponse, arg1 *http.Response, arg2 error) *MockCloudSDKGetRegionVersionsCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKGetRegionVersionsCall) Return(arg0 *operations.GetRegionVersionsResponse, arg1 error) *MockCloudSDKGetRegionVersionsCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKGetRegionVersionsCall) Do(f func(context.Context, string, string) (*sdk.GetRegionVersionsResponse, *http.Response, error)) *MockCloudSDKGetRegionVersionsCall {
+func (c *MockCloudSDKGetRegionVersionsCall) Do(f func(context.Context, string, string) (*operations.GetRegionVersionsResponse, error)) *MockCloudSDKGetRegionVersionsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKGetRegionVersionsCall) DoAndReturn(f func(context.Context, string, string) (*sdk.GetRegionVersionsResponse, *http.Response, error)) *MockCloudSDKGetRegionVersionsCall {
+func (c *MockCloudSDKGetRegionVersionsCall) DoAndReturn(f func(context.Context, string, string) (*operations.GetRegionVersionsResponse, error)) *MockCloudSDKGetRegionVersionsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListModules mocks base method.
-func (m *MockCloudSDK) ListModules(ctx context.Context, organizationID, stackID string) (*sdk.ListModulesResponse, *http.Response, error) {
+func (m *MockCloudSDK) ListModules(ctx context.Context, organizationID, stackID string) (*operations.ListModulesResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListModules", ctx, organizationID, stackID)
-	ret0, _ := ret[0].(*sdk.ListModulesResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.ListModulesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ListModules indicates an expected call of ListModules.
@@ -459,31 +454,30 @@ type MockCloudSDKListModulesCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKListModulesCall) Return(arg0 *sdk.ListModulesResponse, arg1 *http.Response, arg2 error) *MockCloudSDKListModulesCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKListModulesCall) Return(arg0 *operations.ListModulesResponse, arg1 error) *MockCloudSDKListModulesCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKListModulesCall) Do(f func(context.Context, string, string) (*sdk.ListModulesResponse, *http.Response, error)) *MockCloudSDKListModulesCall {
+func (c *MockCloudSDKListModulesCall) Do(f func(context.Context, string, string) (*operations.ListModulesResponse, error)) *MockCloudSDKListModulesCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKListModulesCall) DoAndReturn(f func(context.Context, string, string) (*sdk.ListModulesResponse, *http.Response, error)) *MockCloudSDKListModulesCall {
+func (c *MockCloudSDKListModulesCall) DoAndReturn(f func(context.Context, string, string) (*operations.ListModulesResponse, error)) *MockCloudSDKListModulesCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListOrganizationInvitations mocks base method.
-func (m *MockCloudSDK) ListOrganizationInvitations(ctx context.Context, organizationID string) (*sdk.ListInvitationsResponse, *http.Response, error) {
+func (m *MockCloudSDK) ListOrganizationInvitations(ctx context.Context, organizationID string) (*operations.ListInvitationsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListOrganizationInvitations", ctx, organizationID)
-	ret0, _ := ret[0].(*sdk.ListInvitationsResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.ListInvitationsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ListOrganizationInvitations indicates an expected call of ListOrganizationInvitations.
@@ -499,31 +493,30 @@ type MockCloudSDKListOrganizationInvitationsCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKListOrganizationInvitationsCall) Return(arg0 *sdk.ListInvitationsResponse, arg1 *http.Response, arg2 error) *MockCloudSDKListOrganizationInvitationsCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKListOrganizationInvitationsCall) Return(arg0 *operations.ListInvitationsResponse, arg1 error) *MockCloudSDKListOrganizationInvitationsCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKListOrganizationInvitationsCall) Do(f func(context.Context, string) (*sdk.ListInvitationsResponse, *http.Response, error)) *MockCloudSDKListOrganizationInvitationsCall {
+func (c *MockCloudSDKListOrganizationInvitationsCall) Do(f func(context.Context, string) (*operations.ListInvitationsResponse, error)) *MockCloudSDKListOrganizationInvitationsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKListOrganizationInvitationsCall) DoAndReturn(f func(context.Context, string) (*sdk.ListInvitationsResponse, *http.Response, error)) *MockCloudSDKListOrganizationInvitationsCall {
+func (c *MockCloudSDKListOrganizationInvitationsCall) DoAndReturn(f func(context.Context, string) (*operations.ListInvitationsResponse, error)) *MockCloudSDKListOrganizationInvitationsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListRegions mocks base method.
-func (m *MockCloudSDK) ListRegions(ctx context.Context, organizationID string) (*sdk.ListRegionsResponse, *http.Response, error) {
+func (m *MockCloudSDK) ListRegions(ctx context.Context, organizationID string) (*operations.ListRegionsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListRegions", ctx, organizationID)
-	ret0, _ := ret[0].(*sdk.ListRegionsResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.ListRegionsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ListRegions indicates an expected call of ListRegions.
@@ -539,31 +532,30 @@ type MockCloudSDKListRegionsCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKListRegionsCall) Return(arg0 *sdk.ListRegionsResponse, arg1 *http.Response, arg2 error) *MockCloudSDKListRegionsCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKListRegionsCall) Return(arg0 *operations.ListRegionsResponse, arg1 error) *MockCloudSDKListRegionsCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKListRegionsCall) Do(f func(context.Context, string) (*sdk.ListRegionsResponse, *http.Response, error)) *MockCloudSDKListRegionsCall {
+func (c *MockCloudSDKListRegionsCall) Do(f func(context.Context, string) (*operations.ListRegionsResponse, error)) *MockCloudSDKListRegionsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKListRegionsCall) DoAndReturn(f func(context.Context, string) (*sdk.ListRegionsResponse, *http.Response, error)) *MockCloudSDKListRegionsCall {
+func (c *MockCloudSDKListRegionsCall) DoAndReturn(f func(context.Context, string) (*operations.ListRegionsResponse, error)) *MockCloudSDKListRegionsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListStacks mocks base method.
-func (m *MockCloudSDK) ListStacks(ctx context.Context, organizationID string) (*sdk.ListStacksResponse, *http.Response, error) {
+func (m *MockCloudSDK) ListStacks(ctx context.Context, organizationID string) (*operations.ListStacksResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListStacks", ctx, organizationID)
-	ret0, _ := ret[0].(*sdk.ListStacksResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.ListStacksResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ListStacks indicates an expected call of ListStacks.
@@ -579,31 +571,30 @@ type MockCloudSDKListStacksCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKListStacksCall) Return(arg0 *sdk.ListStacksResponse, arg1 *http.Response, arg2 error) *MockCloudSDKListStacksCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKListStacksCall) Return(arg0 *operations.ListStacksResponse, arg1 error) *MockCloudSDKListStacksCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKListStacksCall) Do(f func(context.Context, string) (*sdk.ListStacksResponse, *http.Response, error)) *MockCloudSDKListStacksCall {
+func (c *MockCloudSDKListStacksCall) Do(f func(context.Context, string) (*operations.ListStacksResponse, error)) *MockCloudSDKListStacksCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKListStacksCall) DoAndReturn(f func(context.Context, string) (*sdk.ListStacksResponse, *http.Response, error)) *MockCloudSDKListStacksCall {
+func (c *MockCloudSDKListStacksCall) DoAndReturn(f func(context.Context, string) (*operations.ListStacksResponse, error)) *MockCloudSDKListStacksCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ReadOrganization mocks base method.
-func (m *MockCloudSDK) ReadOrganization(ctx context.Context, organizationID string) (*sdk.ReadOrganizationResponse, *http.Response, error) {
+func (m *MockCloudSDK) ReadOrganization(ctx context.Context, organizationID string) (*operations.ReadOrganizationResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadOrganization", ctx, organizationID)
-	ret0, _ := ret[0].(*sdk.ReadOrganizationResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.ReadOrganizationResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ReadOrganization indicates an expected call of ReadOrganization.
@@ -619,31 +610,30 @@ type MockCloudSDKReadOrganizationCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKReadOrganizationCall) Return(arg0 *sdk.ReadOrganizationResponse, arg1 *http.Response, arg2 error) *MockCloudSDKReadOrganizationCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKReadOrganizationCall) Return(arg0 *operations.ReadOrganizationResponse, arg1 error) *MockCloudSDKReadOrganizationCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKReadOrganizationCall) Do(f func(context.Context, string) (*sdk.ReadOrganizationResponse, *http.Response, error)) *MockCloudSDKReadOrganizationCall {
+func (c *MockCloudSDKReadOrganizationCall) Do(f func(context.Context, string) (*operations.ReadOrganizationResponse, error)) *MockCloudSDKReadOrganizationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKReadOrganizationCall) DoAndReturn(f func(context.Context, string) (*sdk.ReadOrganizationResponse, *http.Response, error)) *MockCloudSDKReadOrganizationCall {
+func (c *MockCloudSDKReadOrganizationCall) DoAndReturn(f func(context.Context, string) (*operations.ReadOrganizationResponse, error)) *MockCloudSDKReadOrganizationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ReadStack mocks base method.
-func (m *MockCloudSDK) ReadStack(ctx context.Context, organizationID, stackID string) (*sdk.CreateStackResponse, *http.Response, error) {
+func (m *MockCloudSDK) ReadStack(ctx context.Context, organizationID, stackID string) (*operations.GetStackResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadStack", ctx, organizationID, stackID)
-	ret0, _ := ret[0].(*sdk.CreateStackResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.GetStackResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ReadStack indicates an expected call of ReadStack.
@@ -659,31 +649,30 @@ type MockCloudSDKReadStackCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKReadStackCall) Return(arg0 *sdk.CreateStackResponse, arg1 *http.Response, arg2 error) *MockCloudSDKReadStackCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKReadStackCall) Return(arg0 *operations.GetStackResponse, arg1 error) *MockCloudSDKReadStackCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKReadStackCall) Do(f func(context.Context, string, string) (*sdk.CreateStackResponse, *http.Response, error)) *MockCloudSDKReadStackCall {
+func (c *MockCloudSDKReadStackCall) Do(f func(context.Context, string, string) (*operations.GetStackResponse, error)) *MockCloudSDKReadStackCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKReadStackCall) DoAndReturn(f func(context.Context, string, string) (*sdk.CreateStackResponse, *http.Response, error)) *MockCloudSDKReadStackCall {
+func (c *MockCloudSDKReadStackCall) DoAndReturn(f func(context.Context, string, string) (*operations.GetStackResponse, error)) *MockCloudSDKReadStackCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ReadStackUserAccess mocks base method.
-func (m *MockCloudSDK) ReadStackUserAccess(ctx context.Context, organizationID, stackID, userId string) (*sdk.ReadStackUserAccess, *http.Response, error) {
+func (m *MockCloudSDK) ReadStackUserAccess(ctx context.Context, organizationID, stackID, userId string) (*operations.ReadStackUserAccessResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadStackUserAccess", ctx, organizationID, stackID, userId)
-	ret0, _ := ret[0].(*sdk.ReadStackUserAccess)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.ReadStackUserAccessResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ReadStackUserAccess indicates an expected call of ReadStackUserAccess.
@@ -699,31 +688,30 @@ type MockCloudSDKReadStackUserAccessCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKReadStackUserAccessCall) Return(arg0 *sdk.ReadStackUserAccess, arg1 *http.Response, arg2 error) *MockCloudSDKReadStackUserAccessCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKReadStackUserAccessCall) Return(arg0 *operations.ReadStackUserAccessResponse, arg1 error) *MockCloudSDKReadStackUserAccessCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKReadStackUserAccessCall) Do(f func(context.Context, string, string, string) (*sdk.ReadStackUserAccess, *http.Response, error)) *MockCloudSDKReadStackUserAccessCall {
+func (c *MockCloudSDKReadStackUserAccessCall) Do(f func(context.Context, string, string, string) (*operations.ReadStackUserAccessResponse, error)) *MockCloudSDKReadStackUserAccessCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKReadStackUserAccessCall) DoAndReturn(f func(context.Context, string, string, string) (*sdk.ReadStackUserAccess, *http.Response, error)) *MockCloudSDKReadStackUserAccessCall {
+func (c *MockCloudSDKReadStackUserAccessCall) DoAndReturn(f func(context.Context, string, string, string) (*operations.ReadStackUserAccessResponse, error)) *MockCloudSDKReadStackUserAccessCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ReadUserOfOrganization mocks base method.
-func (m *MockCloudSDK) ReadUserOfOrganization(ctx context.Context, organizationID, userID string) (*sdk.ReadOrganizationUserResponse, *http.Response, error) {
+func (m *MockCloudSDK) ReadUserOfOrganization(ctx context.Context, organizationID, userID string) (*operations.ReadUserOfOrganizationResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadUserOfOrganization", ctx, organizationID, userID)
-	ret0, _ := ret[0].(*sdk.ReadOrganizationUserResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.ReadUserOfOrganizationResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ReadUserOfOrganization indicates an expected call of ReadUserOfOrganization.
@@ -739,31 +727,30 @@ type MockCloudSDKReadUserOfOrganizationCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKReadUserOfOrganizationCall) Return(arg0 *sdk.ReadOrganizationUserResponse, arg1 *http.Response, arg2 error) *MockCloudSDKReadUserOfOrganizationCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKReadUserOfOrganizationCall) Return(arg0 *operations.ReadUserOfOrganizationResponse, arg1 error) *MockCloudSDKReadUserOfOrganizationCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKReadUserOfOrganizationCall) Do(f func(context.Context, string, string) (*sdk.ReadOrganizationUserResponse, *http.Response, error)) *MockCloudSDKReadUserOfOrganizationCall {
+func (c *MockCloudSDKReadUserOfOrganizationCall) Do(f func(context.Context, string, string) (*operations.ReadUserOfOrganizationResponse, error)) *MockCloudSDKReadUserOfOrganizationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKReadUserOfOrganizationCall) DoAndReturn(f func(context.Context, string, string) (*sdk.ReadOrganizationUserResponse, *http.Response, error)) *MockCloudSDKReadUserOfOrganizationCall {
+func (c *MockCloudSDKReadUserOfOrganizationCall) DoAndReturn(f func(context.Context, string, string) (*operations.ReadUserOfOrganizationResponse, error)) *MockCloudSDKReadUserOfOrganizationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpdateStack mocks base method.
-func (m *MockCloudSDK) UpdateStack(ctx context.Context, organizationID, stackID string, body sdk.UpdateStackRequest) (*sdk.CreateStackResponse, *http.Response, error) {
+func (m *MockCloudSDK) UpdateStack(ctx context.Context, organizationID, stackID string, body *shared.StackData) (*operations.UpdateStackResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateStack", ctx, organizationID, stackID, body)
-	ret0, _ := ret[0].(*sdk.CreateStackResponse)
-	ret1, _ := ret[1].(*http.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*operations.UpdateStackResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateStack indicates an expected call of UpdateStack.
@@ -779,28 +766,28 @@ type MockCloudSDKUpdateStackCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKUpdateStackCall) Return(arg0 *sdk.CreateStackResponse, arg1 *http.Response, arg2 error) *MockCloudSDKUpdateStackCall {
-	c.Call = c.Call.Return(arg0, arg1, arg2)
+func (c *MockCloudSDKUpdateStackCall) Return(arg0 *operations.UpdateStackResponse, arg1 error) *MockCloudSDKUpdateStackCall {
+	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKUpdateStackCall) Do(f func(context.Context, string, string, sdk.UpdateStackRequest) (*sdk.CreateStackResponse, *http.Response, error)) *MockCloudSDKUpdateStackCall {
+func (c *MockCloudSDKUpdateStackCall) Do(f func(context.Context, string, string, *shared.StackData) (*operations.UpdateStackResponse, error)) *MockCloudSDKUpdateStackCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKUpdateStackCall) DoAndReturn(f func(context.Context, string, string, sdk.UpdateStackRequest) (*sdk.CreateStackResponse, *http.Response, error)) *MockCloudSDKUpdateStackCall {
+func (c *MockCloudSDKUpdateStackCall) DoAndReturn(f func(context.Context, string, string, *shared.StackData) (*operations.UpdateStackResponse, error)) *MockCloudSDKUpdateStackCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpgradeStack mocks base method.
-func (m *MockCloudSDK) UpgradeStack(ctx context.Context, organizationID, stackID, version string) (*http.Response, error) {
+func (m *MockCloudSDK) UpgradeStack(ctx context.Context, organizationID, stackID, version string) (*operations.UpgradeStackResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpgradeStack", ctx, organizationID, stackID, version)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*operations.UpgradeStackResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -818,28 +805,28 @@ type MockCloudSDKUpgradeStackCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKUpgradeStackCall) Return(arg0 *http.Response, arg1 error) *MockCloudSDKUpgradeStackCall {
+func (c *MockCloudSDKUpgradeStackCall) Return(arg0 *operations.UpgradeStackResponse, arg1 error) *MockCloudSDKUpgradeStackCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKUpgradeStackCall) Do(f func(context.Context, string, string, string) (*http.Response, error)) *MockCloudSDKUpgradeStackCall {
+func (c *MockCloudSDKUpgradeStackCall) Do(f func(context.Context, string, string, string) (*operations.UpgradeStackResponse, error)) *MockCloudSDKUpgradeStackCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKUpgradeStackCall) DoAndReturn(f func(context.Context, string, string, string) (*http.Response, error)) *MockCloudSDKUpgradeStackCall {
+func (c *MockCloudSDKUpgradeStackCall) DoAndReturn(f func(context.Context, string, string, string) (*operations.UpgradeStackResponse, error)) *MockCloudSDKUpgradeStackCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpsertStackUserAccess mocks base method.
-func (m *MockCloudSDK) UpsertStackUserAccess(ctx context.Context, organizationID, stackID, userId string, body sdk.UpdateStackUserRequest) (*http.Response, error) {
+func (m *MockCloudSDK) UpsertStackUserAccess(ctx context.Context, organizationID, stackID, userId string, body *shared.UpdateStackUserRequest) (*operations.UpsertStackUserAccessResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpsertStackUserAccess", ctx, organizationID, stackID, userId, body)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*operations.UpsertStackUserAccessResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -857,28 +844,28 @@ type MockCloudSDKUpsertStackUserAccessCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKUpsertStackUserAccessCall) Return(arg0 *http.Response, arg1 error) *MockCloudSDKUpsertStackUserAccessCall {
+func (c *MockCloudSDKUpsertStackUserAccessCall) Return(arg0 *operations.UpsertStackUserAccessResponse, arg1 error) *MockCloudSDKUpsertStackUserAccessCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKUpsertStackUserAccessCall) Do(f func(context.Context, string, string, string, sdk.UpdateStackUserRequest) (*http.Response, error)) *MockCloudSDKUpsertStackUserAccessCall {
+func (c *MockCloudSDKUpsertStackUserAccessCall) Do(f func(context.Context, string, string, string, *shared.UpdateStackUserRequest) (*operations.UpsertStackUserAccessResponse, error)) *MockCloudSDKUpsertStackUserAccessCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKUpsertStackUserAccessCall) DoAndReturn(f func(context.Context, string, string, string, sdk.UpdateStackUserRequest) (*http.Response, error)) *MockCloudSDKUpsertStackUserAccessCall {
+func (c *MockCloudSDKUpsertStackUserAccessCall) DoAndReturn(f func(context.Context, string, string, string, *shared.UpdateStackUserRequest) (*operations.UpsertStackUserAccessResponse, error)) *MockCloudSDKUpsertStackUserAccessCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpsertUserOfOrganization mocks base method.
-func (m *MockCloudSDK) UpsertUserOfOrganization(ctx context.Context, organizationID, userID string, body sdk.UpdateOrganizationUserRequest) (*http.Response, error) {
+func (m *MockCloudSDK) UpsertUserOfOrganization(ctx context.Context, organizationID, userID string, body *shared.UpdateOrganizationUserRequest) (*operations.UpsertOrganizationUserResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpsertUserOfOrganization", ctx, organizationID, userID, body)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*operations.UpsertOrganizationUserResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -896,19 +883,19 @@ type MockCloudSDKUpsertUserOfOrganizationCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockCloudSDKUpsertUserOfOrganizationCall) Return(arg0 *http.Response, arg1 error) *MockCloudSDKUpsertUserOfOrganizationCall {
+func (c *MockCloudSDKUpsertUserOfOrganizationCall) Return(arg0 *operations.UpsertOrganizationUserResponse, arg1 error) *MockCloudSDKUpsertUserOfOrganizationCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCloudSDKUpsertUserOfOrganizationCall) Do(f func(context.Context, string, string, sdk.UpdateOrganizationUserRequest) (*http.Response, error)) *MockCloudSDKUpsertUserOfOrganizationCall {
+func (c *MockCloudSDKUpsertUserOfOrganizationCall) Do(f func(context.Context, string, string, *shared.UpdateOrganizationUserRequest) (*operations.UpsertOrganizationUserResponse, error)) *MockCloudSDKUpsertUserOfOrganizationCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCloudSDKUpsertUserOfOrganizationCall) DoAndReturn(f func(context.Context, string, string, sdk.UpdateOrganizationUserRequest) (*http.Response, error)) *MockCloudSDKUpsertUserOfOrganizationCall {
+func (c *MockCloudSDKUpsertUserOfOrganizationCall) DoAndReturn(f func(context.Context, string, string, *shared.UpdateOrganizationUserRequest) (*operations.UpsertOrganizationUserResponse, error)) *MockCloudSDKUpsertUserOfOrganizationCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

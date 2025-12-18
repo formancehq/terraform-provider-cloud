@@ -93,18 +93,18 @@ func (c *CurrentOrganization) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 	orgID := organizationId
-	org, res, err := c.store.GetSDK().ReadOrganization(ctx, orgID)
+	operation, err := c.store.GetSDK().ReadOrganization(ctx, orgID)
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 		return
 	}
 
-	data.ID = types.StringValue(org.Data.Id)
-	data.Name = types.StringValue(org.Data.Name)
-	data.OwnerID = types.StringValue(org.Data.OwnerId)
+	data.ID = types.StringValue(operation.ReadOrganizationResponse.Data.ID)
+	data.Name = types.StringValue(operation.ReadOrganizationResponse.Data.Name)
+	data.OwnerID = types.StringValue(operation.ReadOrganizationResponse.Data.OwnerID)
 
-	if org.Data.Domain != nil {
-		data.Domain = types.StringValue(*org.Data.Domain)
+	if operation.ReadOrganizationResponse.Data.Domain != nil {
+		data.Domain = types.StringValue(*operation.ReadOrganizationResponse.Data.Domain)
 	} else {
 		data.Domain = types.StringNull()
 	}

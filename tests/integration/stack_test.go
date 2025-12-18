@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -53,37 +55,50 @@ func TestStack(t *testing.T) {
 					},
 				}, nil).AnyTimes()
 				stackID := uuid.NewString()
+				md := map[string]string{
+					"env": "test",
+					"github.com/formancehq/terraform-provider-cloud/protected": "true",
+				}
+				now := time.Now()
+				stackData := &shared.Stack{
+					ID:                       stackID,
+					Name:                     "test",
+					OrganizationID:           organizationID,
+					RegionID:                 "staging",
+					Version:                  pointer.For("latest"),
+					URI:                      "https://example.com",
+					Metadata:                 md,
+					Status:                   shared.StackStatusReady,
+					State:                    shared.StackStateActive,
+					ExpectedStatus:           shared.ExpectedStatusReady,
+					LastStateUpdate:          now,
+					LastExpectedStatusUpdate: now,
+					LastStatusUpdate:         now,
+					Reachable:                true,
+					StargateEnabled:          false,
+					Synchronised:             true,
+					Modules:                  []shared.Module{},
+				}
 				cloudSdk.EXPECT().CreateStack(gomock.Any(), organizationID, gomock.Any()).
-					Return(&sdk.CreateStackResponse{
-						Data: &sdk.Stack{
-							Id:             stackID,
-							Name:           "test",
-							OrganizationId: organizationID,
-							RegionID:       "staging",
-							Version:        pointer.For("latest"),
-							Uri:            "https://example.com",
-							Metadata: &map[string]string{
-								"env": "test",
-								"github.com/formancehq/terraform-provider-cloud/protected": "true",
-							},
+					Return(&operations.CreateStackResponse{
+						StatusCode:  http.StatusCreated,
+						RawResponse: &http.Response{StatusCode: http.StatusCreated},
+						CreateStackResponse: &shared.CreateStackResponse{
+							Data: stackData,
 						},
-					}, nil, nil)
+					}, nil)
 				cloudSdk.EXPECT().ReadStack(gomock.Any(), organizationID, stackID).
-					Return(&sdk.CreateStackResponse{
-						Data: &sdk.Stack{
-							Id:             stackID,
-							Name:           "test",
-							OrganizationId: organizationID,
-							RegionID:       "staging",
-							Version:        pointer.For("latest"),
-							Uri:            "https://example.com",
-							Metadata: &map[string]string{
-								"env": "test",
-								"github.com/formancehq/terraform-provider-cloud/protected": "true",
-							},
+					Return(&operations.GetStackResponse{
+						StatusCode:  http.StatusOK,
+						RawResponse: &http.Response{StatusCode: http.StatusOK},
+						CreateStackResponse: &shared.CreateStackResponse{
+							Data: stackData,
 						},
-					}, nil, nil)
-				cloudSdk.EXPECT().DeleteStack(gomock.Any(), organizationID, stackID, true).Return(nil, nil)
+					}, nil)
+				cloudSdk.EXPECT().DeleteStack(gomock.Any(), organizationID, stackID, true).Return(&operations.DeleteStackResponse{
+					StatusCode:  http.StatusNoContent,
+					RawResponse: &http.Response{StatusCode: http.StatusNoContent},
+				}, nil)
 			},
 		},
 	} {
@@ -157,38 +172,49 @@ func TestStackAlreadyDeleted(t *testing.T) {
 					},
 				}, nil).AnyTimes()
 				stackID := uuid.NewString()
+				md := map[string]string{
+					"env": "test",
+					"github.com/formancehq/terraform-provider-cloud/protected": "true",
+				}
+				now := time.Now()
+				stackData := &shared.Stack{
+					ID:                       stackID,
+					Name:                     "test",
+					OrganizationID:           organizationID,
+					RegionID:                 "staging",
+					Version:                  pointer.For("latest"),
+					URI:                      "https://example.com",
+					Metadata:                 md,
+					Status:                   shared.StackStatusReady,
+					State:                    shared.StackStateActive,
+					ExpectedStatus:           shared.ExpectedStatusReady,
+					LastStateUpdate:          now,
+					LastExpectedStatusUpdate: now,
+					LastStatusUpdate:         now,
+					Reachable:                true,
+					StargateEnabled:          false,
+					Synchronised:             true,
+					Modules:                  []shared.Module{},
+				}
 				cloudSdk.EXPECT().CreateStack(gomock.Any(), organizationID, gomock.Any()).
-					Return(&sdk.CreateStackResponse{
-						Data: &sdk.Stack{
-							Id:             stackID,
-							Name:           "test",
-							OrganizationId: organizationID,
-							RegionID:       "staging",
-							Version:        pointer.For("latest"),
-							Uri:            "https://example.com",
-							Metadata: &map[string]string{
-								"env": "test",
-								"github.com/formancehq/terraform-provider-cloud/protected": "true",
-							},
+					Return(&operations.CreateStackResponse{
+						StatusCode:  http.StatusCreated,
+						RawResponse: &http.Response{StatusCode: http.StatusCreated},
+						CreateStackResponse: &shared.CreateStackResponse{
+							Data: stackData,
 						},
-					}, nil, nil)
+					}, nil)
 				cloudSdk.EXPECT().ReadStack(gomock.Any(), organizationID, stackID).
-					Return(&sdk.CreateStackResponse{
-						Data: &sdk.Stack{
-							Id:             stackID,
-							Name:           "test",
-							OrganizationId: organizationID,
-							RegionID:       "staging",
-							Version:        pointer.For("latest"),
-							Uri:            "https://example.com",
-							Metadata: &map[string]string{
-								"env": "test",
-								"github.com/formancehq/terraform-provider-cloud/protected": "true",
-							},
+					Return(&operations.GetStackResponse{
+						StatusCode:  http.StatusOK,
+						RawResponse: &http.Response{StatusCode: http.StatusOK},
+						CreateStackResponse: &shared.CreateStackResponse{
+							Data: stackData,
 						},
-					}, nil, nil)
-				cloudSdk.EXPECT().DeleteStack(gomock.Any(), organizationID, stackID, true).Return(&http.Response{
-					StatusCode: http.StatusNotFound,
+					}, nil)
+				cloudSdk.EXPECT().DeleteStack(gomock.Any(), organizationID, stackID, true).Return(&operations.DeleteStackResponse{
+					StatusCode:  http.StatusNotFound,
+					RawResponse: &http.Response{StatusCode: http.StatusNotFound},
 				}, errors.New("stack not found"))
 			},
 		},

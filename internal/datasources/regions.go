@@ -8,7 +8,7 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -101,31 +101,32 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		)
 		return
 	}
-	var obj sdk.AnyRegion
+	var region shared.AnyRegion
 	switch {
 	case !data.ID.IsNull():
-		objs, res, err := r.store.GetSDK().GetRegion(ctx, organizationId, data.ID.ValueString())
+		operation, err := r.store.GetSDK().GetRegion(ctx, organizationId, data.ID.ValueString())
 		if err != nil {
-			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 			return
 		}
-		obj = objs.Data
+		region = operation.GetRegionResponse.Data
 	case !data.Name.IsNull():
-		objs, res, err := r.store.GetSDK().ListRegions(ctx, organizationId)
+		operation, err := r.store.GetSDK().ListRegions(ctx, organizationId)
 		if err != nil {
-			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 			return
 		}
-		obj = collectionutils.First(objs.Data, func(o sdk.AnyRegion) bool {
+		region = collectionutils.First(operation.ListRegionsResponse.Data, func(o shared.AnyRegion) bool {
 			return o.Name == data.Name.ValueString()
 		})
-		if obj.Id == "" {
+		if region.ID == "" {
 			resp.Diagnostics.AddError(
 				"Region not found",
 				fmt.Sprintf("No region found with name '%s' in organization '%s'", data.Name.ValueString(), organizationId),
 			)
 			return
 		}
+
 	default:
 		resp.Diagnostics.AddError(
 			"Region ID or Name required",
@@ -134,7 +135,7 @@ func (r *Region) Read(ctx context.Context, req datasource.ReadRequest, resp *dat
 		return
 	}
 
-	data.ID = types.StringValue(obj.Id)
-	data.Name = types.StringValue(obj.Name)
+	data.ID = types.StringValue(region.ID)
+	data.Name = types.StringValue(region.Name)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

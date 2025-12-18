@@ -31,6 +31,7 @@ type App struct{}
 func (a *App) Flags(pflags *pflag.FlagSet) {
 	pflags.Bool(service.DebugFlag, false, "Debug mode")
 	pflags.Bool(logging.JsonFormattingLoggerFlag, true, "Format logs as json")
+	pflags.String(OutputFlag, "file", "file|stderr: where to output logs")
 	pflags.Duration(service.GracePeriodFlag, 0, "Grace period for shutdown")
 	otlp.AddFlags(pflags)
 	otlptraces.AddFlags(pflags)
@@ -54,7 +55,6 @@ func (a *App) CobraCommand() *cobra.Command {
 
 	a.Flags(cmd.PersistentFlags())
 	server.AddFlags(cmd.Flags())
-	cmd.PersistentFlags().Bool(LogDebugFlag, false, "Enable debug logging")
 
 	cmd.AddCommand(a.SubCommands()...)
 
@@ -81,21 +81,27 @@ func logToFile() (io.Writer, error) {
 }
 
 const (
-	LogDebugFlag = "log-debug"
+	OutputFlag = "output"
 )
 
 func (app *App) preRunE(cmd *cobra.Command, args []string) error {
-	file, err := logToFile()
-	if err != nil {
-		return err
+	writerOutput, _ := cmd.Flags().GetString(OutputFlag)
+	var writer io.Writer
+	switch writerOutput {
+	case "stderr":
+		writer = cmd.ErrOrStderr()
+	default:
+		var err error
+		writer, err = logToFile()
+		if err != nil {
+			return err
+		}
 	}
 
 	json, _ := cmd.Flags().GetBool(logging.JsonFormattingLoggerFlag)
 	otelTraces, _ := cmd.Flags().GetString(otlptraces.OtelTracesExporterFlag)
-	logDebug, _ := cmd.Flags().GetBool(LogDebugFlag)
-	logger := logging.NewDefaultLogger(file, logDebug, json, otelTraces != "")
-	cmd.SetContext(logging.ContextWithLogger(cmd.Context(), logger))
-	logging.FromContext(cmd.Context()).Debugf("PreRunE %s", internal.ServiceName)
+	logger := logging.NewDefaultLogger(writer, service.IsDebug(cmd), json, otelTraces != "")
+	cmd.SetContext(logging.ContextWithLogger(cmd.Context(), logger.WithField("service", internal.ServiceName)))
 
 	options := fx.Options(
 		fxOptsFromContext(cmd.Context()),
@@ -122,7 +128,6 @@ func (app *App) preRunE(cmd *cobra.Command, args []string) error {
 }
 
 func (app *App) postRunE(cmd *cobra.Command, args []string) error {
-	logging.FromContext(cmd.Context()).Debugf("PostRunE %s", internal.ServiceName)
 	return service.NewWithLogger(
 		logging.FromContext(cmd.Context()),
 		fxOptsFromContext(cmd.Context()),

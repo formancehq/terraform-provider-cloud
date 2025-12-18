@@ -6,7 +6,7 @@ import (
 
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -28,9 +28,9 @@ var SchemaStackMember = schema.Schema{
 			Required:    true,
 			Description: "The ID of the stack where the user will be granted access.",
 		},
-		"role": schema.StringAttribute{
+		"policy_id": schema.Int64Attribute{
 			Required:    true,
-			Description: "The role to assign to the user for this stack. Valid values are: GUEST, ADMIN.",
+			Description: "The policy ID to assign to the user for this stack",
 		},
 	},
 }
@@ -40,9 +40,9 @@ type StackMember struct {
 }
 
 type StackMemberModel struct {
-	Role    types.String `tfsdk:"role"`
-	UserId  types.String `tfsdk:"user_id"`
-	StackId types.String `tfsdk:"stack_id"`
+	PolicyId types.Int64  `tfsdk:"policy_id"`
+	UserId   types.String `tfsdk:"user_id"`
+	StackId  types.String `tfsdk:"stack_id"`
 }
 
 func NewStackMember() func() resource.Resource {
@@ -77,8 +77,8 @@ func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	body := sdk.UpdateStackUserRequest{
-		Role: sdk.Role(plan.Role.ValueString()),
+	body := &shared.UpdateStackUserRequest{
+		PolicyID: plan.PolicyId.ValueInt64(),
 	}
 	organizationId, err := s.store.GetOrganizationID(ctx)
 	if err != nil {
@@ -88,9 +88,9 @@ func (s *StackMember) Create(ctx context.Context, req resource.CreateRequest, re
 		)
 		return
 	}
-	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, organizationId, plan.StackId.ValueString(), plan.UserId.ValueString(), body)
+	_, err = s.store.GetSDK().UpsertStackUserAccess(ctx, organizationId, plan.StackId.ValueString(), plan.UserId.ValueString(), body)
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 
@@ -112,9 +112,9 @@ func (s *StackMember) Delete(ctx context.Context, req resource.DeleteRequest, re
 		)
 		return
 	}
-	resp, err := s.store.GetSDK().DeleteStackUserAccess(ctx, organizationId, state.StackId.ValueString(), state.UserId.ValueString())
+	_, err = s.store.GetSDK().DeleteStackUserAccess(ctx, organizationId, state.StackId.ValueString(), state.UserId.ValueString())
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 }
@@ -127,9 +127,8 @@ func (s *StackMember) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	body := sdk.UpdateStackUserRequest{}
-	if r := plan.Role.ValueString(); r != "" {
-		body.Role = sdk.Role(r)
+	body := &shared.UpdateStackUserRequest{
+		PolicyID: plan.PolicyId.ValueInt64(),
 	}
 
 	organizationId, err := s.store.GetOrganizationID(ctx)
@@ -141,9 +140,9 @@ func (s *StackMember) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	resp, err := s.store.GetSDK().UpsertStackUserAccess(ctx, organizationId, plan.StackId.ValueString(), plan.UserId.ValueString(), body)
+	_, err = s.store.GetSDK().UpsertStackUserAccess(ctx, organizationId, plan.StackId.ValueString(), plan.UserId.ValueString(), body)
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 
@@ -170,13 +169,13 @@ func (s *StackMember) Read(ctx context.Context, req resource.ReadRequest, res *r
 		)
 		return
 	}
-	userAccess, resp, err := s.store.GetSDK().ReadStackUserAccess(ctx, organizationId, state.StackId.ValueString(), state.UserId.ValueString())
+	userAccess, err := s.store.GetSDK().ReadStackUserAccess(ctx, organizationId, state.StackId.ValueString(), state.UserId.ValueString())
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 
-	state.Role = types.StringValue(string(userAccess.Data.Role))
+	state.PolicyId = types.Int64Value(userAccess.ReadStackUserAccess.Data.PolicyID)
 
 	res.Diagnostics.Append(res.State.Set(ctx, &state)...)
 }

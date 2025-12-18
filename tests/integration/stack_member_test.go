@@ -7,9 +7,10 @@ import (
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -36,7 +37,7 @@ func TestStackMember(t *testing.T) {
 						resource "cloud_stack_member" "test" {
 							user_id  = "user-id-123"
 							stack_id = "stack-id-456"
-							role	 = "GUEST"
+							policy_id = 1
 						}
 					`,
 				},
@@ -46,7 +47,7 @@ func TestStackMember(t *testing.T) {
 						resource "cloud_stack_member" "test" {
 							user_id  = "user-id-123"
 							stack_id = "stack-id-456"
-							role	 = "ADMIN"
+							policy_id = 2
 						}
 					`,
 				},
@@ -59,31 +60,48 @@ func TestStackMember(t *testing.T) {
 					},
 				}, nil).AnyTimes()
 
-				cloudSdk.EXPECT().UpsertStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123", sdk.UpdateStackUserRequest{
-					Role: sdk.GUEST,
-				}).Return(nil, nil)
+				cloudSdk.EXPECT().UpsertStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123", &shared.UpdateStackUserRequest{
+					PolicyID: 1,
+				}).Return(&operations.UpsertStackUserAccessResponse{
+					StatusCode:  http.StatusOK,
+					RawResponse: &http.Response{StatusCode: http.StatusOK},
+				}, nil)
 				cloudSdk.EXPECT().ReadStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123").
-					Return(&sdk.ReadStackUserAccess{
-						Data: &sdk.StackUserAccess{
-							StackId: "stack-id-456",
-							UserId:  "user-id-123",
-							Email:   "example@formance.com",
-							Role:    sdk.GUEST,
+					Return(&operations.ReadStackUserAccessResponse{
+						StatusCode:  http.StatusOK,
+						RawResponse: &http.Response{StatusCode: http.StatusOK},
+						ReadStackUserAccess: &shared.ReadStackUserAccess{
+							Data: &shared.ReadStackUserAccessData{
+								StackID:  "stack-id-456",
+								UserID:   "user-id-123",
+								Email:    "example@formance.com",
+								PolicyID: 1,
+							},
 						},
-					}, nil, nil).Times(2)
-				cloudSdk.EXPECT().UpsertStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123", sdk.UpdateStackUserRequest{
-					Role: sdk.ADMIN,
-				}).Return(nil, nil)
+					}, nil).Times(2)
+				cloudSdk.EXPECT().UpsertStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123", &shared.UpdateStackUserRequest{
+					PolicyID: 2,
+				}).Return(&operations.UpsertStackUserAccessResponse{
+					StatusCode:  http.StatusOK,
+					RawResponse: &http.Response{StatusCode: http.StatusOK},
+				}, nil)
 				cloudSdk.EXPECT().ReadStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123").
-					Return(&sdk.ReadStackUserAccess{
-						Data: &sdk.StackUserAccess{
-							StackId: "stack-id-456",
-							UserId:  "user-id-123",
-							Email:   "example@formance.com",
-							Role:    sdk.ADMIN,
+					Return(&operations.ReadStackUserAccessResponse{
+						StatusCode:  http.StatusOK,
+						RawResponse: &http.Response{StatusCode: http.StatusOK},
+						ReadStackUserAccess: &shared.ReadStackUserAccess{
+							Data: &shared.ReadStackUserAccessData{
+								StackID:  "stack-id-456",
+								UserID:   "user-id-123",
+								Email:    "example@formance.com",
+								PolicyID: 2,
+							},
 						},
-					}, nil, nil)
-				cloudSdk.EXPECT().DeleteStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123").Return(nil, nil)
+					}, nil)
+				cloudSdk.EXPECT().DeleteStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123").Return(&operations.DeleteStackUserAccessResponse{
+					StatusCode:  http.StatusNoContent,
+					RawResponse: &http.Response{StatusCode: http.StatusNoContent},
+				}, nil)
 			},
 		},
 		{
@@ -96,7 +114,7 @@ func TestStackMember(t *testing.T) {
 							stack_id = "stack-id-456"
 						}
 					`,
-					ExpectError: regexp.MustCompile(`The argument "role" is required`),
+					ExpectError: regexp.MustCompile(`The argument "policy_id" is required`),
 				},
 			},
 		},

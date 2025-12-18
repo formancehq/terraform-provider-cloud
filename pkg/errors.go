@@ -2,44 +2,34 @@ package pkg
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"io"
-	"net/http"
-	"strings"
 
-	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/sdkerrors"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"go.opentelemetry.io/otel/trace"
 )
 
-func HandleSDKError(ctx context.Context, err error, res *http.Response, diag *diag.Diagnostics) {
-	if res == nil {
-		diag.AddError("Unexpected error", fmt.Sprintf("An unexpected error occurred: %s", err.Error()))
-		return
+func HandleSDKError(ctx context.Context, err error, diag *diag.Diagnostics) {
+
+	sharedErr := &sdkerrors.Error{
+		ErrorCode:    "INTERNAL",
+		ErrorMessage: pointer.For("unexpected error"),
 	}
 
-	var details []string
-	traceId := res.Header.Get("X-Trace-Id")
-	if traceId != "" {
-		details = append(details, fmt.Sprintf("Trace ID: %s", traceId))
+	if errors.Is(err, sharedErr) {
+		sharedErr = err.(*sdkerrors.Error)
 	}
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		details = append(details, fmt.Sprintf("Error reading response body: %s", err.Error()))
-		diag.AddError("Unexpected error", strings.Join(details, "\r\n"))
-		return
+	msg := ""
+	if sharedErr.ErrorMessage != nil {
+		msg = *sharedErr.ErrorMessage
+	}
+	span := trace.SpanFromContext(ctx)
+	if span.SpanContext().IsValid() {
+		diag.AddError("traceparent", fmt.Sprintf("%s-%s", span.SpanContext().TraceID(), span.SpanContext().SpanID()))
 	}
 
-	errResp := sdk.Error{}
-	if err := errResp.UnmarshalJSON(body); err != nil {
-		details = append(details, fmt.Sprintf("Error unmarshalling error response: %s", err.Error()))
-		details = append(details, fmt.Sprintf("Body: %s", body))
-		diag.AddError("Unexpected error", strings.Join(details, "\r\n"))
-		return
-	}
-
-	if errResp.ErrorMessage != nil {
-		details = append(details, fmt.Sprintf("Message: %s", *errResp.ErrorMessage))
-	}
-	diag.AddError(fmt.Sprintf("Error %s", errResp.ErrorCode), strings.Join(details, "\r\n"))
+	diag.AddError(sharedErr.ErrorCode, msg)
 }

@@ -8,7 +8,8 @@ import (
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -45,24 +46,28 @@ func TestRegionVersions(t *testing.T) {
 						"organization_id": organizationID,
 					},
 				}, nil).AnyTimes()
-				cloudSdk.EXPECT().GetRegionVersions(gomock.All(), organizationID, "another-region-id").Return(&sdk.GetRegionVersionsResponse{
-					Data: []sdk.Version{
-						{
-							Name: "v1.0.0",
-							Versions: map[string]string{
-								"ledger":   "v1.0.0",
-								"payments": "v1.0.0",
+				cloudSdk.EXPECT().GetRegionVersions(gomock.All(), organizationID, "another-region-id").Return(&operations.GetRegionVersionsResponse{
+					StatusCode:  http.StatusOK,
+					RawResponse: &http.Response{StatusCode: http.StatusOK},
+					GetRegionVersionsResponse: &shared.GetRegionVersionsResponse{
+						Data: []shared.Version{
+							{
+								Name: "v1.0.0",
+								Versions: map[string]string{
+									"ledger":   "v1.0.0",
+									"payments": "v1.0.0",
+								},
 							},
-						},
-						{
-							Name: "v2.0.0",
-							Versions: map[string]string{
-								"ledger":   "v2.0.12",
-								"payments": "v2.2.1",
+							{
+								Name: "v2.0.0",
+								Versions: map[string]string{
+									"ledger":   "v2.0.12",
+									"payments": "v2.2.1",
+								},
 							},
 						},
 					},
-				}, nil, nil).AnyTimes()
+				}, nil).AnyTimes()
 			},
 		},
 		{
@@ -80,37 +85,45 @@ func TestRegionVersions(t *testing.T) {
 						"organization_id": organizationID,
 					},
 				}, nil).AnyTimes()
-				cloudSdk.EXPECT().ListRegions(gomock.Any(), organizationID).Return(&sdk.ListRegionsResponse{
-					Data: []sdk.AnyRegion{
-						{
-							Id:   "some-region-id",
-							Name: "Some Region",
-						},
-						{ // <- This region will be sorted in first position
-							Id:   "another-region-id",
-							Name: "Another Region",
+				cloudSdk.EXPECT().ListRegions(gomock.Any(), organizationID).Return(&operations.ListRegionsResponse{
+					StatusCode:  http.StatusOK,
+					RawResponse: &http.Response{StatusCode: http.StatusOK},
+					ListRegionsResponse: &shared.ListRegionsResponse{
+						Data: []shared.AnyRegion{
+							{
+								ID:   "some-region-id",
+								Name: "Some Region",
+							},
+							{ // <- This region will be sorted in first position
+								ID:   "another-region-id",
+								Name: "Another Region",
+							},
 						},
 					},
-				}, nil, nil).AnyTimes()
+				}, nil).AnyTimes()
 
-				cloudSdk.EXPECT().GetRegionVersions(gomock.All(), organizationID, "another-region-id").Return(&sdk.GetRegionVersionsResponse{
-					Data: []sdk.Version{
-						{
-							Name: "v1.0.0",
-							Versions: map[string]string{
-								"ledger":   "v1.0.0",
-								"payments": "v1.0.0",
+				cloudSdk.EXPECT().GetRegionVersions(gomock.All(), organizationID, "another-region-id").Return(&operations.GetRegionVersionsResponse{
+					StatusCode:  http.StatusOK,
+					RawResponse: &http.Response{StatusCode: http.StatusOK},
+					GetRegionVersionsResponse: &shared.GetRegionVersionsResponse{
+						Data: []shared.Version{
+							{
+								Name: "v1.0.0",
+								Versions: map[string]string{
+									"ledger":   "v1.0.0",
+									"payments": "v1.0.0",
+								},
 							},
-						},
-						{
-							Name: "v2.0.0",
-							Versions: map[string]string{
-								"ledger":   "v2.0.12",
-								"payments": "v2.2.1",
+							{
+								Name: "v2.0.0",
+								Versions: map[string]string{
+									"ledger":   "v2.0.12",
+									"payments": "v2.2.1",
+								},
 							},
 						},
 					},
-				}, nil, nil).AnyTimes()
+				}, nil).AnyTimes()
 			},
 		},
 	} {

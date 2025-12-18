@@ -8,6 +8,9 @@ import (
 	"github.com/formancehq/go-libs/v3/otlp"
 	"github.com/formancehq/go-libs/v3/service"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/retry"
+	speakeasyretry "github.com/formancehq/terraform-provider-cloud/pkg/speakeasy_retry"
 	"github.com/spf13/pflag"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
@@ -23,6 +26,7 @@ func AddFlags(flagset *pflag.FlagSet) {
 	flagset.String(FormanceCloudClientSecretKey, "", "User Client Secret for Formance Cloud")
 	flagset.String(FormanceCloudClientIdKey, "", "User ID for Formance Cloud")
 	flagset.String(FormanceCloudEndpointKey, "https://app.formance.cloud/api", "Endpoint for Formance Cloud")
+	speakeasyretry.AddFlags(flagset)
 }
 
 type FormanceCloudEndpoint string
@@ -62,8 +66,19 @@ func NewModule(ctx context.Context, flagset *pflag.FlagSet) fx.Option {
 		fx.Supply(FormanceCloudClientSecret(clientSecret)),
 		fx.Supply(FormanceCloudEndpoint(endpoint)),
 		fx.Supply(fx.Annotate(transport, fx.As(new(http.RoundTripper)))),
-		fx.Provide(pkg.NewCloudSDK),
-		fx.Provide(pkg.NewTokenProviderFactory),
+		speakeasyretry.NewModule(flagset),
+		fx.Provide(func() pkg.TokenProviderFactory {
+			return pkg.NewTokenProvider
+		}),
+		fx.Provide(func(retry *retry.Config) pkg.CloudFactory {
+			opts := []membershipclient.SDKOption{}
+			if retry != nil {
+				opts = append(opts, membershipclient.WithRetryConfig(*retry))
+			}
+			return pkg.NewCloudSDK(
+				opts...,
+			)
+		}),
 		fx.Provide(NewProvider),
 		fx.Provide(NewAPI),
 		fx.Invoke(func(lc fx.Lifecycle, server *API, shutdowner fx.Shutdowner) {

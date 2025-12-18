@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -12,7 +13,12 @@ import (
 	"github.com/formancehq/go-libs/v3/otlp"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	membershipclient "github.com/formancehq/terraform-provider-cloud/pkg/membership_client"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/retry"
+	speakeasyretry "github.com/formancehq/terraform-provider-cloud/pkg/speakeasy_retry"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
@@ -29,22 +35,44 @@ func TestMain(m *testing.M) {
 
 	flag.Parse()
 
-	var transport http.RoundTripper
+	var (
+		transport http.RoundTripper
+		tp        trace.TracerProvider
+	)
 	if testing.Verbose() {
+		p := sdktrace.NewTracerProvider()
+		tp = p
 		transport = httpclient.NewDebugHTTPTransport(
 			otlp.NewRoundTripper(http.DefaultTransport, true),
 		)
+		defer func() {
+			if err := p.ForceFlush(context.Background()); err != nil {
+				panic(err)
+			}
+		}()
 	} else {
+		tp = noop.NewTracerProvider()
 		transport = otlp.NewRoundTripper(http.DefaultTransport, false)
 	}
-
-	Provider = server.New(noop.NewTracerProvider(),
+	Provider = server.New(
+		tp,
 		logging.Testing(),
 		endpoint,
 		clientID,
 		clientSecret,
 		transport,
-		pkg.NewCloudSDK(),
+		pkg.NewCloudSDK(
+			membershipclient.WithRetryConfig(retry.Config{
+				Strategy: "backoff",
+				Backoff: &retry.BackoffStrategy{
+					InitialInterval: speakeasyretry.DefaultRetryInitialInterval,
+					MaxInterval:     speakeasyretry.DefaultRetryMaxInterval,
+					Exponent:        speakeasyretry.DefaultRetryExponent,
+					MaxElapsedTime:  speakeasyretry.DefaultRetryMaxElapsedTime,
+				},
+				RetryConnectionErrors: true,
+			}),
+		),
 		pkg.NewTokenProvider,
 	)
 
