@@ -1,0 +1,12 @@
+# GetRegionResponse
+
+
+## Fields
+
+| Field                                                                        | Type                                                                         | Required                                                                     | Description                                                                  |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `ContentType`                                                                | *string*                                                                     | :heavy_check_mark:                                                           | HTTP response content type for this operation                                |
+| `StatusCode`                                                                 | *int*                                                                        | :heavy_check_mark:                                                           | HTTP response status code for this operation                                 |
+| `RawResponse`                                                                | [*http.Response](https://pkg.go.dev/net/http#Response)                       | :heavy_check_mark:                                                           | Raw HTTP response; suitable for custom response parsing                      |
+| `GetRegionResponse`                                                          | [*shared.GetRegionResponse](../../../pkg/models/shared/getregionresponse.md) | :heavy_minus_sign:                                                           | Get a specific region                                                        |
+| `Error`                                                                      | [*shared.Error](../../../pkg/models/shared/error.md)                         | :heavy_minus_sign:                                                           | Error                                                                        |

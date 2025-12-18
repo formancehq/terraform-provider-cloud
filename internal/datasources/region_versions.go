@@ -105,13 +105,13 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 	if !data.ID.IsNull() {
 		regionID = data.ID.ValueString()
 	} else {
-		regions, res, err := r.store.GetSDK().ListRegions(ctx, organizationId)
+		operation, err := r.store.GetSDK().ListRegions(ctx, organizationId)
 		if err != nil {
-			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 			return
 		}
 
-		if len(regions.Data) == 0 {
+		if len(operation.ListRegionsResponse.Data) == 0 {
 			resp.Diagnostics.AddError(
 				"No regions found",
 				fmt.Sprintf("No regions found in organization '%s'", organizationId),
@@ -119,22 +119,22 @@ func (r *RegionVersions) Read(ctx context.Context, req datasource.ReadRequest, r
 			return
 		}
 
-		sort.Slice(regions.Data, func(i, j int) bool {
-			return regions.Data[i].Id < regions.Data[j].Id
+		sort.Slice(operation.ListRegionsResponse.Data, func(i, j int) bool {
+			return operation.ListRegionsResponse.Data[i].ID < operation.ListRegionsResponse.Data[j].ID
 		})
 
-		regionID = regions.Data[0].Id
+		regionID = operation.ListRegionsResponse.Data[0].ID
 		data.ID = types.StringValue(regionID)
 	}
 
-	obj, res, err := r.store.GetSDK().GetRegionVersions(ctx, organizationId, regionID)
+	operation, err := r.store.GetSDK().GetRegionVersions(ctx, organizationId, regionID)
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 		return
 	}
 
-	versions := make([]Version, len(obj.Data))
-	for i, v := range obj.Data {
+	versions := make([]Version, len(operation.GetRegionVersionsResponse.Data))
+	for i, v := range operation.GetRegionVersionsResponse.Data {
 		versions[i] = Version{
 			Name: types.StringValue(v.Name),
 		}

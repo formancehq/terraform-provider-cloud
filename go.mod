@@ -2,7 +2,7 @@ module github.com/formancehq/terraform-provider-cloud
 
 go 1.24.2
 
-replace github.com/formancehq/terraform-provider-cloud/sdk => ./sdk
+replace github.com/formancehq/formance-sdk-cloud-go => ./pkg/membership_client
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.4.4 // indirect
@@ -36,7 +36,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.36.0 // indirect
 	go.opentelemetry.io/otel/log v0.6.0 // indirect
 	go.opentelemetry.io/otel/metric v1.36.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.36.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.36.0
 	go.opentelemetry.io/otel/trace v1.36.0
 	go.opentelemetry.io/proto/otlp v1.6.0 // indirect
 	go.uber.org/dig v1.19.0 // indirect
@@ -71,7 +71,7 @@ require (
 )
 
 require (
-	github.com/formancehq/terraform-provider-cloud/sdk v0.0.0-00010101000000-000000000000
+	github.com/formancehq/formance-sdk-cloud-go v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.10.0
 	github.com/zitadel/oidc/v3 v3.38.1
 	go.uber.org/mock v0.5.2
@@ -82,7 +82,6 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	gopkg.in/validator.v2 v2.0.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

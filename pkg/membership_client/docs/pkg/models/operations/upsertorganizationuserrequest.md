@@ -1,0 +1,10 @@
+# UpsertOrganizationUserRequest
+
+
+## Fields
+
+| Field                                                                                                | Type                                                                                                 | Required                                                                                             | Description                                                                                          |
+| ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `OrganizationID`                                                                                     | *string*                                                                                             | :heavy_check_mark:                                                                                   | N/A                                                                                                  |
+| `UserID`                                                                                             | *string*                                                                                             | :heavy_check_mark:                                                                                   | N/A                                                                                                  |
+| `UpdateOrganizationUserRequest`                                                                      | [*shared.UpdateOrganizationUserRequest](../../../pkg/models/shared/updateorganizationuserrequest.md) | :heavy_minus_sign:                                                                                   | N/A                                                                                                  |

@@ -1,0 +1,9 @@
+# UpsertAuthenticationProviderRequest
+
+
+## Fields
+
+| Field                                                                                          | Type                                                                                           | Required                                                                                       | Description                                                                                    |
+| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `OrganizationID`                                                                               | *string*                                                                                       | :heavy_check_mark:                                                                             | N/A                                                                                            |
+| `AuthenticationProviderData`                                                                   | [*shared.AuthenticationProviderData](../../../pkg/models/shared/authenticationproviderdata.md) | :heavy_minus_sign:                                                                             | N/A                                                                                            |

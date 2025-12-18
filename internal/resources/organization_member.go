@@ -3,12 +3,13 @@ package resources
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
 
-	"github.com/formancehq/go-libs/v3/collectionutils"
-	"github.com/formancehq/go-libs/v3/pointer"
+	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -18,30 +19,6 @@ var (
 	_ resource.Resource              = &OrganizationMember{}
 	_ resource.ResourceWithConfigure = &OrganizationMember{}
 )
-
-type OrganizationMember struct {
-	store *internal.Store
-}
-
-type OrganizationMemberModel struct {
-	ID types.String `tfsdk:"id"`
-
-	Role types.String `tfsdk:"role"`
-
-	Email  types.String `tfsdk:"email"`
-	UserId types.String `tfsdk:"user_id"`
-}
-
-type Roles struct {
-	Organization types.String `tfsdk:"organization"`
-	Stack        types.String `tfsdk:"stack"`
-}
-
-func NewOrganizationMember() func() resource.Resource {
-	return func() resource.Resource {
-		return &OrganizationMember{}
-	}
-}
 
 var SchemaOrganizationMember = schema.Schema{
 	Description: "Manages organization members and invitations in Formance Cloud. This resource can be used to invite users to an organization and manage their access levels.",
@@ -58,12 +35,31 @@ var SchemaOrganizationMember = schema.Schema{
 			Description: "The user ID once the invitation has been accepted.",
 			Computed:    true,
 		},
-		"role": schema.StringAttribute{
-			Description: "The role to assign to the user in the organization. Valid values are: GUEST, ADMIN.",
-			Optional:    true,
-			Computed:    true,
-		},
 	},
+}
+
+type OrganizationMemberModel struct {
+	ID     types.String `tfsdk:"id"`
+	Email  types.String `tfsdk:"email"`
+	UserId types.String `tfsdk:"user_id"`
+}
+
+func (m *OrganizationMemberModel) GetID() string {
+	return m.ID.ValueString()
+}
+
+func (m *OrganizationMemberModel) GetEmail() string {
+	return m.Email.ValueString()
+}
+
+type OrganizationMember struct {
+	store *internal.Store
+}
+
+func NewOrganizationMember() func() resource.Resource {
+	return func() resource.Resource {
+		return &OrganizationMember{}
+	}
 }
 
 // Schema implements resource.Resource.
@@ -97,10 +93,6 @@ func (s *OrganizationMember) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	claim := sdk.InvitationClaim{}
-	if plan.Role.ValueString() != "" {
-		claim.Role = pointer.For(sdk.Role(plan.Role.ValueString()))
-	}
 	organizationId, err := s.store.GetOrganizationID(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(
@@ -109,21 +101,30 @@ func (s *OrganizationMember) Create(ctx context.Context, req resource.CreateRequ
 		)
 		return
 	}
-	obj, resp, err := s.store.GetSDK().CreateInvitation(ctx, organizationId, plan.Email.ValueString(), claim)
+
+	operation, err := s.store.GetSDK().CreateInvitation(ctx, organizationId, plan.GetEmail())
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 
-	plan.ID = types.StringValue(obj.Data.Id)
-	plan.Role = types.StringValue(string(obj.Data.Role))
-	plan.Email = types.StringValue(obj.Data.UserEmail)
-	plan.UserId = types.StringNull()
-	if obj.Data.UserId != nil {
-		plan.UserId = types.StringValue(*obj.Data.UserId)
+	if operation.CreateInvitationResponse == nil || operation.CreateInvitationResponse.Data == nil {
+		res.Diagnostics.AddError(
+			"Invalid response",
+			"CreateInvitation returned an invalid response",
+		)
+		return
 	}
 
-	res.Diagnostics.Append(res.State.Set(ctx, &plan)...) // Save the plan as state
+	invitation := operation.CreateInvitationResponse.Data
+	plan.ID = types.StringValue(invitation.ID)
+	plan.Email = types.StringValue(invitation.UserEmail)
+	plan.UserId = types.StringNull()
+	if invitation.UserID != nil {
+		plan.UserId = types.StringValue(*invitation.UserID)
+	}
+
+	res.Diagnostics.Append(res.State.Set(ctx, &plan)...)
 }
 
 // Delete implements resource.Resource.
@@ -133,6 +134,7 @@ func (s *OrganizationMember) Delete(ctx context.Context, req resource.DeleteRequ
 	if res.Diagnostics.HasError() {
 		return
 	}
+
 	organizationId, err := s.store.GetOrganizationID(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(
@@ -141,31 +143,62 @@ func (s *OrganizationMember) Delete(ctx context.Context, req resource.DeleteRequ
 		)
 		return
 	}
-	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, organizationId)
+
+	operation, err := s.store.GetSDK().ListOrganizationInvitations(ctx, organizationId)
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 
-	obj := collectionutils.First(objs.Data, func(inv sdk.Invitation) bool {
-		return inv.Id == state.ID.ValueString()
-	})
+	if operation.ListInvitationsResponse == nil {
+		res.Diagnostics.AddError(
+			"Invalid response",
+			"ListOrganizationInvitations returned an invalid response",
+		)
+		return
+	}
 
-	switch obj.Status {
-	case "PENDING":
-		resp, err := s.store.GetSDK().DeleteInvitation(ctx, organizationId, state.ID.ValueString())
-		if err != nil {
-			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
-			return
-		}
-	case "ACCEPTED":
-		resp, err := s.store.GetSDK().DeleteUserOfOrganization(ctx, organizationId, state.UserId.ValueString())
-		if err != nil {
-			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
-			return
+	var invitation *shared.Invitation
+	for i := range operation.ListInvitationsResponse.Data {
+		if operation.ListInvitationsResponse.Data[i].ID == state.GetID() {
+			invitation = &operation.ListInvitationsResponse.Data[i]
+			break
 		}
 	}
 
+	if invitation == nil {
+		// Invitation not found, might have been deleted already
+		return
+	}
+
+	switch invitation.Status {
+	case shared.InvitationStatusPending:
+		operation, err := s.store.GetSDK().DeleteInvitation(ctx, organizationId, state.GetID())
+		if err != nil {
+			if operation.StatusCode == http.StatusNotFound {
+				res.Diagnostics.AddWarning(
+					"Invitation not found",
+					"The invitation was not found. It may have already been deleted outside of Terraform.",
+				)
+				return
+			}
+			pkg.HandleSDKError(ctx, err, &res.Diagnostics)
+			return
+		}
+	case shared.InvitationStatusAccepted:
+		operation, err := s.store.GetSDK().DeleteUserOfOrganization(ctx, organizationId, state.UserId.ValueString())
+		if err != nil {
+			if operation.StatusCode == http.StatusNotFound {
+				res.Diagnostics.AddWarning(
+					"User not found",
+					"The user was not found. They may have already been removed outside of Terraform.",
+				)
+				return
+			}
+			pkg.HandleSDKError(ctx, err, &res.Diagnostics)
+			return
+		}
+	}
 }
 
 // Metadata implements resource.Resource.
@@ -180,6 +213,7 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 	if res.Diagnostics.HasError() {
 		return
 	}
+
 	organizationId, err := s.store.GetOrganizationID(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(
@@ -188,34 +222,65 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 		)
 		return
 	}
-	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, organizationId)
+
+	operation, err := s.store.GetSDK().ListOrganizationInvitations(ctx, organizationId)
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 
-	obj := collectionutils.First(objs.Data, func(inv sdk.Invitation) bool {
-		return inv.Id == state.ID.ValueString()
-	})
+	if operation.ListInvitationsResponse == nil {
+		res.Diagnostics.AddError(
+			"Invalid response",
+			"ListOrganizationInvitations returned an invalid response",
+		)
+		return
+	}
 
-	switch obj.Status {
-	default:
-		state.Role = types.StringValue(string(obj.Role))
-		state.Email = types.StringValue(obj.UserEmail)
-		state.UserId = types.StringNull()
-		if obj.UserId != nil {
-			state.UserId = types.StringValue(*obj.UserId)
+	var invitation *shared.Invitation
+	for i := range operation.ListInvitationsResponse.Data {
+		if operation.ListInvitationsResponse.Data[i].ID == state.GetID() {
+			invitation = &operation.ListInvitationsResponse.Data[i]
+			break
 		}
-		state.ID = types.StringValue(obj.Id)
-	case "ACCEPTED":
-		user, resp, err := s.store.GetSDK().ReadUserOfOrganization(ctx, organizationId, state.UserId.ValueString())
+	}
+
+	if invitation == nil {
+		// Invitation not found, mark as removed
+		res.State.RemoveResource(ctx)
+		return
+	}
+
+	state.UserId = types.StringNull()
+	if invitation.UserID != nil {
+		state.UserId = types.StringValue(*invitation.UserID)
+	}
+	switch invitation.Status {
+	default:
+		state.ID = types.StringValue(invitation.ID)
+		state.Email = types.StringValue(invitation.UserEmail)
+	case shared.InvitationStatusAccepted:
+		operation, err := s.store.GetSDK().ReadUserOfOrganization(ctx, organizationId, state.UserId.ValueString())
 		if err != nil {
-			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+			if operation.StatusCode == http.StatusNotFound {
+				res.State.RemoveResource(ctx)
+				return
+			}
+			pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 			return
 		}
-		state.Role = types.StringValue(string(user.Data.Role))
-		state.Email = types.StringValue(user.Data.Email)
-		state.UserId = types.StringValue(user.Data.Id)
+
+		if operation.ReadOrganizationUserResponse == nil || operation.ReadOrganizationUserResponse.Data == nil {
+			res.Diagnostics.AddError(
+				"Invalid response",
+				"ReadUserOfOrganization returned an invalid response",
+			)
+			return
+		}
+
+		user := operation.ReadOrganizationUserResponse.Data
+		state.Email = types.StringValue(user.Email)
+		state.UserId = types.StringValue(user.ID)
 	}
 
 	res.Diagnostics.Append(res.State.Set(ctx, &state)...)
@@ -223,11 +288,15 @@ func (s *OrganizationMember) Read(ctx context.Context, req resource.ReadRequest,
 
 // Update implements resource.Resource.
 func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequest, res *resource.UpdateResponse) {
+	var plan OrganizationMemberModel
 	var state OrganizationMemberModel
 	res.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	res.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if res.Diagnostics.HasError() {
 		return
 	}
+	defer res.Diagnostics.Append(res.State.Set(ctx, &plan)...)
+
 	organizationId, err := s.store.GetOrganizationID(ctx)
 	if err != nil {
 		res.Diagnostics.AddError(
@@ -236,56 +305,81 @@ func (s *OrganizationMember) Update(ctx context.Context, req resource.UpdateRequ
 		)
 		return
 	}
-	objs, resp, err := s.store.GetSDK().ListOrganizationInvitations(ctx, organizationId)
+
+	operation, err := s.store.GetSDK().ListOrganizationInvitations(ctx, organizationId)
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 
-	obj := collectionutils.First(objs.Data, func(inv sdk.Invitation) bool {
-		return inv.Id == state.ID.ValueString()
-	})
+	if operation.ListInvitationsResponse == nil {
+		res.Diagnostics.AddError(
+			"Invalid response",
+			"ListOrganizationInvitations returned an invalid response",
+		)
+		return
+	}
 
-	switch obj.Status {
-	case "PENDING":
-		resp, err := s.store.GetSDK().DeleteInvitation(ctx, organizationId, state.ID.ValueString())
+	var invitation *shared.Invitation
+	for i := range operation.ListInvitationsResponse.Data {
+		if operation.ListInvitationsResponse.Data[i].ID == state.GetID() {
+			invitation = &operation.ListInvitationsResponse.Data[i]
+			break
+		}
+	}
+
+	if invitation == nil {
+		res.Diagnostics.AddError(
+			"Invitation not found",
+			"The invitation was not found",
+		)
+		return
+	}
+
+	plan.ID = state.ID
+	plan.UserId = state.UserId
+
+	switch invitation.Status {
+	case shared.InvitationStatusPending:
+		// Delete and recreate invitation if email changed
+		if invitation.ExpiresAt == nil {
+			return
+		}
+		if time.Now().Before(*invitation.ExpiresAt) {
+			return
+		}
+		deleteoperation, err := s.store.GetSDK().DeleteInvitation(ctx, organizationId, state.GetID())
+		if err != nil && deleteoperation.StatusCode != http.StatusNotFound {
+			pkg.HandleSDKError(ctx, err, &res.Diagnostics)
+			return
+
+		}
+
+		operation, err := s.store.GetSDK().CreateInvitation(ctx, organizationId, plan.GetEmail())
 		if err != nil {
-			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 			return
 		}
 
-		claim := sdk.InvitationClaim{}
-		if state.Role.ValueString() != "" {
-			claim.Role = pointer.For(sdk.Role(state.Role.ValueString()))
+		newInvitation := operation.CreateInvitationResponse.Data
+		plan.ID = types.StringValue(newInvitation.ID)
+		plan.Email = types.StringValue(newInvitation.UserEmail)
+		plan.UserId = types.StringNull()
+		if newInvitation.UserID != nil {
+			plan.UserId = types.StringValue(*newInvitation.UserID)
 		}
 
-		obj, respCreate, err := s.store.GetSDK().CreateInvitation(ctx, organizationId, state.Email.ValueString(), claim)
-		if err != nil {
-			pkg.HandleSDKError(ctx, err, respCreate, &res.Diagnostics)
-			return
+	case shared.InvitationStatusAccepted:
+		// For accepted invitations, email cannot be changed
+		// Keep the existing state as email is tied to the user account
+		if plan.GetEmail() != state.GetEmail() {
+			res.Diagnostics.AddWarning(
+				"Email cannot be changed",
+				"Email cannot be changed for accepted invitations. The existing email will be preserved.",
+			)
 		}
-		state.ID = types.StringValue(obj.Data.Id)
-		state.Role = types.StringValue(string(obj.Data.Role))
-		state.Email = types.StringValue(obj.Data.UserEmail)
-		state.UserId = types.StringNull()
-		if obj.Data.UserId != nil {
-			state.UserId = types.StringValue(*obj.Data.UserId)
-		}
-		res.Diagnostics.Append(res.State.Set(ctx, &state)...)
-	case "ACCEPTED":
-		if state.Role.ValueString() == "" {
-			return
-		}
-		body := sdk.UpdateOrganizationUserRequest{
-			Role: sdk.Role(state.Role.ValueString()),
-		}
-		resp, err := s.store.GetSDK().UpsertUserOfOrganization(ctx, organizationId, state.UserId.ValueString(), body)
-		if err != nil {
-			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
-			return
-		}
-		state.Role = types.StringValue(state.Role.ValueString())
-
+		// No changes needed, keep existing state
+		plan = state
 	}
 
 }

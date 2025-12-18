@@ -19,10 +19,6 @@ Manages organization members and invitations in Formance Cloud. This resource ca
 
 - `email` (String) The email address of the user to invite or add to the organization.
 
-### Optional
-
-- `role` (String) The role to assign to the user in the organization. Valid values are: GUEST, ADMIN.
-
 ### Read-Only
 
 - `id` (String) The unique identifier of the invitation or membership.

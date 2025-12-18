@@ -2,13 +2,16 @@ package resources_test
 
 import (
 	"context"
+	"net/http"
 	"testing"
+	"time"
 
+	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/operations"
+	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -132,22 +135,38 @@ func TestStackCreate(t *testing.T) {
 				md := map[string]string{
 					"github.com/formancehq/terraform-provider-cloud/protected": "true",
 				}
-				apiMock.EXPECT().CreateStack(gomock.Any(), organizationId, sdk.CreateStackRequest{
+				stackID := uuid.NewString()
+				now := time.Now()
+				apiMock.EXPECT().CreateStack(gomock.Any(), organizationId, &shared.CreateStackRequest{
 					Name:     tc.name,
-					Metadata: &md,
+					Metadata: md,
 					RegionID: tc.regionID,
-					Version:  &tc.version,
-				}).Return(&sdk.CreateStackResponse{
-					Data: &sdk.Stack{
-						Id:             uuid.NewString(),
-						Name:           tc.name,
-						OrganizationId: organizationId,
-						RegionID:       tc.regionID,
-						Version:        pointer.For(tc.version),
-						Uri:            "https://example.com",
-						Metadata:       &md,
+					Version:  pointer.For(tc.version),
+				}).Return(&operations.CreateStackResponse{
+					StatusCode:  http.StatusCreated,
+					RawResponse: &http.Response{StatusCode: http.StatusCreated},
+					CreateStackResponse: &shared.CreateStackResponse{
+						Data: &shared.Stack{
+							ID:                       stackID,
+							Name:                     tc.name,
+							OrganizationID:           organizationId,
+							RegionID:                 tc.regionID,
+							Version:                  pointer.For(tc.version),
+							URI:                      "https://example.com",
+							Metadata:                 md,
+							Status:                   shared.StackStatusReady,
+							State:                    shared.StackStateActive,
+							ExpectedStatus:           shared.ExpectedStatusReady,
+							LastStateUpdate:          now,
+							LastExpectedStatusUpdate: now,
+							LastStatusUpdate:         now,
+							Reachable:                true,
+							StargateEnabled:          false,
+							Synchronised:             true,
+							Modules:                  []shared.Module{},
+						},
 					},
-				}, nil, nil)
+				}, nil)
 
 				req := resource.CreateRequest{
 					Plan: tfsdk.Plan{

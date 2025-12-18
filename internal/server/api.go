@@ -21,7 +21,6 @@ func (a *API) Run(ctx context.Context, debug bool) error {
 		Address: fmt.Sprintf("%s/%s", "registry.terraform.io", internal.Repository),
 		Debug:   debug,
 	}
-
 	err := providerserver.Serve(ctx, a.provider, opts)
 	if err != nil {
 		logging.FromContext(ctx).Errorf("failed to start server: %v", err)

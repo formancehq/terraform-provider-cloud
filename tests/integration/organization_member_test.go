@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/operations"
+	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -50,30 +52,44 @@ func TestOrganizationMember(t *testing.T) {
 					},
 				}
 				mtpi.EXPECT().IntrospectToken(gomock.Any()).Return(res, nil).AnyTimes()
-				invitation := &sdk.Invitation{
-					Id:        uuid.NewString(),
-					Role:      "",
-					UserEmail: "example@formance.com",
+				invitationID := uuid.NewString()
+				now := time.Now()
+				invitation := &shared.Invitation{
+					ID:             invitationID,
+					UserEmail:      "example@formance.com",
+					Status:         shared.InvitationStatusPending,
+					OrganizationID: organizationID,
+					CreationDate:   now,
 				}
 
 				mcs.EXPECT().
-					CreateInvitation(gomock.Any(), organizationID, "example@formance.com", sdk.InvitationClaim{}).
-					Return(&sdk.CreateInvitationResponse{
-						Data: invitation,
-					}, nil, nil)
+					CreateInvitation(gomock.Any(), organizationID, "example@formance.com").
+					Return(&operations.CreateInvitationResponse{
+						StatusCode:  http.StatusCreated,
+						RawResponse: &http.Response{StatusCode: http.StatusCreated},
+						CreateInvitationResponse: &shared.CreateInvitationResponse{
+							Data: invitation,
+						},
+					}, nil)
 
-				invitation.Status = "PENDING"
 				mcs.EXPECT().ListOrganizationInvitations(gomock.Any(), organizationID).Return(
-					&sdk.ListInvitationsResponse{
-						Data: []sdk.Invitation{
-							*invitation,
+					&operations.ListInvitationsResponse{
+						StatusCode:  http.StatusOK,
+						RawResponse: &http.Response{StatusCode: http.StatusOK},
+						ListInvitationsResponse: &shared.ListInvitationsResponse{
+							Data: []shared.Invitation{
+								*invitation,
+							},
 						},
 					},
-					nil, nil,
+					nil,
 				).AnyTimes()
 
-				mcs.EXPECT().DeleteInvitation(gomock.Any(), organizationID, invitation.Id).Return(
-					nil, nil,
+				mcs.EXPECT().DeleteInvitation(gomock.Any(), organizationID, invitationID).Return(
+					&operations.DeleteInvitationResponse{
+						StatusCode:  http.StatusNoContent,
+						RawResponse: &http.Response{StatusCode: http.StatusNoContent},
+					}, nil,
 				)
 			},
 		},
@@ -97,41 +113,60 @@ func TestOrganizationMember(t *testing.T) {
 					},
 				}
 				mtpi.EXPECT().IntrospectToken(gomock.Any()).Return(res, nil).AnyTimes()
-				invitation := &sdk.Invitation{
-					Id:        uuid.NewString(),
-					Role:      "",
-					UserEmail: "example@formance.com",
+				invitationID := uuid.NewString()
+				userID := uuid.NewString()
+				now := time.Now()
+				invitation := &shared.Invitation{
+					ID:             invitationID,
+					UserEmail:      "example@formance.com",
+					Status:         shared.InvitationStatusAccepted,
+					OrganizationID: organizationID,
+					UserID:         pointer.For(userID),
+					CreationDate:   now,
 				}
 
 				mcs.EXPECT().
-					CreateInvitation(gomock.Any(), organizationID, "example@formance.com", sdk.InvitationClaim{}).
-					Return(&sdk.CreateInvitationResponse{
-						Data: invitation,
-					}, nil, nil)
+					CreateInvitation(gomock.Any(), organizationID, "example@formance.com").
+					Return(&operations.CreateInvitationResponse{
+						StatusCode:  http.StatusCreated,
+						RawResponse: &http.Response{StatusCode: http.StatusCreated},
+						CreateInvitationResponse: &shared.CreateInvitationResponse{
+							Data: invitation,
+						},
+					}, nil)
 
-				invitation.Status = "ACCEPTED"
-				invitation.UserId = pointer.For(uuid.NewString())
 				mcs.EXPECT().ListOrganizationInvitations(gomock.Any(), organizationID).Return(
-					&sdk.ListInvitationsResponse{
-						Data: []sdk.Invitation{
-							*invitation,
+					&operations.ListInvitationsResponse{
+						StatusCode:  http.StatusOK,
+						RawResponse: &http.Response{StatusCode: http.StatusOK},
+						ListInvitationsResponse: &shared.ListInvitationsResponse{
+							Data: []shared.Invitation{
+								*invitation,
+							},
 						},
 					},
-					nil, nil,
+					nil,
 				).AnyTimes()
 
-				mcs.EXPECT().ReadUserOfOrganization(gomock.Any(), organizationID, *invitation.UserId).Return(
-					&sdk.ReadOrganizationUserResponse{
-						Data: &sdk.OrganizationUser{
-							Role:  "GUEST",
-							Email: "example@formance.com",
-							Id:    *invitation.UserId,
+				mcs.EXPECT().ReadUserOfOrganization(gomock.Any(), organizationID, userID).Return(
+					&operations.ReadUserOfOrganizationResponse{
+						StatusCode:  http.StatusOK,
+						RawResponse: &http.Response{StatusCode: http.StatusOK},
+						ReadOrganizationUserResponse: &shared.ReadOrganizationUserResponse{
+							Data: &shared.ReadOrganizationUserResponseData{
+								Email:    "example@formance.com",
+								ID:       userID,
+								PolicyID: 0,
+							},
 						},
-					}, nil, nil,
+					}, nil,
 				)
 
-				mcs.EXPECT().DeleteUserOfOrganization(gomock.Any(), organizationID, *invitation.UserId).Return(
-					nil, nil,
+				mcs.EXPECT().DeleteUserOfOrganization(gomock.Any(), organizationID, userID).Return(
+					&operations.DeleteUserFromOrganizationResponse{
+						StatusCode:  http.StatusNoContent,
+						RawResponse: &http.Response{StatusCode: http.StatusNoContent},
+					}, nil,
 				)
 			},
 		},

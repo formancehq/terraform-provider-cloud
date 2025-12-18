@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -152,6 +152,7 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	organizationId, err := s.store.GetOrganizationID(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -161,8 +162,8 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 		return
 	}
 
-	createStackRequest := sdk.CreateStackRequest{
-		Metadata: pointer.For(map[string]string{}),
+	createStackRequest := &shared.CreateStackRequest{
+		Metadata: map[string]string{},
 		RegionID: plan.GetRegionID(),
 		Name:     plan.GetName(),
 		Version:  pointer.For(plan.Version.ValueString()),
@@ -170,26 +171,26 @@ func (s *Stack) Create(ctx context.Context, req resource.CreateRequest, resp *re
 	if !plan.Metadata.IsNull() {
 		plan.Metadata.ElementsAs(ctx, &createStackRequest.Metadata, false)
 	}
-	(*createStackRequest.Metadata)["github.com/formancehq/terraform-provider-cloud/protected"] = "true"
+	createStackRequest.Metadata["github.com/formancehq/terraform-provider-cloud/protected"] = "true"
 
-	obj, res, err := s.store.GetSDK().CreateStack(ctx, organizationId, createStackRequest)
+	operation, err := s.store.GetSDK().CreateStack(ctx, organizationId, createStackRequest)
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 		return
 	}
 
-	plan.ID = types.StringValue(obj.Data.Id)
-	plan.Name = types.StringValue(obj.Data.Name)
-	plan.RegionID = types.StringValue(obj.Data.RegionID)
-	plan.URI = types.StringValue(obj.Data.Uri)
+	plan.ID = types.StringValue(operation.CreateStackResponse.Data.ID)
+	plan.Name = types.StringValue(operation.CreateStackResponse.Data.Name)
+	plan.RegionID = types.StringValue(operation.CreateStackResponse.Data.RegionID)
+	plan.URI = types.StringValue(operation.CreateStackResponse.Data.URI)
 	plan.Version = types.StringNull()
-	if obj.Data.Version != nil {
-		plan.Version = types.StringValue(*obj.Data.Version)
+	if operation.CreateStackResponse.Data.Version != nil {
+		plan.Version = types.StringValue(*operation.CreateStackResponse.Data.Version)
 	}
 	plan.Metadata = types.MapNull(types.StringType)
-	if obj.Data.Metadata != nil {
-		md := make(map[string]attr.Value, len(*obj.Data.Metadata))
-		for k, v := range *obj.Data.Metadata {
+	if len(operation.CreateStackResponse.Data.Metadata) > 0 {
+		md := make(map[string]attr.Value, len(operation.CreateStackResponse.Data.Metadata))
+		for k, v := range operation.CreateStackResponse.Data.Metadata {
 			md[k] = types.StringValue(v)
 		}
 		//FixMe(hack): Remove the protected metadata to match the config
@@ -216,9 +217,9 @@ func (s *Stack) Delete(ctx context.Context, req resource.DeleteRequest, resp *re
 		)
 		return
 	}
-	res, err := s.store.GetSDK().DeleteStack(ctx, organizationId, plan.GetID(), plan.ForceDestroy.ValueBool())
+	operation, err := s.store.GetSDK().DeleteStack(ctx, organizationId, plan.GetID(), plan.ForceDestroy.ValueBool())
 	if err != nil {
-		if res.StatusCode == http.StatusNotFound {
+		if operation.StatusCode == http.StatusNotFound {
 			resp.Diagnostics.AddWarning(
 				"Stack not found",
 				"The stack was not found. It may have already been deleted outside of Terraform.",
@@ -226,7 +227,7 @@ func (s *Stack) Delete(ctx context.Context, req resource.DeleteRequest, resp *re
 			return
 		}
 
-		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 		return
 	}
 }
@@ -253,24 +254,25 @@ func (s *Stack) Read(ctx context.Context, req resource.ReadRequest, resp *resour
 		)
 		return
 	}
-	obj, res, err := s.store.GetSDK().ReadStack(ctx, organizationId, plan.GetID())
+	op, err := s.store.GetSDK().ReadStack(ctx, organizationId, plan.GetID())
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 		return
 	}
 
-	plan.ID = types.StringValue(obj.Data.Id)
-	plan.Name = types.StringValue(obj.Data.Name)
+	res := op.CreateStackResponse
+	plan.ID = types.StringValue(res.Data.ID)
+	plan.Name = types.StringValue(res.Data.Name)
 	plan.Version = types.StringNull()
-	if obj.Data.Version != nil {
-		plan.Version = types.StringValue(*obj.Data.Version)
+	if res.Data.Version != nil {
+		plan.Version = types.StringValue(*res.Data.Version)
 	}
-	plan.RegionID = types.StringValue(obj.Data.RegionID)
-	plan.URI = types.StringValue(obj.Data.Uri)
+	plan.RegionID = types.StringValue(res.Data.RegionID)
+	plan.URI = types.StringValue(res.Data.URI)
 	plan.Metadata = types.MapNull(types.StringType)
-	if obj.Data.Metadata != nil {
-		md := make(map[string]attr.Value, len(*obj.Data.Metadata))
-		for k, v := range *obj.Data.Metadata {
+	if len(res.Data.Metadata) > 0 {
+		md := make(map[string]attr.Value, len(res.Data.Metadata))
+		for k, v := range res.Data.Metadata {
 			md[k] = types.StringValue(v)
 		}
 		//FixMe(hack): Remove the protected metadata to match the config
@@ -305,27 +307,27 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 		return
 	}
 	if plan.Name.ValueString() != state.Name.ValueString() {
-		updateRequest := sdk.UpdateStackRequest{
+		updateRequest := &shared.StackData{
 			Name:     plan.Name.ValueString(),
-			Metadata: pointer.For(map[string]string{}),
+			Metadata: map[string]string{},
 		}
 
 		if !plan.Metadata.IsNull() {
 			plan.Metadata.ElementsAs(ctx, &updateRequest.Metadata, false)
 		}
-		(*updateRequest.Metadata)["github.com/formancehq/terraform-provider-cloud/protected"] = "true"
+		updateRequest.Metadata["github.com/formancehq/terraform-provider-cloud/protected"] = "true"
 
-		obj, resp, err := s.store.GetSDK().UpdateStack(ctx, organizationId, plan.GetID(), updateRequest)
+		operation, err := s.store.GetSDK().UpdateStack(ctx, organizationId, plan.GetID(), updateRequest)
 		if err != nil {
-			pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+			pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 			return
 		}
-		plan.Name = types.StringValue(obj.Data.Name)
-		plan.URI = types.StringValue(obj.Data.Uri)
+		plan.Name = types.StringValue(operation.CreateStackResponse.Data.Name)
+		plan.URI = types.StringValue(operation.CreateStackResponse.Data.URI)
 		plan.Metadata = types.MapNull(types.StringType)
-		if obj.Data.Metadata != nil {
-			md := make(map[string]attr.Value, len(*obj.Data.Metadata))
-			for k, v := range *obj.Data.Metadata {
+		if len(operation.CreateStackResponse.Data.Metadata) > 0 {
+			md := make(map[string]attr.Value, len(operation.CreateStackResponse.Data.Metadata))
+			for k, v := range operation.CreateStackResponse.Data.Metadata {
 				md[k] = types.StringValue(v)
 			}
 			//FixMe(hack): Remove the protected metadata to match the config
@@ -337,9 +339,9 @@ func (s *Stack) Update(ctx context.Context, req resource.UpdateRequest, res *res
 	if state.Version.ValueString() != plan.Version.ValueString() {
 		if !semver.IsValid(plan.Version.ValueString()) ||
 			(semver.IsValid(plan.Version.ValueString()) && semver.Compare(state.Version.ValueString(), plan.Version.ValueString()) >= 0) {
-			resp, err := s.store.GetSDK().UpgradeStack(ctx, organizationId, plan.GetID(), plan.Version.ValueString())
+			_, err := s.store.GetSDK().UpgradeStack(ctx, organizationId, plan.GetID(), plan.Version.ValueString())
 			if err != nil {
-				pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+				pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 				return
 			}
 

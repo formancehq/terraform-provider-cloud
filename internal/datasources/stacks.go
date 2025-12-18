@@ -6,10 +6,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -117,24 +117,24 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 		)
 		return
 	}
-	var stack sdk.Stack
+	var stack shared.Stack
 	switch {
 	case data.ID.ValueString() != "":
-		obj, res, err := s.store.GetSDK().ReadStack(ctx, organizationId, data.ID.ValueString())
+		operation, err := s.store.GetSDK().ReadStack(ctx, organizationId, data.ID.ValueString())
 		if err != nil {
-			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 			return
 		}
 
-		stack = *obj.Data
+		stack = *operation.CreateStackResponse.Data
 	case data.Name.ValueString() != "":
-		listResp, res, err := s.store.GetSDK().ListStacks(ctx, organizationId)
+		operation, err := s.store.GetSDK().ListStacks(ctx, organizationId)
 		if err != nil {
-			pkg.HandleSDKError(ctx, err, res, &resp.Diagnostics)
+			pkg.HandleSDKError(ctx, err, &resp.Diagnostics)
 			return
 		}
 
-		if len(listResp.Data) == 0 {
+		if len(operation.ListStacksResponse.Data) == 0 {
 			resp.Diagnostics.AddError(
 				"No stacks found",
 				fmt.Sprintf("No stacks found in organization '%s'", organizationId),
@@ -142,11 +142,11 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 			return
 		}
 
-		sort.Slice(listResp.Data, func(i, j int) bool {
-			return strings.ToLower(listResp.Data[i].Name) < strings.ToLower(listResp.Data[j].Name)
+		sort.Slice(operation.ListStacksResponse.Data, func(i, j int) bool {
+			return strings.ToLower(operation.ListStacksResponse.Data[i].Name) < strings.ToLower(operation.ListStacksResponse.Data[j].Name)
 		})
 
-		stack = listResp.Data[0]
+		stack = operation.ListStacksResponse.Data[0]
 	default:
 		resp.Diagnostics.AddError(
 			"Missing Stack Identifier",
@@ -155,11 +155,11 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 		return
 	}
 
-	data.ID = types.StringValue(stack.Id)
+	data.ID = types.StringValue(stack.ID)
 	data.Name = types.StringValue(stack.Name)
 	data.RegionID = types.StringValue(stack.RegionID)
-	data.Status = types.StringValue(stack.Status)
-	data.State = types.StringValue(stack.State)
+	data.Status = types.StringValue(string(stack.Status))
+	data.State = types.StringValue(string(stack.State))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

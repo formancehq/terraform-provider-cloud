@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/formancehq/formance-sdk-cloud-go/pkg/models/shared"
 	"github.com/formancehq/go-libs/v3/collectionutils"
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
-	"github.com/formancehq/terraform-provider-cloud/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -107,9 +107,9 @@ func (s *StackModule) Create(ctx context.Context, req resource.CreateRequest, re
 		)
 		return
 	}
-	resp, err := s.store.GetSDK().EnableModule(ctx, organizationId, plan.StackId.ValueString(), plan.Name.ValueString())
+	_, err = s.store.GetSDK().EnableModule(ctx, organizationId, plan.StackId.ValueString(), plan.Name.ValueString())
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 
@@ -131,9 +131,9 @@ func (s *StackModule) Delete(ctx context.Context, req resource.DeleteRequest, re
 		)
 		return
 	}
-	resp, err := s.store.GetSDK().DisableModule(ctx, organizationId, state.StackId.ValueString(), state.Name.ValueString())
+	_, err = s.store.GetSDK().DisableModule(ctx, organizationId, state.StackId.ValueString(), state.Name.ValueString())
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 }
@@ -158,13 +158,13 @@ func (s *StackModule) Read(ctx context.Context, req resource.ReadRequest, res *r
 		)
 		return
 	}
-	modules, resp, err := s.store.GetSDK().ListModules(ctx, organizationId, state.StackId.ValueString())
+	modules, err := s.store.GetSDK().ListModules(ctx, organizationId, state.StackId.ValueString())
 	if err != nil {
-		pkg.HandleSDKError(ctx, err, resp, &res.Diagnostics)
+		pkg.HandleSDKError(ctx, err, &res.Diagnostics)
 		return
 	}
 
-	obj := collectionutils.First(modules.Data, func(m sdk.Module) bool {
+	obj := collectionutils.First(modules.ListModulesResponse.Data, func(m shared.Module) bool {
 		return m.Name == state.Name.ValueString()
 	})
 	if obj.Name == "" {

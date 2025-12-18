@@ -1,0 +1,9 @@
+# OrganizationClientCreateRequest
+
+
+## Fields
+
+| Field                                                                                                    | Type                                                                                                     | Required                                                                                                 | Description                                                                                              |
+| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `OrganizationID`                                                                                         | *string*                                                                                                 | :heavy_check_mark:                                                                                       | N/A                                                                                                      |
+| `CreateOrganizationClientRequest`                                                                        | [*shared.CreateOrganizationClientRequest](../../../pkg/models/shared/createorganizationclientrequest.md) | :heavy_minus_sign:                                                                                       | N/A                                                                                                      |

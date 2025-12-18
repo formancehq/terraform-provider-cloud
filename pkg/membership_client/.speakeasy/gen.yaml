@@ -1,0 +1,53 @@
+configVersion: 2.0.0
+generation:
+  sdkClassName: FormanceCloud
+  maintainOpenAPIOrder: true
+  usageSnippets:
+    optionalPropertyRendering: withExample
+    sdkInitStyle: constructor
+  useClassNamesForArrayFields: true
+  fixes:
+    nameResolutionDec2023: true
+    nameResolutionFeb2025: true
+    parameterOrderingFeb2024: true
+    requestResponseComponentNamesFeb2024: true
+    securityFeb2025: true
+    sharedErrorComponentsApr2025: true
+  auth:
+    oAuth2ClientCredentialsEnabled: true
+    oAuth2PasswordEnabled: true
+    hoistGlobalSecurity: true
+  inferSSEOverload: true
+  sdkHooksConfigAccess: true
+  schemas:
+    allOfMergeStrategy: shallowMerge
+  tests:
+    generateTests: false
+    generateNewTests: true
+    skipResponseBodyAssertions: false
+go:
+  version: 0.1.3
+  additionalDependencies: {}
+  author: Formance
+  baseErrorName: FormanceError
+  clientServerStatusCodesAsErrors: true
+  defaultErrorName: SDKError
+  flattenGlobalSecurity: false
+  imports:
+    option: openapi
+    paths:
+      callbacks: pkg/models/callbacks
+      errors: pkg/models/sdkerrors
+      operations: pkg/models/operations
+      shared: pkg/models/shared
+      webhooks: pkg/models/webhooks
+  inputModelSuffix: input
+  maxMethodParams: 4
+  methodArguments: require-security-and-request
+  modulePath: ""
+  nullableOptionalWrapper: true
+  outputModelSuffix: output
+  packageName: github.com/formancehq/formance-sdk-cloud-go
+  respectRequiredFields: false
+  responseFormat: envelope
+  sdkPackageName: ""
