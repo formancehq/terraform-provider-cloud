@@ -2,34 +2,42 @@ package pkg
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
-	"github.com/formancehq/go-libs/v3/pointer"
 	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/sdkerrors"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"go.opentelemetry.io/otel/trace"
 )
 
+type Error struct {
+	ErrorCode    string `json:"errorCode"`
+	ErrorMessage string `json:"errorMessage"`
+}
+
 func HandleSDKError(ctx context.Context, err error, diag *diag.Diagnostics) {
-
-	sharedErr := &sdkerrors.Error{
+	sharedError := &Error{
 		ErrorCode:    "INTERNAL",
-		ErrorMessage: pointer.For("unexpected error"),
+		ErrorMessage: err.Error(),
 	}
 
-	if errors.Is(err, sharedErr) {
-		sharedErr = err.(*sdkerrors.Error)
+	tmp := &sdkerrors.SDKError{}
+	if errors.As(err, &tmp) {
+		err = errors.New(tmp.Body)
 	}
 
-	msg := ""
-	if sharedErr.ErrorMessage != nil {
-		msg = *sharedErr.ErrorMessage
+	errResponse := &Error{}
+	if e := json.Unmarshal([]byte(err.Error()), errResponse); e == nil {
+		sharedError = errResponse
 	}
 	span := trace.SpanFromContext(ctx)
 	if span.SpanContext().IsValid() {
-		diag.AddError("traceparent", fmt.Sprintf("%s-%s", span.SpanContext().TraceID(), span.SpanContext().SpanID()))
+		traceparent := fmt.Sprintf("%s-%s", span.SpanContext().TraceID().String(), span.SpanContext().SpanID().String())
+		sharedError.ErrorMessage = fmt.Sprintf("[Traceparent: %s] %s", traceparent, sharedError.ErrorMessage)
 	}
-
-	diag.AddError(sharedErr.ErrorCode, msg)
+	diag.AddError(
+		string(sharedError.ErrorCode),
+		sharedError.ErrorMessage,
+	)
 }
