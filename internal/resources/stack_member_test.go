@@ -7,12 +7,12 @@ import (
 	"github.com/formancehq/terraform-provider-cloud/internal"
 	"github.com/formancehq/terraform-provider-cloud/internal/resources"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/require"
-	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.uber.org/mock/gomock"
 )
 
@@ -55,11 +55,8 @@ func TestStackMemberConfigure(t *testing.T) {
 			data := tc.providerData(apiMock, tp)
 
 			if tc.expectedErr == nil && data != nil {
-				tp.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": "test-organization-id",
-					},
-				}, nil).AnyTimes()
+				tp.EXPECT().OrganizationId(gomock.Any()).Return(uuid.NewString(), nil).AnyTimes()
+
 			}
 
 			og.Configure(ctx, resource.ConfigureRequest{

@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
-	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/mock/gomock"
 )
@@ -49,11 +48,8 @@ func TestStack(t *testing.T) {
 			},
 			expectedCalls: func(cloudSdk *pkg.MockCloudSDK, tokenProvider *pkg.MockTokenProviderImpl) {
 				organizationID := uuid.NewString()
-				tokenProvider.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": organizationID,
-					},
-				}, nil).AnyTimes()
+				tokenProvider.EXPECT().OrganizationId(gomock.Any()).Return(organizationID, nil).AnyTimes()
+
 				stackID := uuid.NewString()
 				md := map[string]string{
 					"env": "test",
@@ -166,11 +162,8 @@ func TestStackAlreadyDeleted(t *testing.T) {
 			},
 			expectedCalls: func(cloudSdk *pkg.MockCloudSDK, tokenProvider *pkg.MockTokenProviderImpl) {
 				organizationID := uuid.NewString()
-				tokenProvider.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": organizationID,
-					},
-				}, nil).AnyTimes()
+				tokenProvider.EXPECT().OrganizationId(gomock.Any()).Return(organizationID, nil).AnyTimes()
+
 				stackID := uuid.NewString()
 				md := map[string]string{
 					"env": "test",

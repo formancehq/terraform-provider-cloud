@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
-	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/mock/gomock"
 )
@@ -41,11 +40,7 @@ func TestRegionVersions(t *testing.T) {
 			},
 			expectedCalls: func(cloudSdk *pkg.MockCloudSDK, tokenProvider *pkg.MockTokenProviderImpl) {
 				organizationID := uuid.NewString()
-				tokenProvider.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": organizationID,
-					},
-				}, nil).AnyTimes()
+				tokenProvider.EXPECT().OrganizationId(gomock.Any()).Return(organizationID, nil).AnyTimes()
 				cloudSdk.EXPECT().GetRegionVersions(gomock.All(), organizationID, "another-region-id").Return(&operations.GetRegionVersionsResponse{
 					StatusCode:  http.StatusOK,
 					RawResponse: &http.Response{StatusCode: http.StatusOK},
@@ -80,11 +75,8 @@ func TestRegionVersions(t *testing.T) {
 			},
 			expectedCalls: func(cloudSdk *pkg.MockCloudSDK, tokenProvider *pkg.MockTokenProviderImpl) {
 				organizationID := uuid.NewString()
-				tokenProvider.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": organizationID,
-					},
-				}, nil).AnyTimes()
+				tokenProvider.EXPECT().OrganizationId(gomock.Any()).Return(organizationID, nil).AnyTimes()
+
 				cloudSdk.EXPECT().ListRegions(gomock.Any(), organizationID).Return(&operations.ListRegionsResponse{
 					StatusCode:  http.StatusOK,
 					RawResponse: &http.Response{StatusCode: http.StatusOK},

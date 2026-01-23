@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/require"
-	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.uber.org/mock/gomock"
 )
 
@@ -56,11 +55,8 @@ func TestStacksConfigure(t *testing.T) {
 		data := tc.providerData(apiMock, tp)
 
 		if tc.expectedErr == nil && data != nil {
-			tp.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
-				Claims: map[string]interface{}{
-					"organization_id": "test-org-id",
-				},
-			}, nil).AnyTimes()
+			tp.EXPECT().OrganizationId(gomock.Any()).Return(uuid.NewString(), nil).AnyTimes()
+
 		}
 		og.Configure(ctx, datasource.ConfigureRequest{
 			ProviderData: data,

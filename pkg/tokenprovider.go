@@ -13,6 +13,7 @@ import (
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/pkg/otlp"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/zitadel/oidc/v3/pkg/client"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
@@ -24,7 +25,7 @@ import (
 type TokenProviderImpl interface {
 	AccessToken(ctx context.Context) (*TokenInfo, error)
 	RefreshToken(ctx context.Context) (*TokenInfo, error)
-	IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error)
+	OrganizationId(ctx context.Context) (string, error)
 }
 
 type TokenInfo struct {
@@ -78,7 +79,29 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	defer logger.Debugf("Getting access token done")
 
 	rp, err := rp.NewRelyingPartyOIDC(ctx, p.creds.Endpoint(), p.creds.ClientId(), p.creds.ClientSecret(), "", []string{
-		"openid", "email", "offline_access", "supertoken",
+		"organization:CreateStack",
+		"organization:ReadStack",
+		"organization:UpdateStack",
+		"organization:DeleteStack",
+		"organization:UpgradeStack",
+		"organization:ListStacks",
+
+		"organization:ReadStackUser",
+		"organization:UpdateStackUser",
+		"organization:DeleteStackUser",
+
+		"organization:ListStackModules",
+		"organization:EnableStackModule",
+		"organization:DisableStackModule",
+
+		"organization:ListRegions",
+		"organization:ReadRegion",
+
+		"organization:ReadUser",
+		"organization:CreateUser",
+		"organization:UpdateUser",
+
+		"organization:Read",
 	}, rp.WithHTTPClient(p.client))
 	if err != nil {
 		logger.Errorf("Unable to create OIDC client: %s", err.Error())
@@ -108,6 +131,23 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	}, nil
 }
 
+func (p TokenProvider) OrganizationId(ctx context.Context) (string, error) {
+	accessToken, err := p.AccessToken(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var claims jwt.MapClaims
+	_, err = oidc.ParseToken(accessToken.AccessToken, &claims)
+	if err != nil {
+		return "", err
+	}
+
+	organizationId := claims["organization_id"].(string)
+	return organizationId, nil
+
+}
+
 func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 	ctx, span := otlp.Tracer.Start(ctx, "RefreshToken")
 	defer span.End()
@@ -133,7 +173,7 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 		"client_secret": []string{p.creds.ClientSecret()},
 	}
 
-	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
+	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), p.client)
 	if err != nil {
 		return nil, err
 	}
@@ -177,51 +217,4 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 		Expiry:       token.Expiry,
 	}, nil
 
-}
-
-func (p TokenProvider) IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error) {
-	logging.FromContext(ctx).Debugf("Introspecting token for %s", p.creds.Endpoint())
-
-	tokenInfo, err := p.AccessToken(ctx)
-	if err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-
-	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
-	if err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, discoveryConfiguration.IntrospectionEndpoint,
-		bytes.NewBufferString("token="+tokenInfo.AccessToken))
-	if err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-	req.SetBasicAuth(p.creds.ClientId(), p.creds.ClientSecret())
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	ret, err := p.client.Do(req)
-	if err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-	defer func() {
-		if err := ret.Body.Close(); err != nil {
-			logging.FromContext(ctx).Errorf("Failed to close response body: %s", err.Error())
-		}
-	}()
-
-	if ret.StatusCode != http.StatusOK {
-		data, err := io.ReadAll(ret.Body)
-		if err != nil {
-			return oidc.IntrospectionResponse{}, err
-		}
-		return oidc.IntrospectionResponse{}, errors.New(string(data))
-	}
-
-	var introspectionResponse oidc.IntrospectionResponse
-	if err := json.NewDecoder(ret.Body).Decode(&introspectionResponse); err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-
-	return introspectionResponse, nil
 }

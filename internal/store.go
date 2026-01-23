@@ -29,20 +29,16 @@ func (s *Store) GetSDK() pkg.CloudSDK {
 	return s.sdk
 }
 
-var (
-	claimOrganizationID = "organization_id"
-)
-
 // GetOrganizationID returns the current organization ID
 func (s *Store) GetOrganizationID(ctx context.Context) (string, error) {
 	s.Lock()
 	defer s.Unlock()
 	if s.organizationID == "" {
-		introspection, err := s.tp.IntrospectToken(ctx)
+		orgId, err := s.tp.OrganizationId(ctx)
 		if err != nil {
 			return "", err
 		}
-		s.organizationID = introspection.Claims[claimOrganizationID].(string)
+		s.organizationID = orgId
 	}
 	return s.organizationID, nil
 }

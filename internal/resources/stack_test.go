@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/require"
-	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.uber.org/mock/gomock"
 )
 
@@ -59,11 +58,8 @@ func TestStackConfigure(t *testing.T) {
 			apiMock := pkg.NewMockCloudSDK(ctrl)
 
 			if tc.expectedErr == nil {
-				tp.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": "organization_" + uuid.NewString()[:8],
-					},
-				}, nil).AnyTimes()
+				tp.EXPECT().OrganizationId(gomock.Any()).Return(uuid.NewString()[:8], nil).AnyTimes()
+
 			}
 
 			og.Configure(ctx, resource.ConfigureRequest{
@@ -120,11 +116,7 @@ func TestStackCreate(t *testing.T) {
 				apiMock := pkg.NewMockCloudSDK(ctrl)
 				store := internal.NewStore(apiMock, tp)
 
-				tp.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": organizationId,
-					},
-				}, nil).AnyTimes()
+				tp.EXPECT().OrganizationId(gomock.Any()).Return(organizationId, nil).AnyTimes()
 
 				r.Configure(ctx, resource.ConfigureRequest{
 					ProviderData: store,

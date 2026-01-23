@@ -13,7 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	oidc "github.com/zitadel/oidc/v3/pkg/oidc"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -80,41 +79,41 @@ func (c *MockTokenProviderImplAccessTokenCall) DoAndReturn(f func(context.Contex
 	return c
 }
 
-// IntrospectToken mocks base method.
-func (m *MockTokenProviderImpl) IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error) {
+// OrganizationId mocks base method.
+func (m *MockTokenProviderImpl) OrganizationId(ctx context.Context) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IntrospectToken", ctx)
-	ret0, _ := ret[0].(oidc.IntrospectionResponse)
+	ret := m.ctrl.Call(m, "OrganizationId", ctx)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// IntrospectToken indicates an expected call of IntrospectToken.
-func (mr *MockTokenProviderImplMockRecorder) IntrospectToken(ctx any) *MockTokenProviderImplIntrospectTokenCall {
+// OrganizationId indicates an expected call of OrganizationId.
+func (mr *MockTokenProviderImplMockRecorder) OrganizationId(ctx any) *MockTokenProviderImplOrganizationIdCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntrospectToken", reflect.TypeOf((*MockTokenProviderImpl)(nil).IntrospectToken), ctx)
-	return &MockTokenProviderImplIntrospectTokenCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrganizationId", reflect.TypeOf((*MockTokenProviderImpl)(nil).OrganizationId), ctx)
+	return &MockTokenProviderImplOrganizationIdCall{Call: call}
 }
 
-// MockTokenProviderImplIntrospectTokenCall wrap *gomock.Call
-type MockTokenProviderImplIntrospectTokenCall struct {
+// MockTokenProviderImplOrganizationIdCall wrap *gomock.Call
+type MockTokenProviderImplOrganizationIdCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTokenProviderImplIntrospectTokenCall) Return(arg0 oidc.IntrospectionResponse, arg1 error) *MockTokenProviderImplIntrospectTokenCall {
+func (c *MockTokenProviderImplOrganizationIdCall) Return(arg0 string, arg1 error) *MockTokenProviderImplOrganizationIdCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTokenProviderImplIntrospectTokenCall) Do(f func(context.Context) (oidc.IntrospectionResponse, error)) *MockTokenProviderImplIntrospectTokenCall {
+func (c *MockTokenProviderImplOrganizationIdCall) Do(f func(context.Context) (string, error)) *MockTokenProviderImplOrganizationIdCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTokenProviderImplIntrospectTokenCall) DoAndReturn(f func(context.Context) (oidc.IntrospectionResponse, error)) *MockTokenProviderImplIntrospectTokenCall {
+func (c *MockTokenProviderImplOrganizationIdCall) DoAndReturn(f func(context.Context) (string, error)) *MockTokenProviderImplOrganizationIdCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

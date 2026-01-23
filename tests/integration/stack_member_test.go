@@ -7,16 +7,15 @@ import (
 	"testing"
 
 	"github.com/formancehq/go-libs/v3/logging"
-	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
 	"github.com/formancehq/terraform-provider-cloud/internal/server"
 	"github.com/formancehq/terraform-provider-cloud/pkg"
+	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/operations"
 	"github.com/formancehq/terraform-provider-cloud/pkg/membership_client/pkg/models/shared"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
-	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/mock/gomock"
 )
@@ -54,11 +53,7 @@ func TestStackMember(t *testing.T) {
 			},
 			expectedCalls: func(cloudSdk *pkg.MockCloudSDK, tokenProvider *pkg.MockTokenProviderImpl) {
 				organizationID := uuid.NewString()
-				tokenProvider.EXPECT().IntrospectToken(gomock.Any()).Return(oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": organizationID,
-					},
-				}, nil).AnyTimes()
+				tokenProvider.EXPECT().OrganizationId(gomock.Any()).Return(organizationID, nil).AnyTimes()
 
 				cloudSdk.EXPECT().UpsertStackUserAccess(gomock.Any(), organizationID, "stack-id-456", "user-id-123", &shared.UpdateStackUserRequest{
 					PolicyID: 1,
