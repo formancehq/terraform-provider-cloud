@@ -32,7 +32,6 @@ func (a *App) Flags(pflags *pflag.FlagSet) {
 	pflags.Bool(service.DebugFlag, false, "Debug mode")
 	pflags.Bool(logging.JsonFormattingLoggerFlag, true, "Format logs as json")
 	pflags.String(OutputFlag, "file", "file|stderr: where to output logs")
-	pflags.Duration(service.GracePeriodFlag, 0, "Grace period for shutdown")
 	otlp.AddFlags(pflags)
 	otlptraces.AddFlags(pflags)
 }
