@@ -12,8 +12,8 @@ func NewCloudSdkMockT(mock *pkg.MockCloudSDK) func(endpoint string, transport ht
 	}
 }
 
-func NewCloudTokenProviderMockT(mock *pkg.MockTokenProviderImpl) func(transport http.RoundTripper, creds pkg.Creds, scopes []string) pkg.TokenProviderImpl {
-	return func(transport http.RoundTripper, creds pkg.Creds, scopes []string) pkg.TokenProviderImpl {
+func NewCloudTokenProviderMockT(mock *pkg.MockTokenProviderImpl) func(transport http.RoundTripper, creds pkg.Creds, scopes []string, opts ...pkg.UrlOpts) pkg.TokenProviderImpl {
+	return func(transport http.RoundTripper, creds pkg.Creds, scopes []string, opts ...pkg.UrlOpts) pkg.TokenProviderImpl {
 		return mock
 	}
 }
