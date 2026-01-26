@@ -127,12 +127,8 @@ func TestStackMember(t *testing.T) {
 				server.FormanceCloudClientId("organization_client_id"),
 				server.FormanceCloudClientSecret("dummy-client-secret"),
 				transport,
-				func(creds pkg.Creds, transport http.RoundTripper) pkg.CloudSDK {
-					return cloudSdk
-				},
-				func(transport http.RoundTripper, creds pkg.Creds) pkg.TokenProviderImpl {
-					return tokenProvider
-				},
+				NewCloudSdkMockT(cloudSdk),
+				NewCloudTokenProviderMockT(tokenProvider),
 			)
 
 			if tc.expectedCalls != nil {

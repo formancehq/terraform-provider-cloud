@@ -123,8 +123,8 @@ func (p *FormanceCloudProvider) Configure(ctx context.Context, req provider.Conf
 	}
 
 	creds := NewProviderModelAdapter(&data)
-	tp := p.tokenProviderFactory(p.transport, creds)
-	cli := p.sdkFactory(creds, pkg.NewTransport(p.transport, tp))
+	tp := p.tokenProviderFactory(p.transport, creds, pkg.ScopeCloud)
+	cli := p.sdkFactory(creds.Endpoint(), pkg.NewTransport(p.transport, tp))
 
 	store := internal.NewStore(cli, tp)
 	resp.ResourceData = store
@@ -247,7 +247,7 @@ func New(
 	clientSecret string,
 	transport http.RoundTripper,
 	sdkFactory pkg.CloudFactory,
-	tokenFactory pkg.TokenProviderFactory,
+	tokenProvider pkg.TokenProviderFactory,
 ) func() provider.Provider {
 	return func() provider.Provider {
 		return &FormanceCloudProvider{
@@ -258,7 +258,7 @@ func New(
 			transport:            transport,
 			Endpoint:             endpoint,
 			sdkFactory:           sdkFactory,
-			tokenProviderFactory: tokenFactory,
+			tokenProviderFactory: tokenProvider,
 		}
 	}
 }

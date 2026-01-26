@@ -46,39 +46,25 @@ type TokenProvider struct {
 	creds Creds
 
 	cloud *TokenInfo
+
+	scopes []string
 }
 
-type TokenProviderFactory func(transport http.RoundTripper, creds Creds) TokenProviderImpl
+type TokenProviderFactory func(transport http.RoundTripper, creds Creds, scopes []string) TokenProviderImpl
 
-func NewTokenProvider(transport http.RoundTripper, creds Creds) TokenProviderImpl {
+func NewTokenProvider(transport http.RoundTripper, creds Creds, scopes []string) TokenProviderImpl {
 	return TokenProvider{
 		client: &http.Client{
 			Transport: transport,
 		},
-		cloud: &TokenInfo{},
-		creds: creds,
+		cloud:  &TokenInfo{},
+		creds:  creds,
+		scopes: scopes,
 	}
 }
 
-func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
-	ctx, span := otlp.Tracer.Start(ctx, "AccessToken")
-	defer span.End()
-	p.cloud.Lock()
-	defer p.cloud.Unlock()
-
-	if p.cloud.AccessToken != "" {
-		return &TokenInfo{
-			AccessToken:  p.cloud.AccessToken,
-			RefreshToken: p.cloud.RefreshToken,
-			Expiry:       p.cloud.Expiry,
-		}, nil
-	}
-
-	logger := logging.FromContext(ctx).WithField("operation", "accesstoken")
-	logger.Debugf("Getting access token for %s", p.creds.Endpoint())
-	defer logger.Debugf("Getting access token done")
-
-	rp, err := rp.NewRelyingPartyOIDC(ctx, p.creds.Endpoint(), p.creds.ClientId(), p.creds.ClientSecret(), "", []string{
+var (
+	ScopeCloud = []string{
 		"organization:CreateStack",
 		"organization:ReadStack",
 		"organization:UpdateStack",
@@ -102,7 +88,33 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 		"organization:UpdateUser",
 
 		"organization:Read",
-	}, rp.WithHTTPClient(p.client))
+	}
+	ScopeStack = []string{
+		"organization:Read",
+		"stack:Read",
+		"stack:Write",
+	}
+)
+
+func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
+	ctx, span := otlp.Tracer.Start(ctx, "AccessToken")
+	defer span.End()
+	p.cloud.Lock()
+	defer p.cloud.Unlock()
+
+	if p.cloud.AccessToken != "" {
+		return &TokenInfo{
+			AccessToken:  p.cloud.AccessToken,
+			RefreshToken: p.cloud.RefreshToken,
+			Expiry:       p.cloud.Expiry,
+		}, nil
+	}
+
+	logger := logging.FromContext(ctx).WithField("operation", "accesstoken")
+	logger.Debugf("Getting access token for %s", p.creds.Endpoint())
+	defer logger.Debugf("Getting access token done")
+
+	rp, err := rp.NewRelyingPartyOIDC(ctx, p.creds.Endpoint(), p.creds.ClientId(), p.creds.ClientSecret(), "", p.scopes, rp.WithHTTPClient(p.client))
 	if err != nil {
 		logger.Errorf("Unable to create OIDC client: %s", err.Error())
 		return nil, err

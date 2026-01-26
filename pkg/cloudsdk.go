@@ -144,19 +144,17 @@ func (s *sdkImpl) UpsertUserOfOrganization(ctx context.Context, organizationID s
 	return s.sdk.UpsertOrganizationUser(ctx, organizationID, userID, body)
 }
 
-type CloudFactory func(creds Creds, transport http.RoundTripper) CloudSDK
+type CloudFactory func(endpoint string, transport http.RoundTripper) CloudSDK
 
 func NewCloudSDK(opts ...membershipclient.SDKOption) CloudFactory {
-	return func(creds Creds, transport http.RoundTripper) CloudSDK {
-		tp := NewTokenProvider(transport, creds)
-		sdk := NewSDK(creds.Endpoint(), transport, tp)
+	return func(endpoint string, transport http.RoundTripper) CloudSDK {
 		return &sdkImpl{
-			sdk: sdk,
+			sdk: NewSDK(endpoint, transport),
 		}
 	}
 }
 
-func NewSDK(endpoint string, transport http.RoundTripper, tp TokenProviderImpl, opts ...membershipclient.SDKOption) *membershipclient.FormanceCloud {
+func NewSDK(endpoint string, transport http.RoundTripper, opts ...membershipclient.SDKOption) *membershipclient.FormanceCloud {
 	client := &http.Client{
 		Transport: transport,
 	}
@@ -164,14 +162,6 @@ func NewSDK(endpoint string, transport http.RoundTripper, tp TokenProviderImpl, 
 	return membershipclient.New(
 		append(opts, membershipclient.WithServerURL(endpoint),
 			membershipclient.WithClient(client),
-			membershipclient.WithSecuritySource(func(ctx context.Context) (shared.Security, error) {
-				token, err := tp.RefreshToken(ctx)
-				if err != nil {
-					return shared.Security{}, err
-				}
-				return shared.Security{
-					Oauth2: token.AccessToken,
-				}, nil
-			}))...,
+		)...,
 	)
 }

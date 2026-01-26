@@ -33,7 +33,7 @@ func NewMockTokenProvider(ctrl *gomock.Controller) (pkg.TokenProviderFactory, *M
 	mock := &Mock{
 		MockTokenProviderImpl: pkg.NewMockTokenProviderImpl(ctrl),
 	}
-	return func(transport http.RoundTripper, creds pkg.Creds) pkg.TokenProviderImpl {
+	return func(transport http.RoundTripper, creds pkg.Creds, scopes []string) pkg.TokenProviderImpl {
 		mock.Creds = creds
 		return mock
 	}, mock
