@@ -95,8 +95,6 @@ var (
 	}
 	ScopeStack = []string{
 		"organization:Read",
-		"stack:Read",
-		"stack:Write",
 	}
 )
 
