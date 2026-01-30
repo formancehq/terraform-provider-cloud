@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
-	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/mock/gomock"
 )
@@ -46,12 +45,7 @@ func TestOrganizationMember(t *testing.T) {
 			},
 			expectedCalls: func(mcs *pkg.MockCloudSDK, mtpi *pkg.MockTokenProviderImpl) {
 				organizationID := uuid.NewString()
-				res := oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": organizationID,
-					},
-				}
-				mtpi.EXPECT().IntrospectToken(gomock.Any()).Return(res, nil).AnyTimes()
+				mtpi.EXPECT().OrganizationId(gomock.Any()).Return(organizationID, nil).AnyTimes()
 				invitationID := uuid.NewString()
 				now := time.Now()
 				invitation := &shared.Invitation{
@@ -107,12 +101,7 @@ func TestOrganizationMember(t *testing.T) {
 			},
 			expectedCalls: func(mcs *pkg.MockCloudSDK, mtpi *pkg.MockTokenProviderImpl) {
 				organizationID := uuid.NewString()
-				res := oidc.IntrospectionResponse{
-					Claims: map[string]interface{}{
-						"organization_id": organizationID,
-					},
-				}
-				mtpi.EXPECT().IntrospectToken(gomock.Any()).Return(res, nil).AnyTimes()
+				mtpi.EXPECT().OrganizationId(gomock.Any()).Return(organizationID, nil).AnyTimes()
 				invitationID := uuid.NewString()
 				userID := uuid.NewString()
 				now := time.Now()
@@ -195,12 +184,8 @@ func TestOrganizationMember(t *testing.T) {
 				server.FormanceCloudClientId("organization_client_id"),
 				server.FormanceCloudClientSecret("dummy-client-secret"),
 				transport,
-				func(creds pkg.Creds, transport http.RoundTripper) pkg.CloudSDK {
-					return cloudSdk
-				},
-				func(transport http.RoundTripper, creds pkg.Creds) pkg.TokenProviderImpl {
-					return tokenProvider
-				},
+				NewCloudSdkMockT(cloudSdk),
+				NewCloudTokenProviderMockT(tokenProvider),
 			)
 
 			if tc.expectedCalls != nil {

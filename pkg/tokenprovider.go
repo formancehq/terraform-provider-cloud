@@ -1,11 +1,7 @@
 package pkg
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
-	"io"
 	"net/http"
 	"net/url"
 	"sync"
@@ -13,10 +9,9 @@ import (
 
 	"github.com/formancehq/go-libs/v3/logging"
 	"github.com/formancehq/terraform-provider-cloud/pkg/otlp"
-	"github.com/zitadel/oidc/v3/pkg/client"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
 
@@ -24,7 +19,7 @@ import (
 type TokenProviderImpl interface {
 	AccessToken(ctx context.Context) (*TokenInfo, error)
 	RefreshToken(ctx context.Context) (*TokenInfo, error)
-	IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error)
+	OrganizationId(ctx context.Context) (string, error)
 }
 
 type TokenInfo struct {
@@ -45,19 +40,63 @@ type TokenProvider struct {
 	creds Creds
 
 	cloud *TokenInfo
+
+	scopes []string
+	opts   []UrlOpts
 }
 
-type TokenProviderFactory func(transport http.RoundTripper, creds Creds) TokenProviderImpl
+type TokenProviderFactory func(transport http.RoundTripper, creds Creds, scopes []string, opts ...UrlOpts) TokenProviderImpl
 
-func NewTokenProvider(transport http.RoundTripper, creds Creds) TokenProviderImpl {
+type UrlOpts func(url.Values)
+
+func WithResource(resource string) UrlOpts {
+	return func(v url.Values) {
+		v.Add("resource", resource)
+	}
+}
+
+func NewTokenProvider(transport http.RoundTripper, creds Creds, scopes []string, opts ...UrlOpts) TokenProviderImpl {
 	return TokenProvider{
 		client: &http.Client{
 			Transport: transport,
 		},
-		cloud: &TokenInfo{},
-		creds: creds,
+		cloud:  &TokenInfo{},
+		creds:  creds,
+		scopes: scopes,
+		opts:   opts,
 	}
 }
+
+var (
+	ScopeCloud = []string{
+		"organization:CreateStack",
+		"organization:ReadStack",
+		"organization:UpdateStack",
+		"organization:DeleteStack",
+		"organization:UpgradeStack",
+		"organization:ListStacks",
+
+		"organization:ReadStackUser",
+		"organization:UpdateStackUser",
+		"organization:DeleteStackUser",
+
+		"organization:ListStackModules",
+		"organization:EnableStackModule",
+		"organization:DisableStackModule",
+
+		"organization:ListRegions",
+		"organization:ReadRegion",
+
+		"organization:ReadUser",
+		"organization:CreateUser",
+		"organization:UpdateUser",
+
+		"organization:Read",
+	}
+	ScopeStack = []string{
+		"organization:Read",
+	}
+)
 
 func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	ctx, span := otlp.Tracer.Start(ctx, "AccessToken")
@@ -77,20 +116,32 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 	logger.Debugf("Getting access token for %s", p.creds.Endpoint())
 	defer logger.Debugf("Getting access token done")
 
-	rp, err := rp.NewRelyingPartyOIDC(ctx, p.creds.Endpoint(), p.creds.ClientId(), p.creds.ClientSecret(), "", []string{
-		"openid", "email", "offline_access", "supertoken",
-	}, rp.WithHTTPClient(p.client))
+	rp, err := rp.NewRelyingPartyOIDC(ctx,
+		p.creds.Endpoint(),
+		p.creds.ClientId(),
+		p.creds.ClientSecret(),
+		"",
+		p.scopes,
+		rp.WithHTTPClient(p.client),
+	)
 	if err != nil {
 		logger.Errorf("Unable to create OIDC client: %s", err.Error())
 		return nil, err
 	}
 
-	t, err := (&clientcredentials.Config{
-		Scopes:       rp.OAuthConfig().Scopes,
-		ClientID:     rp.OAuthConfig().ClientID,
-		ClientSecret: rp.OAuthConfig().ClientSecret,
-		TokenURL:     rp.OAuthConfig().Endpoint.TokenURL,
-	}).Token(ctx)
+	config := &clientcredentials.Config{
+		Scopes:         rp.OAuthConfig().Scopes,
+		ClientID:       rp.OAuthConfig().ClientID,
+		ClientSecret:   rp.OAuthConfig().ClientSecret,
+		TokenURL:       rp.OAuthConfig().Endpoint.TokenURL,
+		EndpointParams: make(url.Values),
+	}
+
+	for _, opt := range p.opts {
+		opt(config.EndpointParams)
+	}
+
+	t, err := (config).Token(ctx)
 
 	if err != nil {
 		logger.Errorf("Unable to get token: %s", err.Error())
@@ -106,6 +157,23 @@ func (p TokenProvider) AccessToken(ctx context.Context) (*TokenInfo, error) {
 		RefreshToken: t.RefreshToken,
 		Expiry:       t.Expiry,
 	}, nil
+}
+
+func (p TokenProvider) OrganizationId(ctx context.Context) (string, error) {
+	accessToken, err := p.AccessToken(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var claims jwt.MapClaims
+	_, err = oidc.ParseToken(accessToken.AccessToken, &claims)
+	if err != nil {
+		return "", err
+	}
+
+	organizationId := claims["organization_id"].(string)
+	return organizationId, nil
+
 }
 
 func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
@@ -126,102 +194,22 @@ func (p TokenProvider) RefreshToken(ctx context.Context) (*TokenInfo, error) {
 		}, nil
 	}
 
-	form := url.Values{
-		"grant_type":    []string{string(oidc.GrantTypeRefreshToken)},
-		"refresh_token": []string{tokenInfo.RefreshToken},
-		"client_id":     []string{p.creds.ClientId()},
-		"client_secret": []string{p.creds.ClientSecret()},
-	}
-
-	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, discoveryConfiguration.TokenEndpoint,
-		bytes.NewBufferString(form.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(p.creds.ClientId(), p.creds.ClientSecret())
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	ret, err := p.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	if ret.StatusCode != http.StatusOK {
-		data, err := io.ReadAll(ret.Body)
-		if err != nil {
-			return nil, err
-		}
-		return nil, errors.New(string(data))
-	}
-
-	token := oauth2.Token{}
-	if err := json.NewDecoder(ret.Body).Decode(&token); err != nil {
-		return nil, err
-	}
-
 	p.cloud.Lock()
-	defer p.cloud.Unlock()
+	p.cloud.AccessToken = ""
+	p.cloud.Unlock()
+	tokenInfo, err = p.AccessToken(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	p.cloud.AccessToken = token.AccessToken
-	p.cloud.Expiry = token.Expiry
-	p.cloud.RefreshToken = token.RefreshToken
+	p.cloud.AccessToken = tokenInfo.AccessToken
+	p.cloud.Expiry = tokenInfo.Expiry
+	p.cloud.RefreshToken = tokenInfo.RefreshToken
 
 	return &TokenInfo{
-		AccessToken:  token.AccessToken,
-		RefreshToken: token.RefreshToken,
-		Expiry:       token.Expiry,
+		AccessToken:  tokenInfo.AccessToken,
+		RefreshToken: tokenInfo.RefreshToken,
+		Expiry:       tokenInfo.Expiry,
 	}, nil
 
-}
-
-func (p TokenProvider) IntrospectToken(ctx context.Context) (oidc.IntrospectionResponse, error) {
-	logging.FromContext(ctx).Debugf("Introspecting token for %s", p.creds.Endpoint())
-
-	tokenInfo, err := p.AccessToken(ctx)
-	if err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-
-	discoveryConfiguration, err := client.Discover(ctx, p.creds.Endpoint(), http.DefaultClient)
-	if err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, discoveryConfiguration.IntrospectionEndpoint,
-		bytes.NewBufferString("token="+tokenInfo.AccessToken))
-	if err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-	req.SetBasicAuth(p.creds.ClientId(), p.creds.ClientSecret())
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	ret, err := p.client.Do(req)
-	if err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-	defer func() {
-		if err := ret.Body.Close(); err != nil {
-			logging.FromContext(ctx).Errorf("Failed to close response body: %s", err.Error())
-		}
-	}()
-
-	if ret.StatusCode != http.StatusOK {
-		data, err := io.ReadAll(ret.Body)
-		if err != nil {
-			return oidc.IntrospectionResponse{}, err
-		}
-		return oidc.IntrospectionResponse{}, errors.New(string(data))
-	}
-
-	var introspectionResponse oidc.IntrospectionResponse
-	if err := json.NewDecoder(ret.Body).Decode(&introspectionResponse); err != nil {
-		return oidc.IntrospectionResponse{}, err
-	}
-
-	return introspectionResponse, nil
 }

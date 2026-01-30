@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
 
@@ -63,12 +62,8 @@ func TestProvider(t *testing.T) {
 				server.FormanceCloudClientId(tc.clientId),
 				server.FormanceCloudClientSecret(tc.clientSecret),
 				transport,
-				func(creds pkg.Creds, transport http.RoundTripper) pkg.CloudSDK {
-					return cloudSdk
-				},
-				func(transport http.RoundTripper, creds pkg.Creds) pkg.TokenProviderImpl {
-					return tokenProvider
-				},
+				NewCloudSdkMockT(cloudSdk),
+				NewCloudTokenProviderMockT(tokenProvider),
 			)
 
 			noopStep := resource.TestStep{
