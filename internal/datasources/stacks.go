@@ -60,6 +60,10 @@ var SchemaStack = schema.Schema{
 			Description: "The current state of the stack.",
 			Computed:    true,
 		},
+		"uri": schema.StringAttribute{
+			Description: "The URI of the stack.",
+			Computed:    true,
+		},
 	},
 }
 
@@ -87,6 +91,7 @@ type StackModel struct {
 	RegionID types.String `tfsdk:"region_id"`
 	Status   types.String `tfsdk:"status"`
 	State    types.String `tfsdk:"state"`
+	URI      types.String `tfsdk:"uri"`
 }
 
 func NewStacks() func() datasource.DataSource {
@@ -160,6 +165,7 @@ func (s *Stack) Read(ctx context.Context, req datasource.ReadRequest, resp *data
 	data.RegionID = types.StringValue(stack.RegionID)
 	data.Status = types.StringValue(string(stack.Status))
 	data.State = types.StringValue(string(stack.State))
+	data.URI = types.StringValue(stack.URI)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
