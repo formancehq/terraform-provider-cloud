@@ -69,8 +69,10 @@ require (
 
 require (
 	github.com/formancehq/go-libs/v3 v3.6.1
+	github.com/formancehq/go-libs/v4 v4.1.1
 	github.com/formancehq/terraform-provider-cloud/pkg/membership_client v0.0.0-00010101000000-000000000000
 	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/stretchr/testify v1.11.1
 	github.com/zitadel/oidc/v3 v3.45.0
 	go.uber.org/mock v0.5.2
@@ -79,13 +81,17 @@ require (
 
 require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
+	github.com/apparentlymart/go-textseg/v16 v16.0.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
+	github.com/lithammer/shortuuid/v4 v4.2.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
+	google.golang.org/appengine/v2 v2.0.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
